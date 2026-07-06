@@ -13,11 +13,11 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 - ✅ Aceptación: `pnpm dev` levanta una página con los tokens aplicados en ambos idiomas
 
 ### 0.2 Multi-tenancy y Auth
-- [ ] Migración: `organizations`, `users`, trigger de perfil al registrarse
-- [ ] Signup de organización (nombre, moneda default, locale) + login email y Google OAuth
-- [ ] Invitaciones por email con rol preasignado (token de un solo uso)
-- [ ] Políticas RLS por `org_id` + helper `current_org_id()`
-- [ ] Tests de aislamiento: usuario de org A no puede leer/escribir datos de org B (obligatorio)
+- [x] Migración: `organizations`, `users`, trigger de perfil al registrarse
+- [x] Signup de organización (nombre, moneda default, locale) + login email y Google OAuth
+- [x] Invitaciones por email con rol preasignado (token de un solo uso)
+- [x] Políticas RLS por `org_id` + helper `current_org_id()`
+- [x] Tests de aislamiento: usuario de org A no puede leer/escribir datos de org B (obligatorio)
 - ✅ Aceptación: dos orgs de prueba con datos invisibles entre sí, verificado por test automatizado
 
 ### 0.3 Usuarios y departamentos

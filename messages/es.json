@@ -5,5 +5,67 @@
     "greeting": "Fase 0 · Bloque 0.1 — Scaffolding",
     "sampleLabel": "Gasto anualizado (ejemplo)",
     "localeSwitchLabel": "Idioma"
+  },
+  "Auth": {
+    "roles": {
+      "employee": "Empleado",
+      "manager": "Manager",
+      "finance": "Finanzas",
+      "it_admin": "Administrador IT",
+      "org_admin": "Administrador de organización"
+    },
+    "signup": {
+      "title": "Crea tu organización",
+      "tagline": "Empieza a controlar tu stack de SaaS en minutos",
+      "orgNameLabel": "Nombre de la organización",
+      "orgSlugLabel": "Identificador (slug)",
+      "orgSlugHint": "Solo minúsculas, números y guiones",
+      "defaultCurrencyLabel": "Moneda por defecto",
+      "fullNameLabel": "Tu nombre completo",
+      "emailLabel": "Email",
+      "passwordLabel": "Contraseña",
+      "submit": "Crear organización",
+      "orDivider": "o",
+      "googleButton": "Continuar con Google",
+      "haveAccount": "¿Ya tienes cuenta?",
+      "loginLink": "Inicia sesión"
+    },
+    "login": {
+      "title": "Inicia sesión",
+      "tagline": "Accede a tu organización en Stackly",
+      "emailLabel": "Email",
+      "passwordLabel": "Contraseña",
+      "submit": "Entrar",
+      "orDivider": "o",
+      "googleButton": "Continuar con Google",
+      "noAccount": "¿No tienes organización todavía?",
+      "signupLink": "Créala aquí",
+      "errorOAuth": "No se pudo iniciar sesión con Google. Inténtalo de nuevo."
+    },
+    "invite": {
+      "invalidTitle": "Invitación no válida",
+      "invalidBody": "Este enlace de invitación caducó, ya se usó o no existe. Pide a tu administrador que te envíe una nueva.",
+      "title": "Únete a {orgName}",
+      "tagline": "Te han invitado como {role}",
+      "emailLabel": "Email",
+      "fullNameLabel": "Tu nombre completo",
+      "passwordLabel": "Elige una contraseña",
+      "submit": "Unirme"
+    },
+    "errorGeneric": "Ha ocurrido un error. Revisa los datos e inténtalo de nuevo."
+  },
+  "Team": {
+    "invite": {
+      "title": "Invitar a tu equipo",
+      "emailLabel": "Email",
+      "roleLabel": "Rol",
+      "submit": "Enviar invitación",
+      "sentConfirmation": "Invitación enviada",
+      "pendingTitle": "Invitaciones pendientes",
+      "empty": "No hay invitaciones pendientes",
+      "revoke": "Revocar",
+      "expiresLabel": "Caduca el {date}",
+      "forbidden": "Solo un administrador puede gestionar invitaciones"
+    }
   }
 }

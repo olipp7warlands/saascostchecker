@@ -5,5 +5,67 @@
     "greeting": "Phase 0 · Block 0.1 — Scaffolding",
     "sampleLabel": "Annualized spend (sample)",
     "localeSwitchLabel": "Language"
+  },
+  "Auth": {
+    "roles": {
+      "employee": "Employee",
+      "manager": "Manager",
+      "finance": "Finance",
+      "it_admin": "IT Admin",
+      "org_admin": "Org Admin"
+    },
+    "signup": {
+      "title": "Create your organization",
+      "tagline": "Start controlling your SaaS stack in minutes",
+      "orgNameLabel": "Organization name",
+      "orgSlugLabel": "Slug",
+      "orgSlugHint": "Lowercase letters, numbers and hyphens only",
+      "defaultCurrencyLabel": "Default currency",
+      "fullNameLabel": "Your full name",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "submit": "Create organization",
+      "orDivider": "or",
+      "googleButton": "Continue with Google",
+      "haveAccount": "Already have an account?",
+      "loginLink": "Log in"
+    },
+    "login": {
+      "title": "Log in",
+      "tagline": "Access your organization on Stackly",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "submit": "Sign in",
+      "orDivider": "or",
+      "googleButton": "Continue with Google",
+      "noAccount": "Don't have an organization yet?",
+      "signupLink": "Create one",
+      "errorOAuth": "Couldn't sign in with Google. Please try again."
+    },
+    "invite": {
+      "invalidTitle": "Invalid invitation",
+      "invalidBody": "This invitation link has expired, was already used, or doesn't exist. Ask your admin to send a new one.",
+      "title": "Join {orgName}",
+      "tagline": "You've been invited as {role}",
+      "emailLabel": "Email",
+      "fullNameLabel": "Your full name",
+      "passwordLabel": "Choose a password",
+      "submit": "Join"
+    },
+    "errorGeneric": "Something went wrong. Check your details and try again."
+  },
+  "Team": {
+    "invite": {
+      "title": "Invite your team",
+      "emailLabel": "Email",
+      "roleLabel": "Role",
+      "submit": "Send invitation",
+      "sentConfirmation": "Invitation sent",
+      "pendingTitle": "Pending invitations",
+      "empty": "No pending invitations",
+      "revoke": "Revoke",
+      "expiresLabel": "Expires on {date}",
+      "forbidden": "Only an admin can manage invitations"
+    }
   }
 }
