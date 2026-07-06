@@ -1,0 +1,9 @@
+{
+  "HomePage": {
+    "title": "Stackly",
+    "tagline": "Visibilidad y control de tu stack de SaaS",
+    "greeting": "Fase 0 · Bloque 0.1 — Scaffolding",
+    "sampleLabel": "Gasto anualizado (ejemplo)",
+    "localeSwitchLabel": "Idioma"
+  }
+}

@@ -1,0 +1,13 @@
+# Registro de decisiones
+
+Claude Code: anota aquí cada decisión técnica relevante (fecha, bloque, decisión, motivo).
+
+## 2026-07-06 — Bloque 0.1 Scaffolding
+
+- **Versiones pinneadas**: `next@15.5.20` (última 15.x; 16.x existe pero SPECS fija Next 15), `tailwindcss@4.3.2`, `next-intl@4.13.1`, `shadcn@4.13.0` (estilo `base-nova`, usa `@base-ui/react` en vez de Radix directo), `vitest@4.1.10`, `@playwright/test@1.61.1`. Package manager: pnpm (`packageManager` fijado en `package.json` para reproducibilidad en CI).
+- **Supabase remoto pendiente**: `supabase init` + `supabase start` funcionan en local (ver `supabase status` para credenciales). El link a un proyecto remoto (`supabase link --project-ref <ref>`) requiere `supabase login` interactivo (OAuth) con la cuenta del usuario — no se pudo automatizar. Queda como acción manual antes o durante el bloque 0.2: el usuario crea el proyecto en el dashboard de Supabase, pasa el project ref, y se ejecuta el link.
+- **Estructura de rutas**: todo el App Router vive bajo `src/app/[locale]/` (patrón estándar de `next-intl`); no hay `src/app/layout.tsx` propio — el layout de `[locale]` actúa como raíz. Middleware en `middleware.ts` (raíz del repo) gestiona el prefijo de idioma; default `es`, soportados `es`/`en`.
+- **Tokens de diseño**: los tokens de `docs/mockups.html` (`--bg`, `--surface`, `--ink`, `--ink-soft`, `--line`, `--primary`, `--primary-soft`, `--amber`, `--amber-soft`, `--red`, `--red-soft`) se mapearon 1:1 a las variables que shadcn/ui espera (`--background`, `--foreground`, `--border`, etc.) en `src/app/globals.css`, para que los componentes de shadcn hereden la paleta de marca sin theming adicional. Solo se implementó el tema claro (el mockup no define modo oscuro); se puede añadir `.dark` en un bloque posterior si se decide soportarlo.
+- **Alcance de tests en 0.1**: un test unitario real por pieza no trivial (`cn()` de shadcn, config de `routing.ts`) y un smoke e2e de Playwright que visita `/es` y `/en` y verifica el cambio de idioma — no hay lógica de negocio todavía, así que no se fuerza cobertura artificial. CI corre `lint`, `typecheck`, `test` (Vitest) y un job separado con Playwright + Chromium.
+- **`@supabase/ssr` / `@supabase/supabase-js`**: no se instalan en 0.1 para evitar dependencias sin uso; se instalarán en el bloque 0.2 cuando se escriba el cliente real de Supabase Auth.
+- **Supabase local — servicios no críticos parados**: `imgproxy` y `pooler` (pgbouncer) quedan detenidos tras `supabase start` en esta máquina (no se usan hasta fases posteriores: transformación de imágenes y connection pooling para serverless). El resto (db, auth, rest, storage, studio, kong, realtime) están `healthy`. Credenciales locales en `.env.local.example`.
