@@ -66,6 +66,25 @@
       "revoke": "Revocar",
       "expiresLabel": "Caduca el {date}",
       "forbidden": "Solo un administrador puede gestionar invitaciones"
+    },
+    "departments": {
+      "title": "Nuevo departamento",
+      "listTitle": "Departamentos",
+      "nameLabel": "Nombre",
+      "managerLabel": "Manager",
+      "noManager": "Sin manager",
+      "create": "Crear departamento",
+      "edit": "Guardar",
+      "delete": "Eliminar",
+      "empty": "Todavía no hay departamentos",
+      "forbidden": "Solo un administrador puede gestionar departamentos"
+    },
+    "members": {
+      "title": "Miembros del equipo",
+      "roleLabel": "Rol",
+      "departmentLabel": "Departamento",
+      "noDepartment": "Sin departamento",
+      "forbidden": "Solo un administrador puede gestionar usuarios"
     }
   }
 }

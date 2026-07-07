@@ -66,6 +66,25 @@
       "revoke": "Revoke",
       "expiresLabel": "Expires on {date}",
       "forbidden": "Only an admin can manage invitations"
+    },
+    "departments": {
+      "title": "New department",
+      "listTitle": "Departments",
+      "nameLabel": "Name",
+      "managerLabel": "Manager",
+      "noManager": "No manager",
+      "create": "Create department",
+      "edit": "Save",
+      "delete": "Delete",
+      "empty": "No departments yet",
+      "forbidden": "Only an admin can manage departments"
+    },
+    "members": {
+      "title": "Team members",
+      "roleLabel": "Role",
+      "departmentLabel": "Department",
+      "noDepartment": "No department",
+      "forbidden": "Only an admin can manage users"
     }
   }
 }

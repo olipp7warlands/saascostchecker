@@ -21,9 +21,9 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 - ✅ Aceptación: dos orgs de prueba con datos invisibles entre sí, verificado por test automatizado
 
 ### 0.3 Usuarios y departamentos
-- [ ] Migración: `departments` (con `manager_user_id`)
-- [ ] CRUD de departamentos y gestión de usuarios/roles (solo org_admin)
-- [ ] Asignación de departamento a cada usuario
+- [x] Migración: `departments` (con `manager_user_id`)
+- [x] CRUD de departamentos y gestión de usuarios/roles (solo org_admin)
+- [x] Asignación de departamento a cada usuario
 - ✅ Aceptación: matriz de permisos de SPECS §5 aplicada y testeada en server actions
 
 ### 0.4 Layout base

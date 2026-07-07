@@ -3,6 +3,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import type { ActionResult } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { sendInvitationEmail } from "./email";
 import {
@@ -12,7 +13,7 @@ import {
   signUpOrganizationSchema,
 } from "./schemas";
 
-export type ActionResult = { error: string } | { success: true };
+export type { ActionResult } from "@/lib/action-result";
 
 const INVITATION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
