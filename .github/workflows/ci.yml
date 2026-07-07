@@ -76,4 +76,30 @@ jobs:
 
       - run: pnpm exec playwright install --with-deps chromium
 
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.75.0
+
+      # Mismo patrón que el job de unit tests: solo los 4 servicios que hacen
+      # falta para que `middleware.ts` (createServerClient en cada request)
+      # no reviente por falta de URL/anon key (ver docs/DECISIONS.md).
+      - name: Start local Supabase (minimal services)
+        run: |
+          supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Wait for Supabase REST/Auth to answer
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:54321/auth/v1/health > /dev/null; then
+              echo "Auth respondiendo, continuando."
+              break
+            fi
+            echo "Esperando a que Auth responda... ($i/30)"
+            sleep 2
+          done
+          sleep 5
+
       - run: pnpm test:e2e
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
