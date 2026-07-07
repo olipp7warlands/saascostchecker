@@ -6,6 +6,7 @@ import { signInWithGoogle, signUpOrganization } from "@/features/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { GOOGLE_OAUTH_ENABLED } from "@/lib/feature-flags";
 
 export function SignUpForm({ locale }: { locale: "es" | "en" }) {
   const t = useTranslations("Auth.signup");
@@ -90,17 +91,21 @@ export function SignUpForm({ locale }: { locale: "es" | "en" }) {
         </Button>
       </form>
 
-      <div className="flex items-center gap-3 text-xs text-ink-soft">
-        <span className="h-px flex-1 bg-line" />
-        {t("orDivider")}
-        <span className="h-px flex-1 bg-line" />
-      </div>
+      {GOOGLE_OAUTH_ENABLED && (
+        <>
+          <div className="flex items-center gap-3 text-xs text-ink-soft">
+            <span className="h-px flex-1 bg-line" />
+            {t("orDivider")}
+            <span className="h-px flex-1 bg-line" />
+          </div>
 
-      <form action={signInWithGoogle.bind(null, locale)}>
-        <Button type="submit" variant="outline" className="w-full">
-          {t("googleButton")}
-        </Button>
-      </form>
+          <form action={signInWithGoogle.bind(null, locale)}>
+            <Button type="submit" variant="outline" className="w-full">
+              {t("googleButton")}
+            </Button>
+          </form>
+        </>
+      )}
 
       <p className="text-center text-sm text-ink-soft">
         {t("haveAccount")}{" "}

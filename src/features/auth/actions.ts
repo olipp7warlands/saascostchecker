@@ -13,8 +13,6 @@ import {
   signUpOrganizationSchema,
 } from "./schemas";
 
-export type { ActionResult } from "@/lib/action-result";
-
 const INVITATION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 function hashToken(token: string) {

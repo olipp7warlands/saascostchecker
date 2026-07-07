@@ -23,6 +23,12 @@ Plataforma multi-tenant de gestión de SaaS (visibilidad de gasto, renovaciones,
 6. **Auditoría**: toda mutación de negocio (contratos, aprobaciones, reglas) escribe en `audit_log`.
 7. **Nada de APIs de terceros** (Google/Microsoft/Okta/bancos) hasta la Fase 5. Todo entra por CSV o formularios.
 
+## Entorno de desarrollo
+- El entorno de desarrollo es el proyecto **remoto** de Supabase (`mkrsicuvhnmljpurtwun`), no la instancia local. `.env.local` apunta a `https://mkrsicuvhnmljpurtwun.supabase.co` — así es como se ejecutan `pnpm dev` y `pnpm build`.
+- Las migraciones se siguen escribiendo en `supabase/migrations/` y se aplican al remoto con `supabase db push` (el proyecto ya está enlazado). `supabase db reset`/`supabase start` (local) ya NO son el flujo por defecto.
+- Los tests de aislamiento/permisos (`rls-isolation.test.ts`, `permissions.test.ts`) SÍ necesitan Supabase local (crean tenants reales y no deben tocar el remoto) — usan `.env.test.local` (gitignored, no tocar `.env.local`), que Vitest carga automáticamente porque su `mode` es `test` y Vite da prioridad a `.env.test.local` sobre `.env.local`. Para correrlos: `supabase start` en paralelo, sin cambiar `.env.local`.
+- Google OAuth queda aplazado al bloque 4.2 (Onboarding self-service) — el botón está oculto tras un feature flag (`NEXT_PUBLIC_FEATURE_GOOGLE_OAUTH`) hasta entonces.
+
 ## Sistema de diseño (de docs/mockups.html)
 - Tokens: fondo `#F5F6F2`, superficie `#FFF`, tinta `#1B2733`, primario `#0E5F59`, ámbar `#E8A13C` (SOLO para urgencia/renovaciones), rojo `#C4452F`, línea `#E3E6DF`
 - Tipos: Bricolage Grotesque (titulares), Instrument Sans (UI), IBM Plex Mono (toda cifra)
@@ -34,7 +40,7 @@ Plataforma multi-tenant de gestión de SaaS (visibilidad de gasto, renovaciones,
 - Componentes en `src/components/`, features en `src/features/<dominio>/`
 - Zod para validación en toda entrada de usuario y todo CSV
 - Commits: conventional commits (`feat:`, `fix:`, `chore:`) en inglés
-- Al terminar un bloque: `pnpm lint && pnpm typecheck && pnpm test` deben pasar
+- Al terminar un bloque: `pnpm lint && pnpm typecheck && pnpm test && pnpm build` deben pasar (el build de producción es parte del gate — un módulo `"use server"` roto no lo detectan lint/typecheck/test)
 
 ## Flujo de trabajo
 1. Lee el bloque actual en `docs/TASKS.md` y su sección en `docs/SPECS.md`

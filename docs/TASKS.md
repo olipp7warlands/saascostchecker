@@ -14,7 +14,7 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 
 ### 0.2 Multi-tenancy y Auth
 - [x] Migración: `organizations`, `users`, trigger de perfil al registrarse
-- [x] Signup de organización (nombre, moneda default, locale) + login email y Google OAuth
+- [x] Signup de organización (nombre, moneda default, locale) + login email (Google OAuth implementado pero aplazado a 4.2, ver docs/DECISIONS.md)
 - [x] Invitaciones por email con rol preasignado (token de un solo uso)
 - [x] Políticas RLS por `org_id` + helper `current_org_id()`
 - [x] Tests de aislamiento: usuario de org A no puede leer/escribir datos de org B (obligatorio)
@@ -111,6 +111,8 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 ## FASE 4 — Comercialización
 ### 4.1 Billing (Stripe: subscripción por empleados, planes y límites)
 ### 4.2 Onboarding self-service (wizard: departamentos → CSV → equipo → matriz)
+- [ ] Reactivar login con Google (OAuth) — código ya implementado desde el bloque 0.2, oculto tras el feature flag `NEXT_PUBLIC_FEATURE_GOOGLE_OAUTH` (ver docs/DECISIONS.md)
+- [ ] Wizard: departamentos → CSV → invitar equipo → configurar matriz de aprobación
 ### 4.3 Hardening (rate limiting, export de datos, marketing site)
 
 ## FASE 5 — Integraciones API (al final)
