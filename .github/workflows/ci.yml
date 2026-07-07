@@ -21,9 +21,42 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.75.0
+
+      # Solo los servicios que los tests de aislamiento/permisos necesitan
+      # (kong = gateway único en :54321, auth = gotrue, api = postgrest).
+      # Excluir el resto (storage, realtime, studio, imgproxy, edge-runtime,
+      # analytics/vector, pooler, mailpit) evita ~9 imágenes/contenedores que
+      # no se usan y que hacían `supabase start` completo demasiado lento
+      # para CI (ver docs/DECISIONS.md).
+      - name: Start local Supabase (minimal services)
+        run: |
+          supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Wait for Supabase REST/Auth to answer
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:54321/auth/v1/health > /dev/null; then
+              echo "Auth respondiendo, continuando."
+              break
+            fi
+            echo "Esperando a que Auth responda... ($i/30)"
+            sleep 2
+          done
+          # `supabase start` ya espera los healthchecks de los contenedores,
+          # pero se vio en local un flake puntual de PostgREST ("JWT issued
+          # at future") justo tras un arranque en frío — este margen evita
+          # que contamine el CI (ver docs/DECISIONS.md).
+          sleep 5
+
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
       - run: pnpm build
 
   e2e:
