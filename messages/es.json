@@ -86,5 +86,34 @@
       "noDepartment": "Sin departamento",
       "forbidden": "Solo un administrador puede gestionar usuarios"
     }
+  },
+  "Shell": {
+    "logo": "stackly",
+    "mainNavLabel": "Navegación principal",
+    "mobileNavLabel": "Navegación móvil",
+    "nav": {
+      "dashboard": "Dashboard",
+      "vendors": "Vendors",
+      "renewals": "Renovaciones",
+      "requests": "Solicitudes",
+      "dataSection": "Datos",
+      "importSpend": "Importar gasto",
+      "reconciliation": "Reconciliación",
+      "settingsSection": "Ajustes",
+      "teamRules": "Equipo y reglas",
+      "comingSoon": "Pronto"
+    },
+    "userMenu": {
+      "open": "Menú de usuario",
+      "signOut": "Cerrar sesión"
+    },
+    "localeSwitcher": {
+      "label": "Idioma"
+    },
+    "dashboard": {
+      "crumb": "Dashboard",
+      "title": "Tu stack, en cifras",
+      "placeholder": "El panel con KPIs, gasto por departamento y la pista de renovaciones llega en el bloque 1.5."
+    }
   }
 }

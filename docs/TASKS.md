@@ -27,9 +27,9 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 - ✅ Aceptación: matriz de permisos de SPECS §5 aplicada y testeada en server actions
 
 ### 0.4 Layout base
-- [ ] Shell: sidebar desktop + bottom nav móvil (como mockups.html)
-- [ ] Selector de idioma persistente, menú de usuario
-- [ ] Navegación visible según rol
+- [x] Shell: sidebar desktop + bottom nav móvil (como mockups.html)
+- [x] Selector de idioma persistente, menú de usuario
+- [x] Navegación visible según rol
 - ✅ Aceptación: shell responsive idéntico en estructura al mockup, AA en foco de teclado
 
 ## FASE 1 — Visibilidad manual

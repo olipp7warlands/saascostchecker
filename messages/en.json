@@ -86,5 +86,34 @@
       "noDepartment": "No department",
       "forbidden": "Only an admin can manage users"
     }
+  },
+  "Shell": {
+    "logo": "stackly",
+    "mainNavLabel": "Main navigation",
+    "mobileNavLabel": "Mobile navigation",
+    "nav": {
+      "dashboard": "Dashboard",
+      "vendors": "Vendors",
+      "renewals": "Renewals",
+      "requests": "Requests",
+      "dataSection": "Data",
+      "importSpend": "Import spend",
+      "reconciliation": "Reconciliation",
+      "settingsSection": "Settings",
+      "teamRules": "Team & rules",
+      "comingSoon": "Soon"
+    },
+    "userMenu": {
+      "open": "User menu",
+      "signOut": "Sign out"
+    },
+    "localeSwitcher": {
+      "label": "Language"
+    },
+    "dashboard": {
+      "crumb": "Dashboard",
+      "title": "Your stack, in numbers",
+      "placeholder": "The panel with KPIs, spend by department, and the renewals runway ships in block 1.5."
+    }
   }
 }

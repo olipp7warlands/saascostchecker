@@ -50,7 +50,7 @@ export async function signUpOrganization(input: unknown): Promise<ActionResult> 
     return { error: error.message };
   }
 
-  redirect(`/${locale}`);
+  redirect(`/${locale}/dashboard`);
 }
 
 export async function signInWithPassword(locale: string, input: unknown): Promise<ActionResult> {
@@ -66,7 +66,13 @@ export async function signInWithPassword(locale: string, input: unknown): Promis
     return { error: error.message };
   }
 
-  redirect(`/${locale}`);
+  redirect(`/${locale}/dashboard`);
+}
+
+export async function signOut(locale: string): Promise<never> {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect(`/${locale}/login`);
 }
 
 export async function signInWithGoogle(locale: string): Promise<never> {
@@ -76,7 +82,7 @@ export async function signInWithGoogle(locale: string): Promise<never> {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${origin}/api/auth/callback?next=/${locale}`,
+      redirectTo: `${origin}/api/auth/callback?next=/${locale}/dashboard`,
     },
   });
 
@@ -179,5 +185,5 @@ export async function acceptInvitation(locale: string, input: unknown): Promise<
     return { error: error.message };
   }
 
-  redirect(`/${locale}`);
+  redirect(`/${locale}/dashboard`);
 }
