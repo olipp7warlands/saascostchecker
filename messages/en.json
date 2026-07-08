@@ -115,5 +115,33 @@
       "title": "Your stack, in numbers",
       "placeholder": "The panel with KPIs, spend by department, and the renewals runway ships in block 1.5."
     }
+  },
+  "Catalog": {
+    "category": {
+      "crm": "CRM",
+      "marketing": "Marketing",
+      "sales": "Sales",
+      "design": "Design",
+      "productivity": "Productivity",
+      "communication": "Communication",
+      "devtools": "Developer tools",
+      "observability": "Observability",
+      "security": "Security",
+      "analytics": "Analytics",
+      "hr": "HR",
+      "finance": "Finance",
+      "support": "Support",
+      "project_management": "Project management",
+      "video": "Video",
+      "other": "Other"
+    },
+    "combobox": {
+      "ariaLabel": "Search the SaaS catalog",
+      "placeholder": "Search for a tool…",
+      "loading": "Searching…",
+      "noResults": "No results for \"{query}\"",
+      "createCustom": "Create \"{query}\" as a custom vendor",
+      "error": "Couldn't search. Please try again."
+    }
   }
 }

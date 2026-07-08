@@ -35,9 +35,9 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 ## FASE 1 — Visibilidad manual
 
 ### 1.1 Catálogo global
-- [ ] Migración: `saas_catalog` (global, sin org_id) + seed de ~500 SaaS con aliases y categorías
-- [ ] Componente `<AppLogo domain/>` (favicon + fallback a inicial con color derivado)
-- [ ] Componente de autocompletado reutilizable (busca en nombre + aliases)
+- [x] Migración: `saas_catalog` (global, sin org_id) + seed de ~500 SaaS con aliases y categorías
+- [x] Componente `<AppLogo domain/>` (favicon + fallback a inicial con color derivado)
+- [x] Componente de autocompletado reutilizable (busca en nombre + aliases)
 - ✅ Aceptación: escribir "figm" sugiere Figma con su logo en <150 ms
 
 ### 1.2 Vendors y contratos

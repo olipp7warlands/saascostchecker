@@ -115,5 +115,33 @@
       "title": "Tu stack, en cifras",
       "placeholder": "El panel con KPIs, gasto por departamento y la pista de renovaciones llega en el bloque 1.5."
     }
+  },
+  "Catalog": {
+    "category": {
+      "crm": "CRM",
+      "marketing": "Marketing",
+      "sales": "Ventas",
+      "design": "Diseño",
+      "productivity": "Productividad",
+      "communication": "Comunicación",
+      "devtools": "Herramientas de desarrollo",
+      "observability": "Observabilidad",
+      "security": "Seguridad",
+      "analytics": "Analítica",
+      "hr": "RRHH",
+      "finance": "Finanzas",
+      "support": "Soporte",
+      "project_management": "Gestión de proyectos",
+      "video": "Vídeo",
+      "other": "Otros"
+    },
+    "combobox": {
+      "ariaLabel": "Buscar en el catálogo de SaaS",
+      "placeholder": "Busca un software…",
+      "loading": "Buscando…",
+      "noResults": "Sin resultados para \"{query}\"",
+      "createCustom": "Crear \"{query}\" como vendor custom",
+      "error": "No se pudo buscar. Inténtalo de nuevo."
+    }
   }
 }
