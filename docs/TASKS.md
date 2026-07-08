@@ -41,9 +41,9 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 - ✅ Aceptación: escribir "figm" sugiere Figma con su logo en <150 ms
 
 ### 1.2 Vendors y contratos
-- [ ] Migraciones: `vendors`, `contracts` + Storage bucket para PDFs
-- [ ] CRUD vendors (desde catálogo o custom) y contratos (coste, ciclo, asientos, renewal_date, auto_renews, cancellation_notice_days)
-- [ ] Vista de listado con utilización, renovación y owner (mockup pantalla 2)
+- [x] Migraciones: `vendors`, `contracts` + Storage bucket para PDFs
+- [x] CRUD vendors (desde catálogo o custom) y contratos (coste, ciclo, asientos, renewal_date, auto_renews, cancellation_notice_days)
+- [x] Vista de listado con utilización, renovación y owner (mockup pantalla 2)
 - ✅ Aceptación: crear vendor + contrato con PDF en <1 min; audit_log registra todo
 
 ### 1.3 Import de gasto (CSV)

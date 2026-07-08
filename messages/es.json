@@ -143,5 +143,77 @@
       "createCustom": "Crear \"{query}\" como vendor custom",
       "error": "No se pudo buscar. Inténtalo de nuevo."
     }
+  },
+  "Vendors": {
+    "crumb": "Inventario",
+    "title": "Vendors",
+    "addButton": "+ Añadir vendor",
+    "empty": "Todavía no hay vendors",
+    "forbidden": "Solo finance, IT o un administrador pueden gestionar vendors",
+    "custom": "custom",
+    "noOwner": "Sin owner",
+    "noData": "sin datos",
+    "table": {
+      "vendor": "Vendor",
+      "category": "Categoría",
+      "annualCost": "Coste anual",
+      "seats": "Asientos",
+      "utilization": "Utilización",
+      "renewal": "Renovación",
+      "owner": "Owner"
+    },
+    "new": {
+      "title": "Añadir vendor",
+      "vendorSection": "Vendor",
+      "selectedFrom": "Del catálogo",
+      "customBadge": "Custom",
+      "changeSelection": "Cambiar",
+      "nameLabel": "Nombre",
+      "websiteLabel": "Dominio",
+      "categoryLabel": "Categoría",
+      "ownerLabel": "Owner",
+      "noOwnerOption": "Sin owner",
+      "notesLabel": "Notas",
+      "contractSection": "Contrato",
+      "contractNameLabel": "Nombre del contrato",
+      "costLabel": "Coste",
+      "currencyLabel": "Moneda",
+      "billingCycleLabel": "Ciclo de facturación",
+      "billingCycle": {
+        "monthly": "Mensual",
+        "annual": "Anual",
+        "one_time": "Pago único"
+      },
+      "seatsLabel": "Asientos comprados",
+      "startDateLabel": "Fecha de inicio",
+      "renewalDateLabel": "Fecha de renovación",
+      "autoRenewsLabel": "Auto-renueva",
+      "cancellationNoticeDaysLabel": "Preaviso de cancelación (días)",
+      "documentLabel": "Contrato en PDF",
+      "submit": "Crear vendor y contrato"
+    },
+    "detail": {
+      "back": "← Volver a vendors",
+      "vendorFieldsTitle": "Datos del vendor",
+      "statusLabel": "Estado",
+      "status": {
+        "active": "Activo",
+        "inactive": "Inactivo",
+        "trial": "Prueba"
+      },
+      "save": "Guardar",
+      "deleteVendor": "Eliminar vendor",
+      "contractsTitle": "Contratos",
+      "addContract": "+ Añadir contrato",
+      "contractStatus": {
+        "active": "Activo",
+        "cancelled": "Cancelado"
+      },
+      "viewDocument": "Ver PDF",
+      "noDocument": "Sin PDF",
+      "deleteContract": "Eliminar",
+      "confirmDeleteVendor": "¿Seguro que quieres eliminar este vendor?",
+      "confirmDeleteContract": "¿Seguro que quieres eliminar este contrato?"
+    }
   }
 }

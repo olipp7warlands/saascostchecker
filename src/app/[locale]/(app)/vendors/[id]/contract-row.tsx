@@ -1,0 +1,131 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { Button } from "@/components/ui/button";
+import { deleteContract, getContractDocumentUrl, updateContract } from "@/features/vendors/actions";
+import { ContractFields } from "../contract-fields";
+
+type Contract = {
+  id: string;
+  name: string;
+  cost_amount: number;
+  currency: string;
+  billing_cycle: string;
+  seats_purchased: number | null;
+  start_date: string;
+  renewal_date: string;
+  auto_renews: boolean;
+  cancellation_notice_days: number;
+  document_url: string | null;
+  status: string;
+};
+
+export function ContractRow({ contract }: { contract: Contract }) {
+  const t = useTranslations("Vendors.detail");
+  const tGeneric = useTranslations("Auth");
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [documentError, setDocumentError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function handleSave(formData: FormData) {
+    setError(null);
+    startTransition(async () => {
+      const result = await updateContract({
+        contractId: contract.id,
+        contractName: formData.get("contractName"),
+        costAmount: formData.get("costAmount"),
+        currency: formData.get("currency"),
+        billingCycle: formData.get("billingCycle"),
+        seatsPurchased: formData.get("seatsPurchased"),
+        startDate: formData.get("startDate"),
+        renewalDate: formData.get("renewalDate"),
+        autoRenews: formData.get("autoRenews") === "on",
+        cancellationNoticeDays: formData.get("cancellationNoticeDays"),
+        document: formData.get("document"),
+        status: formData.get("status"),
+      });
+      if (result && "error" in result) {
+        setError(result.error || tGeneric("errorGeneric"));
+      } else {
+        router.refresh();
+      }
+    });
+  }
+
+  function handleDelete() {
+    if (!window.confirm(t("confirmDeleteContract"))) {
+      return;
+    }
+    setError(null);
+    startTransition(async () => {
+      const result = await deleteContract(contract.id);
+      if (result && "error" in result) {
+        setError(result.error || tGeneric("errorGeneric"));
+      } else {
+        router.refresh();
+      }
+    });
+  }
+
+  async function handleViewDocument() {
+    setDocumentError(null);
+    const result = await getContractDocumentUrl(contract.id);
+    if ("error" in result) {
+      setDocumentError(result.error);
+      return;
+    }
+    window.open(result.url, "_blank", "noopener,noreferrer");
+  }
+
+  return (
+    <li className="rounded-lg border border-line p-4">
+      <form action={handleSave} className="flex flex-col gap-3">
+        <ContractFields
+          idPrefix={`contract-${contract.id}`}
+          includeStatus
+          defaultValues={{
+            contractName: contract.name,
+            costAmount: contract.cost_amount,
+            currency: contract.currency,
+            billingCycle: contract.billing_cycle,
+            seatsPurchased: contract.seats_purchased,
+            startDate: contract.start_date,
+            renewalDate: contract.renewal_date,
+            autoRenews: contract.auto_renews,
+            cancellationNoticeDays: contract.cancellation_notice_days,
+            status: contract.status,
+          }}
+        />
+
+        <div>
+          {contract.document_url ? (
+            <button
+              type="button"
+              onClick={handleViewDocument}
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              {t("viewDocument")}
+            </button>
+          ) : (
+            <span className="text-sm text-ink-soft">{t("noDocument")}</span>
+          )}
+          {documentError && <p className="mt-1 text-sm text-red-600">{documentError}</p>}
+        </div>
+
+        {error && <p className="text-sm text-red-600">{error}</p>}
+
+        <div className="flex gap-2">
+          <Button type="submit" disabled={isPending}>
+            {t("save")}
+          </Button>
+          <Button type="button" variant="destructive" disabled={isPending} onClick={handleDelete}>
+            {t("deleteContract")}
+          </Button>
+        </div>
+      </form>
+    </li>
+  );
+}

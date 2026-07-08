@@ -1,0 +1,33 @@
+import type { CatalogCategory } from "@/features/catalog/types";
+
+export type VendorStatus = "active" | "inactive" | "trial";
+export type BillingCycle = "monthly" | "annual" | "one_time";
+export type ContractStatus = "active" | "cancelled";
+
+export type Vendor = {
+  id: string;
+  catalogId: string | null;
+  name: string;
+  website: string;
+  category: CatalogCategory;
+  status: VendorStatus;
+  ownerUserId: string | null;
+  isCustom: boolean;
+  notes: string | null;
+};
+
+export type Contract = {
+  id: string;
+  vendorId: string;
+  name: string;
+  costAmount: number;
+  currency: string;
+  billingCycle: BillingCycle;
+  seatsPurchased: number | null;
+  startDate: string;
+  renewalDate: string;
+  autoRenews: boolean;
+  cancellationNoticeDays: number;
+  documentUrl: string | null;
+  status: ContractStatus;
+};

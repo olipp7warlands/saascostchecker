@@ -28,15 +28,15 @@ export type NavItem = {
   bottomNav?: boolean;
 };
 
-// Solo "teamRules" (bloques 0.2/0.3) y "dashboard" (0.4, contenido mínimo) tienen
-// página real hoy. El resto pertenece a fases 1-3 sin implementar: se muestran
+// "teamRules" (0.2/0.3), "dashboard" (0.4) y "vendors" (1.2) tienen página
+// real. El resto pertenece a fases 1-3 sin implementar todavía: se muestran
 // como placeholders deshabilitados para mantener paridad estructural con el
 // mockup (ver docs/DECISIONS.md).
 export const NAV_ITEMS: NavItem[] = [
   { key: "dashboard", href: "/dashboard", icon: LayoutDashboard, roles: "all", bottomNav: true },
   {
     key: "vendors",
-    href: null,
+    href: "/vendors",
     icon: Building2,
     roles: ["finance", "it_admin", "org_admin"],
     bottomNav: true,
