@@ -84,12 +84,16 @@ jobs:
         with:
           version: 2.75.0
 
-      # Mismo patrón que el job de unit tests: solo los 4 servicios que hacen
-      # falta para que `middleware.ts` (createServerClient en cada request)
-      # no reviente por falta de URL/anon key (ver docs/DECISIONS.md).
+      # Mismo patrón que el job de unit tests, MÁS storage-api: a diferencia
+      # del job de unit tests, e2e/vendors.spec.ts (bloque 1.2) sube un PDF de
+      # verdad al bucket `contracts` a través del navegador — sin storage-api
+      # corriendo, esa llamada se queda colgada y el submit nunca redirige
+      # (visto en CI: "Test timeout of 30000ms exceeded" en waitForURL tras
+      # el submit). imgproxy sigue excluido: no se usa (no hay
+      # transformación de imágenes, solo PDFs servidos tal cual).
       - name: Start local Supabase (minimal services)
         run: |
-          supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+          supabase start -x realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
       - name: Wait for Supabase REST/Auth to answer
         run: |
