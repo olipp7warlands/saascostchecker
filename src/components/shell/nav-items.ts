@@ -28,9 +28,10 @@ export type NavItem = {
   bottomNav?: boolean;
 };
 
-// "teamRules" (0.2/0.3), "dashboard" (0.4) y "vendors" (1.2) tienen página
-// real. El resto pertenece a fases 1-3 sin implementar todavía: se muestran
-// como placeholders deshabilitados para mantener paridad estructural con el
+// "teamRules" (0.2/0.3), "dashboard" (0.4), "vendors" (1.2) e
+// "importSpend"/"reconciliation" (1.3) tienen página real. El resto
+// pertenece a fases 2-3 sin implementar todavía: se muestran como
+// placeholders deshabilitados para mantener paridad estructural con el
 // mockup (ver docs/DECISIONS.md).
 export const NAV_ITEMS: NavItem[] = [
   { key: "dashboard", href: "/dashboard", icon: LayoutDashboard, roles: "all", bottomNav: true },
@@ -51,14 +52,14 @@ export const NAV_ITEMS: NavItem[] = [
   { key: "requests", href: null, icon: ClipboardCheck, roles: "all", bottomNav: true },
   {
     key: "importSpend",
-    href: null,
+    href: "/import",
     icon: Upload,
     roles: ["finance", "it_admin", "org_admin"],
     section: "data",
   },
   {
     key: "reconciliation",
-    href: null,
+    href: "/reconciliation",
     icon: GitMerge,
     roles: ["finance", "it_admin", "org_admin"],
     section: "data",

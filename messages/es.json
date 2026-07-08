@@ -215,5 +215,76 @@
       "confirmDeleteVendor": "¿Seguro que quieres eliminar este vendor?",
       "confirmDeleteContract": "¿Seguro que quieres eliminar este contrato?"
     }
+  },
+  "SpendImport": {
+    "crumb": "Datos",
+    "title": "Import de gasto",
+    "addButton": "+ Importar CSV",
+    "empty": "Todavía no se ha importado ningún CSV",
+    "forbidden": "Solo finance, IT o un administrador pueden importar gasto",
+    "table": {
+      "file": "Fichero",
+      "date": "Fecha",
+      "status": "Estado",
+      "rows": "Filas",
+      "imported": "Importadas",
+      "duplicates": "Duplicadas"
+    },
+    "status": {
+      "uploaded": "Subido",
+      "processing": "Procesando",
+      "completed": "Completado"
+    },
+    "new": {
+      "title": "Importar CSV de gasto",
+      "uploadLabel": "Fichero CSV",
+      "uploadButton": "Subir y previsualizar",
+      "columnFallback": "Columna",
+      "detectedLabel": "Detectado automáticamente",
+      "detectedSummary": "Delimitador \"{delimiter}\" · codificación {encoding}",
+      "hasHeaderLabel": "La primera fila es la cabecera",
+      "dateColumnLabel": "Columna de fecha",
+      "dateFormatLabel": "Formato de fecha",
+      "amountColumnLabel": "Columna de importe",
+      "decimalFormatLabel": "Formato decimal",
+      "decimalFormat": {
+        "es": "Español (1.234,56)",
+        "en": "Inglés (1,234.56)"
+      },
+      "descriptionColumnLabel": "Columna de descripción",
+      "continueButton": "Importar filas",
+      "summaryImported": "{count} filas importadas",
+      "summaryDuplicates": "{count} filas duplicadas (ya existían)",
+      "summaryErrors": "{count} filas con errores de formato",
+      "viewQueueButton": "Ver cola de reconciliación"
+    }
+  },
+  "Reconciliation": {
+    "crumb": "Datos",
+    "title": "Cola de reconciliación",
+    "empty": "No hay movimientos pendientes de reconciliar",
+    "forbidden": "Solo finance, IT o un administrador pueden reconciliar gasto",
+    "table": {
+      "date": "Fecha",
+      "amount": "Importe",
+      "description": "Descripción",
+      "suggestion": "Sugerencia",
+      "actions": "Acciones"
+    },
+    "confidence": {
+      "high": "alta confianza",
+      "medium": "confianza media",
+      "none": "sin sugerencia"
+    },
+    "selectAllHighConfidence": "Seleccionar las {count} de alta confianza",
+    "bulkAcceptButton": "Aceptar {count} sugerencias",
+    "linkSuggested": "Vincular sugerencia",
+    "createVendor": "Crear vendor",
+    "ignore": "Ignorar",
+    "vendorNamePlaceholder": "Nombre del vendor",
+    "confirmCreateVendor": "Crear y vincular",
+    "cancel": "Cancelar",
+    "linkExistingPlaceholder": "Vincular a un vendor existente…",
+    "linkExisting": "Vincular"
   }
 }

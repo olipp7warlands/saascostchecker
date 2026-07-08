@@ -47,12 +47,12 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 - ✅ Aceptación: crear vendor + contrato con PDF en <1 min; audit_log registra todo
 
 ### 1.3 Import de gasto (CSV)
-- [ ] Migraciones: `spend_records`, `reconciliation_queue`, `import_batches`
-- [ ] Importador CSV con mapeo de columnas configurable y preview
-- [ ] Deduplicación por hash (fecha+importe+descripción)
-- [ ] Fuzzy matcher `raw_description` → catálogo (aliases incluidos) con confidence score
-- [ ] Cola de reconciliación: vincular / crear vendor / ignorar
-- ✅ Aceptación: CSV bancario de 200 filas importado y ≥70% auto-sugerido correctamente con el seed demo
+- [x] Migraciones: `spend_records`, `reconciliation_queue`, `import_batches`
+- [x] Importador CSV con mapeo de columnas configurable y preview
+- [x] Deduplicación por hash (fecha+importe+descripción)
+- [x] Fuzzy matcher `raw_description` → catálogo (aliases incluidos) con confidence score
+- [x] Cola de reconciliación: vincular / crear vendor / ignorar
+- ✅ Aceptación: CSV bancario de 200 filas importado y ≥70% auto-sugerido correctamente con el seed demo (100% medido en `src/features/spend-import/import-acceptance.test.ts`)
 
 ### 1.4 Licencias manuales
 - [ ] Migración: `seat_assignments`

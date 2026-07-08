@@ -215,5 +215,76 @@
       "confirmDeleteVendor": "Are you sure you want to delete this vendor?",
       "confirmDeleteContract": "Are you sure you want to delete this contract?"
     }
+  },
+  "SpendImport": {
+    "crumb": "Data",
+    "title": "Spend import",
+    "addButton": "+ Import CSV",
+    "empty": "No CSV has been imported yet",
+    "forbidden": "Only finance, IT, or an admin can import spend",
+    "table": {
+      "file": "File",
+      "date": "Date",
+      "status": "Status",
+      "rows": "Rows",
+      "imported": "Imported",
+      "duplicates": "Duplicates"
+    },
+    "status": {
+      "uploaded": "Uploaded",
+      "processing": "Processing",
+      "completed": "Completed"
+    },
+    "new": {
+      "title": "Import spend CSV",
+      "uploadLabel": "CSV file",
+      "uploadButton": "Upload and preview",
+      "columnFallback": "Column",
+      "detectedLabel": "Auto-detected",
+      "detectedSummary": "Delimiter \"{delimiter}\" · {encoding} encoding",
+      "hasHeaderLabel": "The first row is the header",
+      "dateColumnLabel": "Date column",
+      "dateFormatLabel": "Date format",
+      "amountColumnLabel": "Amount column",
+      "decimalFormatLabel": "Decimal format",
+      "decimalFormat": {
+        "es": "Spanish (1.234,56)",
+        "en": "English (1,234.56)"
+      },
+      "descriptionColumnLabel": "Description column",
+      "continueButton": "Import rows",
+      "summaryImported": "{count} rows imported",
+      "summaryDuplicates": "{count} duplicate rows (already existed)",
+      "summaryErrors": "{count} rows with format errors",
+      "viewQueueButton": "View reconciliation queue"
+    }
+  },
+  "Reconciliation": {
+    "crumb": "Data",
+    "title": "Reconciliation queue",
+    "empty": "No spend pending reconciliation",
+    "forbidden": "Only finance, IT, or an admin can reconcile spend",
+    "table": {
+      "date": "Date",
+      "amount": "Amount",
+      "description": "Description",
+      "suggestion": "Suggestion",
+      "actions": "Actions"
+    },
+    "confidence": {
+      "high": "high confidence",
+      "medium": "medium confidence",
+      "none": "no suggestion"
+    },
+    "selectAllHighConfidence": "Select the {count} high-confidence ones",
+    "bulkAcceptButton": "Accept {count} suggestions",
+    "linkSuggested": "Link suggestion",
+    "createVendor": "Create vendor",
+    "ignore": "Ignore",
+    "vendorNamePlaceholder": "Vendor name",
+    "confirmCreateVendor": "Create and link",
+    "cancel": "Cancel",
+    "linkExistingPlaceholder": "Link to an existing vendor…",
+    "linkExisting": "Link"
   }
 }
