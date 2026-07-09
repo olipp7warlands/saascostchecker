@@ -213,7 +213,22 @@
       "noDocument": "No PDF",
       "deleteContract": "Delete",
       "confirmDeleteVendor": "Are you sure you want to delete this vendor?",
-      "confirmDeleteContract": "Are you sure you want to delete this contract?"
+      "confirmDeleteContract": "Are you sure you want to delete this contract?",
+      "seatsTitle": "Licenses",
+      "utilizationSummary": "{active} / {purchased} active · {pct}%",
+      "wastedEstimate": "≈ {amount} wasted per year",
+      "overCapacityWarning": "You've assigned more seats than were purchased on this contract.",
+      "seatStatus": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "markActive": "Mark active",
+      "markInactive": "Mark inactive",
+      "removeSeat": "Remove",
+      "confirmRemoveSeat": "Are you sure you want to remove this seat?",
+      "selectMemberPlaceholder": "Select a user",
+      "assignButton": "Assign seat",
+      "allMembersAssigned": "Every member of the organization already has a seat on this contract"
     }
   },
   "SpendImport": {

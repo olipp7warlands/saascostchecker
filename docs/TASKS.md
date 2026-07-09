@@ -55,9 +55,9 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 - ✅ Aceptación: CSV bancario de 200 filas importado y ≥70% auto-sugerido correctamente con el seed demo (100% medido en `src/features/spend-import/import-acceptance.test.ts`)
 
 ### 1.4 Licencias manuales
-- [ ] Migración: `seat_assignments`
-- [ ] Asignar/quitar asientos por contrato; marcado de inactivos
-- [ ] Métrica de utilización por contrato (usada en 1.5)
+- [x] Migración: `seat_assignments`
+- [x] Asignar/quitar asientos por contrato; marcado de inactivos
+- [x] Métrica de utilización por contrato (usada en 1.5)
 - ✅ Aceptación: contrato con 12/20 asientos muestra 60% y € desperdiciado estimado
 
 ### 1.5 Dashboard

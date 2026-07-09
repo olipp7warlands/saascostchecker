@@ -31,7 +31,7 @@ export default async function VendorsPage({
     supabase
       .from("vendors")
       .select(
-        "id, name, website, category, is_custom, owner_user_id, contracts(id, cost_amount, currency, billing_cycle, seats_purchased, renewal_date, status, start_date)",
+        "id, name, website, category, is_custom, owner_user_id, contracts(id, cost_amount, currency, billing_cycle, seats_purchased, renewal_date, status, start_date, seat_assignments(id, last_seen_active_at))",
       )
       .order("name", { ascending: true }),
     supabase.from("users").select("id, full_name, email").order("full_name", { ascending: true }),
@@ -60,6 +60,9 @@ export default async function VendorsPage({
             billingCycle: contract.billing_cycle,
             seatsPurchased: contract.seats_purchased,
             renewalDate: contract.renewal_date,
+            activeSeats: (contract.seat_assignments ?? []).filter(
+              (seat) => seat.last_seen_active_at !== null,
+            ).length,
           }
         : null,
     };

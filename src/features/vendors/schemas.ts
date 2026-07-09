@@ -70,7 +70,24 @@ export const updateContractSchema = z.object({
   status: contractStatusSchema,
 });
 
+export const assignSeatSchema = z.object({
+  contractId: z.string().uuid(),
+  userId: z.string().uuid(),
+});
+
+export const unassignSeatSchema = z.object({
+  seatId: z.string().uuid(),
+});
+
+export const setSeatActiveSchema = z.object({
+  seatId: z.string().uuid(),
+  active: z.boolean(),
+});
+
 export type CreateVendorWithContractInput = z.infer<typeof createVendorWithContractSchema>;
 export type UpdateVendorInput = z.infer<typeof updateVendorSchema>;
 export type CreateContractInput = z.infer<typeof createContractSchema>;
 export type UpdateContractInput = z.infer<typeof updateContractSchema>;
+export type AssignSeatInput = z.infer<typeof assignSeatSchema>;
+export type UnassignSeatInput = z.infer<typeof unassignSeatSchema>;
+export type SetSeatActiveInput = z.infer<typeof setSeatActiveSchema>;

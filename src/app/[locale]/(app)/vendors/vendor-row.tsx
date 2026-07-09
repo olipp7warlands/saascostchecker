@@ -1,8 +1,10 @@
 import { getTranslations } from "next-intl/server";
 import { AppLogo } from "@/components/catalog/app-logo";
 import { Pill, type PillTone } from "@/components/ui/pill";
+import { UtilizationBar } from "@/components/ui/utilization-bar";
 import type { CatalogCategory } from "@/features/catalog/types";
 import { annualizedCost, daysUntil, renewalTone } from "@/features/vendors/renewal";
+import { seatUtilizationPct, utilizationTone } from "@/features/vendors/seats";
 import type { BillingCycle } from "@/features/vendors/types";
 
 export type VendorRowData = {
@@ -18,6 +20,7 @@ export type VendorRowData = {
     billingCycle: BillingCycle;
     seatsPurchased: number | null;
     renewalDate: string;
+    activeSeats: number;
   } | null;
 };
 
@@ -40,6 +43,12 @@ export async function VendorRow({ vendor, locale }: { vendor: VendorRowData; loc
     : null;
 
   const dateFormatter = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" });
+
+  const seatsPurchased = vendor.contract?.seatsPurchased ?? null;
+  const utilizationPct =
+    vendor.contract && seatsPurchased != null
+      ? seatUtilizationPct(vendor.contract.activeSeats, seatsPurchased)
+      : null;
 
   return (
     <tr className="hover:bg-muted/40">
@@ -66,7 +75,19 @@ export async function VendorRow({ vendor, locale }: { vendor: VendorRowData; loc
       <td className="num border-b border-line px-4 py-3 text-sm text-ink">
         {vendor.contract?.seatsPurchased ?? "—"}
       </td>
-      <td className="border-b border-line px-4 py-3 text-xs text-ink-soft">{t("noData")}</td>
+      <td className="border-b border-line px-4 py-3">
+        {vendor.contract && utilizationPct != null ? (
+          <div
+            className="flex items-center gap-2"
+            title={`${vendor.contract.activeSeats} / ${seatsPurchased}`}
+          >
+            <UtilizationBar pct={utilizationPct} tone={utilizationTone(utilizationPct)} />
+            <span className="num text-xs text-ink-soft">{utilizationPct}%</span>
+          </div>
+        ) : (
+          <span className="text-xs text-ink-soft">{t("noData")}</span>
+        )}
+      </td>
       <td className="border-b border-line px-4 py-3">
         {vendor.contract ? (
           <Pill tone={RENEWAL_TONE_MAP[renewalTone(daysUntil(vendor.contract.renewalDate))]}>

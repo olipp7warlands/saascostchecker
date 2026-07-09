@@ -31,3 +31,11 @@ export type Contract = {
   documentUrl: string | null;
   status: ContractStatus;
 };
+
+export type SeatAssignment = {
+  id: string;
+  contractId: string;
+  userId: string;
+  source: "manual" | "sso_sync";
+  lastSeenActiveAt: string | null;
+};

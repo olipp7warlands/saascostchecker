@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { deleteContract, getContractDocumentUrl, updateContract } from "@/features/vendors/actions";
+import type { BillingCycle } from "@/features/vendors/types";
 import { ContractFields } from "../contract-fields";
+import { ContractSeats, type SeatRow } from "./contract-seats";
 
 type Contract = {
   id: string;
@@ -22,7 +24,17 @@ type Contract = {
   status: string;
 };
 
-export function ContractRow({ contract }: { contract: Contract }) {
+type Member = { id: string; full_name: string | null; email: string };
+
+export function ContractRow({
+  contract,
+  seats,
+  members,
+}: {
+  contract: Contract;
+  seats: SeatRow[];
+  members: Member[];
+}) {
   const t = useTranslations("Vendors.detail");
   const tGeneric = useTranslations("Auth");
   const router = useRouter();
@@ -126,6 +138,16 @@ export function ContractRow({ contract }: { contract: Contract }) {
           </Button>
         </div>
       </form>
+
+      <ContractSeats
+        contractId={contract.id}
+        costAmount={contract.cost_amount}
+        currency={contract.currency}
+        billingCycle={contract.billing_cycle as BillingCycle}
+        seatsPurchased={contract.seats_purchased}
+        seats={seats}
+        members={members}
+      />
     </li>
   );
 }

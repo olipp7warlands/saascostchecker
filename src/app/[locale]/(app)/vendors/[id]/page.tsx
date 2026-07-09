@@ -5,6 +5,7 @@ import { getCurrentUserProfile } from "@/features/auth/session";
 import { routing } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
 import { ContractRow } from "./contract-row";
+import type { SeatRow } from "./contract-seats";
 import { NewContractForm } from "./new-contract-form";
 import { VendorEditForm } from "./vendor-edit-form";
 
@@ -43,6 +44,30 @@ export default async function VendorDetailPage({
     notFound();
   }
 
+  const contractIds = (contracts ?? []).map((contract) => contract.id);
+  const { data: seatRows } =
+    contractIds.length > 0
+      ? await supabase
+          .from("seat_assignments")
+          .select("id, contract_id, user_id, last_seen_active_at")
+          .in("contract_id", contractIds)
+      : { data: [] as never[] };
+
+  const membersById = new Map((members ?? []).map((member) => [member.id, member]));
+
+  const seatsByContract = new Map<string, SeatRow[]>();
+  for (const row of seatRows ?? []) {
+    const member = membersById.get(row.user_id);
+    const list = seatsByContract.get(row.contract_id) ?? [];
+    list.push({
+      id: row.id,
+      userId: row.user_id,
+      userName: member?.full_name ?? member?.email ?? row.user_id,
+      active: row.last_seen_active_at !== null,
+    });
+    seatsByContract.set(row.contract_id, list);
+  }
+
   return (
     <div className="mx-auto max-w-2xl">
       <a href={`/${locale}/vendors`} className="text-sm text-ink-soft hover:text-ink">
@@ -63,7 +88,12 @@ export default async function VendorDetailPage({
         <h2 className="font-disp text-lg font-semibold text-ink">{t("detail.contractsTitle")}</h2>
         <ul className="mt-3 flex flex-col gap-3">
           {(contracts ?? []).map((contract) => (
-            <ContractRow key={contract.id} contract={contract} />
+            <ContractRow
+              key={contract.id}
+              contract={contract}
+              seats={seatsByContract.get(contract.id) ?? []}
+              members={members ?? []}
+            />
           ))}
         </ul>
         <div className="mt-4 rounded-lg border border-dashed border-line p-4">

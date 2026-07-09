@@ -302,3 +302,252 @@ describe("Permisos de vendors/contratos de SPECS §5 (bloque 1.2)", () => {
     expect(deleteError?.message).toMatch(/vendor not found/i);
   });
 });
+
+// assign_seat espera el id de la fila public.users (no el auth_id que
+// TestTenant.userId guarda) — se resuelve vía el propio cliente del tenant,
+// visible por la RLS estándar de users (org_id = current_org_id()).
+async function publicUserId(tenant: TestTenant): Promise<string> {
+  const { data, error } = await tenant.client
+    .from("users")
+    .select("id")
+    .eq("auth_id", tenant.userId)
+    .single();
+  if (error || !data) throw error ?? new Error("public user row not found");
+  return data.id as string;
+}
+
+async function assignSeatRpc(tenant: TestTenant, contractId: string, userId: string) {
+  const { data, error } = await tenant.client.rpc("assign_seat", {
+    p_contract_id: contractId,
+    p_user_id: userId,
+  });
+  const row = (Array.isArray(data) ? data[0] : null) as
+    | { seat_id: string; over_capacity: boolean }
+    | null;
+  return { seatId: row?.seat_id ?? null, overCapacity: row?.over_capacity ?? null, error };
+}
+
+describe("Permisos de seat_assignments (bloque 1.4)", () => {
+  let admin: TestTenant;
+  let manager: TestTenant;
+  let finance: TestTenant;
+  let itAdmin: TestTenant;
+  let employee: TestTenant;
+  let otherOrgAdmin: TestTenant;
+  let employeePublicId: string;
+  let managerPublicId: string;
+
+  beforeAll(async () => {
+    admin = await signUpOrg("seat-admin");
+
+    [manager, finance, itAdmin, employee] = await Promise.all([
+      inviteAndAccept(admin, "manager", "seat-manager"),
+      inviteAndAccept(admin, "finance", "seat-finance"),
+      inviteAndAccept(admin, "it_admin", "seat-itadmin"),
+      inviteAndAccept(admin, "employee", "seat-employee"),
+    ]);
+
+    otherOrgAdmin = await signUpOrg("seat-other");
+
+    [employeePublicId, managerPublicId] = await Promise.all([
+      publicUserId(employee),
+      publicUserId(manager),
+    ]);
+  });
+
+  async function createContractWithSeats(seatsPurchased: number | null) {
+    const { vendorId } = await createVendor(admin, `Seats ${randomSuffix()}`);
+    const { data, error } = await admin.client.rpc("create_contract", {
+      p_vendor_id: vendorId,
+      p_name: "Contract",
+      p_cost_amount: 1200,
+      p_currency: "EUR",
+      p_billing_cycle: "annual",
+      p_seats_purchased: seatsPurchased,
+      p_start_date: futureDate(-30),
+      p_renewal_date: futureDate(300),
+      p_auto_renews: true,
+      p_cancellation_notice_days: 30,
+      p_document_url: null,
+    });
+    if (error || !data) throw error ?? new Error("could not create contract");
+    return { vendorId: vendorId as string, contractId: data as string };
+  }
+
+  it.each([
+    ["finance", () => finance],
+    ["it_admin", () => itAdmin],
+    ["org_admin", () => admin],
+  ])("%s puede asignar un asiento", async (_role, getTenant) => {
+    const { contractId } = await createContractWithSeats(10);
+    const { seatId, error } = await assignSeatRpc(getTenant(), contractId, employeePublicId);
+    expect(error).toBeNull();
+    expect(seatId).toBeTruthy();
+  });
+
+  it.each([
+    ["manager", () => manager],
+    ["employee", () => employee],
+  ])("%s NO puede asignar un asiento", async (_role, getTenant) => {
+    const { contractId } = await createContractWithSeats(10);
+    const { error } = await assignSeatRpc(getTenant(), contractId, employeePublicId);
+    expect(error).not.toBeNull();
+    expect(error?.message).toMatch(/insufficient privileges/i);
+  });
+
+  it("asignar un asiento escribe en audit_log", async () => {
+    const { contractId } = await createContractWithSeats(10);
+    const { seatId, error } = await assignSeatRpc(finance, contractId, managerPublicId);
+    expect(error).toBeNull();
+
+    const { data: entries, error: auditError } = await admin.client
+      .from("audit_log")
+      .select("action, entity")
+      .eq("entity_id", seatId)
+      .eq("action", "seat_assignment.created");
+
+    expect(auditError).toBeNull();
+    expect(entries).toHaveLength(1);
+  });
+
+  it("no se puede asignar el mismo usuario dos veces al mismo contrato", async () => {
+    const { contractId } = await createContractWithSeats(10);
+    const first = await assignSeatRpc(finance, contractId, employeePublicId);
+    expect(first.error).toBeNull();
+
+    const second = await assignSeatRpc(finance, contractId, employeePublicId);
+    expect(second.error).not.toBeNull();
+    expect(second.error?.message).toMatch(/already has a seat/i);
+  });
+
+  it("asignar más asientos que seats_purchased devuelve over_capacity y lo registra en audit_log", async () => {
+    const { contractId } = await createContractWithSeats(1);
+    const first = await assignSeatRpc(finance, contractId, employeePublicId);
+    expect(first.error).toBeNull();
+    expect(first.overCapacity).toBe(false);
+
+    const second = await assignSeatRpc(finance, contractId, managerPublicId);
+    expect(second.error).toBeNull();
+    expect(second.overCapacity).toBe(true);
+
+    const { data: entries } = await admin.client
+      .from("audit_log")
+      .select("diff")
+      .eq("entity_id", second.seatId)
+      .eq("action", "seat_assignment.created");
+    expect(entries?.[0]?.diff?.over_capacity).toBe(true);
+  });
+
+  it("un contrato sin seats_purchased nunca marca over_capacity", async () => {
+    const { contractId } = await createContractWithSeats(null);
+    const { error, overCapacity } = await assignSeatRpc(finance, contractId, employeePublicId);
+    expect(error).toBeNull();
+    expect(overCapacity).toBe(false);
+  });
+
+  it.each([
+    ["manager", () => manager],
+    ["employee", () => employee],
+  ])("%s NO puede marcar un asiento como inactivo/activo", async (_role, getTenant) => {
+    const { contractId } = await createContractWithSeats(10);
+    const { seatId } = await assignSeatRpc(finance, contractId, employeePublicId);
+
+    const { error } = await getTenant().client.rpc("set_seat_active", {
+      p_seat_id: seatId,
+      p_active: false,
+    });
+    expect(error).not.toBeNull();
+    expect(error?.message).toMatch(/insufficient privileges/i);
+  });
+
+  it("finance puede marcar un asiento inactivo y luego activo de nuevo, con audit_log en cada cambio", async () => {
+    const { contractId } = await createContractWithSeats(10);
+    const { seatId } = await assignSeatRpc(finance, contractId, employeePublicId);
+
+    const { error: inactiveError } = await finance.client.rpc("set_seat_active", {
+      p_seat_id: seatId,
+      p_active: false,
+    });
+    expect(inactiveError).toBeNull();
+
+    const { data: seatAfterInactive } = await admin.client
+      .from("seat_assignments")
+      .select("last_seen_active_at")
+      .eq("id", seatId)
+      .single();
+    expect(seatAfterInactive?.last_seen_active_at).toBeNull();
+
+    const { error: activeError } = await finance.client.rpc("set_seat_active", {
+      p_seat_id: seatId,
+      p_active: true,
+    });
+    expect(activeError).toBeNull();
+
+    const { data: seatAfterActive } = await admin.client
+      .from("seat_assignments")
+      .select("last_seen_active_at")
+      .eq("id", seatId)
+      .single();
+    expect(seatAfterActive?.last_seen_active_at).not.toBeNull();
+
+    const { data: entries } = await admin.client
+      .from("audit_log")
+      .select("action")
+      .eq("entity_id", seatId)
+      .eq("action", "seat_assignment.updated");
+    expect(entries).toHaveLength(2);
+  });
+
+  it.each([
+    ["manager", () => manager],
+    ["employee", () => employee],
+  ])("%s NO puede quitar un asiento", async (_role, getTenant) => {
+    const { contractId } = await createContractWithSeats(10);
+    const { seatId } = await assignSeatRpc(finance, contractId, employeePublicId);
+
+    const { error } = await getTenant().client.rpc("unassign_seat", { p_seat_id: seatId });
+    expect(error).not.toBeNull();
+    expect(error?.message).toMatch(/insufficient privileges/i);
+  });
+
+  it("finance puede quitar un asiento y queda registrado en audit_log", async () => {
+    const { contractId } = await createContractWithSeats(10);
+    const { seatId } = await assignSeatRpc(finance, contractId, employeePublicId);
+
+    const { error } = await finance.client.rpc("unassign_seat", { p_seat_id: seatId });
+    expect(error).toBeNull();
+
+    const { data: entries } = await admin.client
+      .from("audit_log")
+      .select("action")
+      .eq("entity_id", seatId)
+      .eq("action", "seat_assignment.deleted");
+    expect(entries).toHaveLength(1);
+  });
+
+  it("un org_admin no puede asignar ni quitar asientos de un contrato de otra org", async () => {
+    const { contractId } = await createContractWithSeats(10);
+
+    const { error: assignError } = await assignSeatRpc(otherOrgAdmin, contractId, employeePublicId);
+    expect(assignError).not.toBeNull();
+    expect(assignError?.message).toMatch(/contract not found/i);
+
+    const { seatId } = await assignSeatRpc(finance, contractId, employeePublicId);
+    const { error: unassignError } = await otherOrgAdmin.client.rpc("unassign_seat", {
+      p_seat_id: seatId,
+    });
+    expect(unassignError).not.toBeNull();
+    expect(unassignError?.message).toMatch(/seat assignment not found/i);
+  });
+
+  it("manager/employee no ven ningún seat_assignment de su propia org (RLS por rol)", async () => {
+    const { contractId } = await createContractWithSeats(10);
+    await assignSeatRpc(finance, contractId, employeePublicId);
+
+    for (const tenant of [manager, employee]) {
+      const { data, error } = await tenant.client.from("seat_assignments").select("id");
+      expect(error).toBeNull();
+      expect(data).toEqual([]);
+    }
+  });
+});

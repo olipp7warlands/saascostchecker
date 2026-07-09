@@ -4,8 +4,11 @@ import { redirect } from "next/navigation";
 import type { ActionResult } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import {
+  assignSeatSchema,
   createContractSchema,
   createVendorWithContractSchema,
+  setSeatActiveSchema,
+  unassignSeatSchema,
   updateContractSchema,
   updateVendorSchema,
 } from "./schemas";
@@ -267,6 +270,64 @@ export async function updateContract(input: unknown): Promise<ActionResult> {
 export async function deleteContract(contractId: string): Promise<ActionResult> {
   const supabase = await createClient();
   const { error } = await supabase.rpc("delete_contract", { p_contract_id: contractId });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true };
+}
+
+export async function assignSeat(
+  input: unknown,
+): Promise<ActionResult & { overCapacity?: boolean }> {
+  const parsed = assignSeatSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: firstIssueMessage(parsed.error) };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("assign_seat", {
+    p_contract_id: parsed.data.contractId,
+    p_user_id: parsed.data.userId,
+  });
+
+  const row = (Array.isArray(data) ? data[0] : null) as { over_capacity: boolean } | null;
+
+  if (error || !row) {
+    return { error: error?.message ?? "Could not assign seat" };
+  }
+
+  return { success: true, overCapacity: row.over_capacity };
+}
+
+export async function unassignSeat(input: unknown): Promise<ActionResult> {
+  const parsed = unassignSeatSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: firstIssueMessage(parsed.error) };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("unassign_seat", { p_seat_id: parsed.data.seatId });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true };
+}
+
+export async function setSeatActive(input: unknown): Promise<ActionResult> {
+  const parsed = setSeatActiveSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: firstIssueMessage(parsed.error) };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_seat_active", {
+    p_seat_id: parsed.data.seatId,
+    p_active: parsed.data.active,
+  });
 
   if (error) {
     return { error: error.message };

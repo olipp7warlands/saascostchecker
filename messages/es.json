@@ -213,7 +213,22 @@
       "noDocument": "Sin PDF",
       "deleteContract": "Eliminar",
       "confirmDeleteVendor": "¿Seguro que quieres eliminar este vendor?",
-      "confirmDeleteContract": "¿Seguro que quieres eliminar este contrato?"
+      "confirmDeleteContract": "¿Seguro que quieres eliminar este contrato?",
+      "seatsTitle": "Licencias",
+      "utilizationSummary": "{active} / {purchased} activos · {pct}%",
+      "wastedEstimate": "≈ {amount} desperdiciado al año",
+      "overCapacityWarning": "Has asignado más asientos de los comprados en este contrato.",
+      "seatStatus": {
+        "active": "Activo",
+        "inactive": "Inactivo"
+      },
+      "markActive": "Marcar activo",
+      "markInactive": "Marcar inactivo",
+      "removeSeat": "Quitar",
+      "confirmRemoveSeat": "¿Seguro que quieres quitar este asiento?",
+      "selectMemberPlaceholder": "Selecciona un usuario",
+      "assignButton": "Asignar asiento",
+      "allMembersAssigned": "Todos los miembros de la organización ya tienen asiento en este contrato"
     }
   },
   "SpendImport": {
