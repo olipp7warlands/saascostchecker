@@ -7,7 +7,15 @@ import { Button } from "@/components/ui/button";
 import { createContract } from "@/features/vendors/actions";
 import { ContractFields } from "../contract-fields";
 
-export function NewContractForm({ vendorId }: { vendorId: string }) {
+type Department = { id: string; name: string };
+
+export function NewContractForm({
+  vendorId,
+  departments,
+}: {
+  vendorId: string;
+  departments: Department[];
+}) {
   const t = useTranslations("Vendors.detail");
   const tGeneric = useTranslations("Auth");
   const router = useRouter();
@@ -28,6 +36,7 @@ export function NewContractForm({ vendorId }: { vendorId: string }) {
         renewalDate: formData.get("renewalDate"),
         autoRenews: formData.get("autoRenews") === "on",
         cancellationNoticeDays: formData.get("cancellationNoticeDays"),
+        departmentId: formData.get("departmentId"),
         document: formData.get("document"),
       });
       if (result && "error" in result) {
@@ -40,7 +49,7 @@ export function NewContractForm({ vendorId }: { vendorId: string }) {
 
   return (
     <form action={handleSubmit} className="flex flex-col gap-3">
-      <ContractFields idPrefix="add" />
+      <ContractFields idPrefix="add" departments={departments} />
       {error && <p className="text-sm text-red-600">{error}</p>}
       <Button type="submit" disabled={isPending} className="self-start">
         {t("addContract")}

@@ -61,10 +61,10 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 - ✅ Aceptación: contrato con 12/20 asientos muestra 60% y € desperdiciado estimado
 
 ### 1.5 Dashboard
-- [ ] KPIs: gasto anualizado, vendors, licencias sin uso, renovaciones a 90 días
-- [ ] Pista de renovaciones (componente firma, mockup pantalla 1) con scroll horizontal en móvil
-- [ ] Gasto por departamento vs. presupuesto; widget de cola de reconciliación
-- ✅ Aceptación: paridad visual con el mockup; datos reales del seed demo
+- [x] KPIs: gasto anualizado, vendors, licencias sin uso, renovaciones a 90 días
+- [x] Pista de renovaciones (componente firma, mockup pantalla 1) con scroll horizontal en móvil
+- [x] Gasto por departamento (sin "vs. presupuesto" — ver docs/DECISIONS.md, candidata a fase futura); widget de cola de reconciliación
+- ✅ Aceptación: paridad visual con el mockup; datos reales del seed demo (verificado con dataset conocido en `e2e/dashboard.spec.ts`)
 
 ## FASE 2 — Renovaciones y alertas
 

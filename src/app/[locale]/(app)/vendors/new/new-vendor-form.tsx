@@ -22,7 +22,17 @@ type VendorSelection = {
   isCustom: boolean;
 };
 
-export function NewVendorForm({ locale, members }: { locale: string; members: Member[] }) {
+type Department = { id: string; name: string };
+
+export function NewVendorForm({
+  locale,
+  members,
+  departments,
+}: {
+  locale: string;
+  members: Member[];
+  departments: Department[];
+}) {
   const t = useTranslations("Vendors.new");
   const tGeneric = useTranslations("Auth");
   const tCategory = useTranslations("Catalog.category");
@@ -73,6 +83,7 @@ export function NewVendorForm({ locale, members }: { locale: string; members: Me
         renewalDate: formData.get("renewalDate"),
         autoRenews: formData.get("autoRenews") === "on",
         cancellationNoticeDays: formData.get("cancellationNoticeDays"),
+        departmentId: formData.get("departmentId"),
         document: formData.get("document"),
       });
       if (result && "error" in result) {
@@ -184,7 +195,11 @@ export function NewVendorForm({ locale, members }: { locale: string; members: Me
 
       <fieldset className="flex flex-col gap-3 rounded-lg border border-line p-4">
         <legend className="px-1 text-sm font-semibold text-ink">{t("contractSection")}</legend>
-        <ContractFields idPrefix="new" defaultValues={{ contractName: selection.name }} />
+        <ContractFields
+          idPrefix="new"
+          defaultValues={{ contractName: selection.name }}
+          departments={departments}
+        />
       </fieldset>
 
       {error && <p className="text-sm text-red-600">{error}</p>}

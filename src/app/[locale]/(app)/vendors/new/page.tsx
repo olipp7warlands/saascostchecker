@@ -27,10 +27,10 @@ export default async function NewVendorPage({
   }
 
   const supabase = await createClient();
-  const { data: members } = await supabase
-    .from("users")
-    .select("id, full_name, email")
-    .order("full_name", { ascending: true });
+  const [{ data: members }, { data: departments }] = await Promise.all([
+    supabase.from("users").select("id, full_name, email").order("full_name", { ascending: true }),
+    supabase.from("departments").select("id, name").order("name", { ascending: true }),
+  ]);
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -39,7 +39,7 @@ export default async function NewVendorPage({
         {t("new.title")}
       </h1>
       <div className="mt-6">
-        <NewVendorForm locale={locale} members={members ?? []} />
+        <NewVendorForm locale={locale} members={members ?? []} departments={departments ?? []} />
       </div>
     </div>
   );

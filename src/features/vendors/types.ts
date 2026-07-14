@@ -30,6 +30,7 @@ export type Contract = {
   cancellationNoticeDays: number;
   documentUrl: string | null;
   status: ContractStatus;
+  departmentId: string | null;
 };
 
 export type SeatAssignment = {

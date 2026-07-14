@@ -113,7 +113,51 @@
     "dashboard": {
       "crumb": "Dashboard",
       "title": "Tu stack, en cifras",
-      "placeholder": "El panel con KPIs, gasto por departamento y la pista de renovaciones llega en el bloque 1.5."
+      "forbidden": "Los KPIs financieros están disponibles para Finance, IT o un administrador.",
+      "kpis": {
+        "annualizedSpend": {
+          "label": "Gasto anualizado",
+          "sub": "{contracts} contratos activos · {currencies} moneda(s)"
+        },
+        "activeVendors": {
+          "label": "Vendors activos",
+          "sub": "{count} sin owner asignado"
+        },
+        "wastedLicenses": {
+          "label": "Licencias sin uso",
+          "sub": "{count} asientos sin actividad"
+        },
+        "renewals90": {
+          "label": "Renovaciones · 90 días",
+          "sub": "{count} en los próximos 30 días"
+        }
+      },
+      "runway": {
+        "title": "Pista de renovaciones",
+        "hint": "Próximos 120 días · posición = días restantes",
+        "empty": "No hay renovaciones en los próximos 120 días",
+        "perYear": "{amount}/año",
+        "daysRemaining": "{days} días",
+        "overdue": "Vencido hace {days} días",
+        "noticeWarning": "⚠ {days} días · preaviso {noticeDays}d"
+      },
+      "departmentSpend": {
+        "title": "Gasto por departamento",
+        "empty": "Todavía no hay contratos activos con coste",
+        "unassigned": "General / Sin asignar",
+        "table": {
+          "department": "Departamento",
+          "annualized": "Anualizado",
+          "vendors": "Vendors"
+        }
+      },
+      "reconciliation": {
+        "title": "Pendiente de reconciliar",
+        "empty": "No hay movimientos pendientes de reconciliar",
+        "suggestion": "¿{name}?",
+        "note": "{count} movimientos sin vendor asignado.",
+        "viewAll": "Revisar la cola completa →"
+      }
     }
   },
   "Catalog": {
@@ -189,6 +233,8 @@
       "renewalDateLabel": "Fecha de renovación",
       "autoRenewsLabel": "Auto-renueva",
       "cancellationNoticeDaysLabel": "Preaviso de cancelación (días)",
+      "departmentLabel": "Departamento",
+      "departmentNone": "General / Sin asignar",
       "documentLabel": "Contrato en PDF",
       "submit": "Crear vendor y contrato"
     },

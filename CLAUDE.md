@@ -24,9 +24,11 @@ Plataforma multi-tenant de gestión de SaaS (visibilidad de gasto, renovaciones,
 7. **Nada de APIs de terceros** (Google/Microsoft/Okta/bancos) hasta la Fase 5. Todo entra por CSV o formularios.
 
 ## Entorno de desarrollo
-- El entorno de desarrollo es el proyecto **remoto** de Supabase (`mkrsicuvhnmljpurtwun`), no la instancia local. `.env.local` apunta a `https://mkrsicuvhnmljpurtwun.supabase.co` — así es como se ejecutan `pnpm dev` y `pnpm build`.
-- Las migraciones se siguen escribiendo en `supabase/migrations/` y se aplican al remoto con `supabase db push` (el proyecto ya está enlazado). `supabase db reset`/`supabase start` (local) ya NO son el flujo por defecto.
-- Los tests de aislamiento/permisos (`rls-isolation.test.ts`, `permissions.test.ts`) SÍ necesitan Supabase local (crean tenants reales y no deben tocar el remoto) — usan `.env.test.local` (gitignored, no tocar `.env.local`), que Vitest carga automáticamente porque su `mode` es `test` y Vite da prioridad a `.env.test.local` sobre `.env.local`. Para correrlos: `supabase start` en paralelo, sin cambiar `.env.local`.
+- **Esta máquina de desarrollo NO tiene Docker ni Supabase local, y no se instalan.** El entorno de desarrollo es exclusivamente el proyecto **remoto** de Supabase (`mkrsicuvhnmljpurtwun`). `.env.local` apunta a `https://mkrsicuvhnmljpurtwun.supabase.co` — así es como se ejecutan `pnpm dev` y `pnpm build`.
+- Las migraciones se escriben en `supabase/migrations/` y se aplican al remoto con `supabase db push` (el proyecto ya está enlazado). `supabase db reset`/`supabase start` (local) no se ejecutan nunca en esta máquina.
+- Deploy: Railway, automático con cada push a `main`.
+- Los tests de aislamiento/permisos (`rls-isolation.test.ts`, `permissions.test.ts`) y cualquier e2e que cree tenants reales (p.ej. `e2e/dashboard.spec.ts`) SÍ necesitan Supabase local — pero **ese Supabase local solo existe dentro de los runners de GitHub Actions** (`.github/workflows/ci.yml` ya lo levanta con `supabase/setup-cli` + `supabase start -x ...`), nunca en esta máquina. `.env.test.local` (gitignored) existe para que, SI algún día se corre en un entorno con Docker, Vitest lo cargue en vez de `.env.local` — pero el flujo normal de trabajo aquí es: no levantar Docker, dejar que esos tests concretos se verifiquen empujando a una rama y revisando el run de CI (`gh run watch` / `gh run view`), no ejecutándolos en local.
+- **No intentes arrancar Docker Desktop ni `supabase start` en esta máquina** aunque un test lo requiera — si `pnpm test` local falla solo en `rls-isolation.test.ts`/`permissions.test.ts`/e2e con tenants reales, es esperado: confirma que el resto de la suite pasa, y verifica esos tests concretos vía CI.
 - Google OAuth queda aplazado al bloque 4.2 (Onboarding self-service) — el botón está oculto tras un feature flag (`NEXT_PUBLIC_FEATURE_GOOGLE_OAUTH`) hasta entonces.
 
 ## Sistema de diseño (de docs/mockups.html)

@@ -22,18 +22,22 @@ type Contract = {
   cancellation_notice_days: number;
   document_url: string | null;
   status: string;
+  department_id: string | null;
 };
 
 type Member = { id: string; full_name: string | null; email: string };
+type Department = { id: string; name: string };
 
 export function ContractRow({
   contract,
   seats,
   members,
+  departments,
 }: {
   contract: Contract;
   seats: SeatRow[];
   members: Member[];
+  departments: Department[];
 }) {
   const t = useTranslations("Vendors.detail");
   const tGeneric = useTranslations("Auth");
@@ -56,6 +60,7 @@ export function ContractRow({
         renewalDate: formData.get("renewalDate"),
         autoRenews: formData.get("autoRenews") === "on",
         cancellationNoticeDays: formData.get("cancellationNoticeDays"),
+        departmentId: formData.get("departmentId"),
         document: formData.get("document"),
         status: formData.get("status"),
       });
@@ -93,11 +98,12 @@ export function ContractRow({
   }
 
   return (
-    <li className="rounded-lg border border-line p-4">
+    <li id={`contract-${contract.id}`} className="rounded-lg border border-line p-4">
       <form action={handleSave} className="flex flex-col gap-3">
         <ContractFields
           idPrefix={`contract-${contract.id}`}
           includeStatus
+          departments={departments}
           defaultValues={{
             contractName: contract.name,
             costAmount: contract.cost_amount,
@@ -109,6 +115,7 @@ export function ContractRow({
             autoRenews: contract.auto_renews,
             cancellationNoticeDays: contract.cancellation_notice_days,
             status: contract.status,
+            departmentId: contract.department_id,
           }}
         />
 

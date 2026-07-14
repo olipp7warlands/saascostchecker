@@ -25,6 +25,7 @@ const contractFieldsSchema = {
   renewalDate: z.string().trim().min(1),
   autoRenews: z.boolean(),
   cancellationNoticeDays: z.coerce.number().int().min(0),
+  departmentId: uuidOrNull,
   document: z
     .instanceof(File)
     .nullable()

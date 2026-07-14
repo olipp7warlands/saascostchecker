@@ -11,6 +11,7 @@ export function ContractFields({
   idPrefix,
   defaultValues,
   includeStatus = false,
+  departments,
 }: {
   idPrefix: string;
   defaultValues?: Partial<{
@@ -24,8 +25,10 @@ export function ContractFields({
     autoRenews: boolean;
     cancellationNoticeDays: number;
     status: string;
+    departmentId: string | null;
   }>;
   includeStatus?: boolean;
+  departments: { id: string; name: string }[];
 }) {
   const t = useTranslations("Vendors.new");
   const tDetail = useTranslations("Vendors.detail");
@@ -143,6 +146,23 @@ export function ContractFields({
           required
           defaultValue={d.cancellationNoticeDays ?? 30}
         />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor={`${idPrefix}-departmentId`}>{t("departmentLabel")}</Label>
+        <select
+          id={`${idPrefix}-departmentId`}
+          name="departmentId"
+          defaultValue={d.departmentId ?? ""}
+          className={SELECT_CLASSNAME}
+        >
+          <option value="">{t("departmentNone")}</option>
+          {departments.map((department) => (
+            <option key={department.id} value={department.id}>
+              {department.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       {includeStatus && (

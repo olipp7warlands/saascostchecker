@@ -30,15 +30,17 @@ export default async function VendorDetailPage({
   }
 
   const supabase = await createClient();
-  const [{ data: vendor }, { data: contracts }, { data: members }] = await Promise.all([
-    supabase.from("vendors").select("*").eq("id", id).single(),
-    supabase
-      .from("contracts")
-      .select("*")
-      .eq("vendor_id", id)
-      .order("start_date", { ascending: false }),
-    supabase.from("users").select("id, full_name, email").order("full_name", { ascending: true }),
-  ]);
+  const [{ data: vendor }, { data: contracts }, { data: members }, { data: departments }] =
+    await Promise.all([
+      supabase.from("vendors").select("*").eq("id", id).single(),
+      supabase
+        .from("contracts")
+        .select("*")
+        .eq("vendor_id", id)
+        .order("start_date", { ascending: false }),
+      supabase.from("users").select("id, full_name, email").order("full_name", { ascending: true }),
+      supabase.from("departments").select("id, name").order("name", { ascending: true }),
+    ]);
 
   if (!vendor) {
     notFound();
@@ -93,12 +95,13 @@ export default async function VendorDetailPage({
               contract={contract}
               seats={seatsByContract.get(contract.id) ?? []}
               members={members ?? []}
+              departments={departments ?? []}
             />
           ))}
         </ul>
         <div className="mt-4 rounded-lg border border-dashed border-line p-4">
           <h3 className="mb-2 text-sm font-semibold text-ink">{t("detail.addContract")}</h3>
-          <NewContractForm vendorId={vendor.id} />
+          <NewContractForm vendorId={vendor.id} departments={departments ?? []} />
         </div>
       </div>
     </div>

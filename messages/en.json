@@ -113,7 +113,51 @@
     "dashboard": {
       "crumb": "Dashboard",
       "title": "Your stack, in numbers",
-      "placeholder": "The panel with KPIs, spend by department, and the renewals runway ships in block 1.5."
+      "forbidden": "Financial KPIs are available to Finance, IT, or an admin.",
+      "kpis": {
+        "annualizedSpend": {
+          "label": "Annualized spend",
+          "sub": "{contracts} active contracts · {currencies} currencies"
+        },
+        "activeVendors": {
+          "label": "Active vendors",
+          "sub": "{count} without an assigned owner"
+        },
+        "wastedLicenses": {
+          "label": "Unused licenses",
+          "sub": "{count} idle seats"
+        },
+        "renewals90": {
+          "label": "Renewals · 90 days",
+          "sub": "{count} in the next 30 days"
+        }
+      },
+      "runway": {
+        "title": "Renewals runway",
+        "hint": "Next 120 days · position = days remaining",
+        "empty": "No renewals in the next 120 days",
+        "perYear": "{amount}/yr",
+        "daysRemaining": "{days} days",
+        "overdue": "Overdue by {days} days",
+        "noticeWarning": "⚠ {days} days · {noticeDays}d notice"
+      },
+      "departmentSpend": {
+        "title": "Spend by department",
+        "empty": "No active contracts with cost yet",
+        "unassigned": "General / Unassigned",
+        "table": {
+          "department": "Department",
+          "annualized": "Annualized",
+          "vendors": "Vendors"
+        }
+      },
+      "reconciliation": {
+        "title": "Pending reconciliation",
+        "empty": "No transactions pending reconciliation",
+        "suggestion": "{name}?",
+        "note": "{count} transactions without a vendor.",
+        "viewAll": "Review the full queue →"
+      }
     }
   },
   "Catalog": {
@@ -189,6 +233,8 @@
       "renewalDateLabel": "Renewal date",
       "autoRenewsLabel": "Auto-renews",
       "cancellationNoticeDaysLabel": "Cancellation notice (days)",
+      "departmentLabel": "Department",
+      "departmentNone": "General / Unassigned",
       "documentLabel": "Contract PDF",
       "submit": "Create vendor and contract"
     },
