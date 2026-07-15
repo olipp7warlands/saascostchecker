@@ -43,6 +43,7 @@ Plataforma multi-tenant de gestión de SaaS (visibilidad de gasto, renovaciones,
 - Zod para validación en toda entrada de usuario y todo CSV
 - Commits: conventional commits (`feat:`, `fix:`, `chore:`) en inglés
 - Al terminar un bloque: `pnpm lint && pnpm typecheck && pnpm test && pnpm build` deben pasar (el build de producción es parte del gate — un módulo `"use server"` roto no lo detectan lint/typecheck/test)
+- **Tras cada deploy (push a `main`, Railway despliega automático), verificar con `curl -o /dev/null -w "%{http_code}"` que la URL de producción responde 200 en al menos una ruta real (no solo `/`, que redirige) — el estado "success" de Railway/GitHub solo confirma que el contenedor arrancó, no que las páginas rendericen.** Un build puede pasar en verde y el runtime seguir devolviendo 500 en todas las rutas — causa real ya vista: Next.js inlina `NEXT_PUBLIC_*` en tiempo de BUILD (sustitución estática, ocurre aunque el código las lea con `process.env.X` dentro de una función server-side), así que si esas vars no están presentes durante el paso de build de Railway (aunque sí lo estén en runtime/deploy), el middleware queda compilado con `undefined` y revienta en cada request excepto las rutas excluidas de su `matcher` (p.ej. `/api/*`). Diagnóstico rápido para reproducir en local antes de tocar nada: mover `.env.local` fuera, `pnpm build && pnpm start`, y comparar el patrón de códigos HTTP entre rutas con el de producción.
 
 ## Flujo de trabajo
 1. Lee el bloque actual en `docs/TASKS.md` y su sección en `docs/SPECS.md`
