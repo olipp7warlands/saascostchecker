@@ -177,7 +177,14 @@
       "support": "Support",
       "project_management": "Project management",
       "video": "Video",
-      "other": "Other"
+      "other": "Other",
+      "ai_assistant": "AI assistant",
+      "ai_coding": "AI coding",
+      "ai_image_video": "AI image/video",
+      "ai_audio_voice": "AI audio/voice",
+      "ai_writing": "AI writing",
+      "ai_meeting_agents": "AI meeting agent",
+      "ai_api_platform": "AI API platform"
     },
     "combobox": {
       "ariaLabel": "Search the SaaS catalog",

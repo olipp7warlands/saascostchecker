@@ -15,6 +15,13 @@ export const CATALOG_CATEGORIES = [
   "project_management",
   "video",
   "other",
+  "ai_assistant",
+  "ai_coding",
+  "ai_image_video",
+  "ai_audio_voice",
+  "ai_writing",
+  "ai_meeting_agents",
+  "ai_api_platform",
 ] as const;
 
 export type CatalogCategory = (typeof CATALOG_CATEGORIES)[number];

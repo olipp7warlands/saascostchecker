@@ -5,6 +5,12 @@
 // suministros, viajes...) que deben quedar correctamente SIN sugerencia —
 // mezclar ambas evita inflar el porcentaje con un CSV 100% "matcheable".
 //
+// Ampliado en la ampliación de 1.1 (catálogo de IA, ver docs/DECISIONS.md)
+// con 20 filas más de descripciones bancarias de herramientas de IA —
+// incluye los 2 casos de "doble candidato" pedidos explícitamente
+// (OPENAI/ChatGPT vs OpenAI API, ANTHROPIC PBC/Claude vs Anthropic API):
+// 220 filas totales.
+//
 // expectedVendor: nombre exacto de saas_catalog.name esperado (o null si la
 // fila NO debe recibir ninguna sugerencia).
 
@@ -159,4 +165,37 @@ function buildNonSaasRows(): FixtureRow[] {
   return NON_SAAS_ROWS.map((rawDescription) => ({ rawDescription, expectedVendor: null }));
 }
 
-export const BANK_STATEMENT_200: FixtureRow[] = [...buildSaasRows(), ...buildNonSaasRows()];
+// 20 filas de gasto en herramientas de IA (ampliación de 1.1). Las 2
+// primeras parejas son los casos de "doble candidato" pedidos explícitamente
+// — mismo prefijo de marca ("OPENAI"/"ANTHROPIC PBC"), dos productos reales
+// distintos de la misma empresa (consumo vs. API), resueltos de forma
+// determinista por best_catalog_match() vía coincidencia exacta (ver
+// docs/DECISIONS.md para la traza regla-a-regla completa).
+const AI_ROWS: FixtureRow[] = [
+  { rawDescription: "OPENAI *CHATGPT SUBSCR", expectedVendor: "ChatGPT" },
+  { rawDescription: "OPENAI", expectedVendor: "OpenAI API" },
+  { rawDescription: "ANTHROPIC PBC", expectedVendor: "Claude" },
+  { rawDescription: "ANTHROPIC API", expectedVendor: "Anthropic API" },
+  { rawDescription: "GITHUB *COPILOT", expectedVendor: "GitHub Copilot" },
+  { rawDescription: "CURSOR AI POWERED IDE", expectedVendor: "Cursor" },
+  { rawDescription: "MIDJOURNEY INC", expectedVendor: "Midjourney" },
+  { rawDescription: "ELEVENLABS.IO", expectedVendor: "ElevenLabs" },
+  { rawDescription: "COMPRA TARJETA RUNWAYML.COM 1123456", expectedVendor: "Runway" },
+  { rawDescription: "SUNO.COM SAN FRANCISCO US", expectedVendor: "Suno" },
+  { rawDescription: "PADDLE.NET* JASPER", expectedVendor: "Jasper" },
+  { rawDescription: "FIREFLIES.AI", expectedVendor: "Fireflies.ai" },
+  { rawDescription: "MISTRAL AI PARIS FRA", expectedVendor: "Mistral AI" },
+  { rawDescription: "COHERE INC", expectedVendor: "Cohere" },
+  { rawDescription: "HUGGINGFACE.CO", expectedVendor: "Hugging Face" },
+  { rawDescription: "REPLIT.COM", expectedVendor: "Replit" },
+  { rawDescription: "PADDLE.NET* LINDY", expectedVendor: "Lindy" },
+  { rawDescription: "AWS BEDROCK", expectedVendor: "AWS Bedrock" },
+  { rawDescription: "PERPLEXITY.AI", expectedVendor: "Perplexity" },
+  { rawDescription: "GROQ.COM", expectedVendor: "Groq" },
+];
+
+export const BANK_STATEMENT_200: FixtureRow[] = [
+  ...buildSaasRows(),
+  ...buildNonSaasRows(),
+  ...AI_ROWS,
+];

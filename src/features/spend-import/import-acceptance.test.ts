@@ -23,10 +23,10 @@ const admin: SupabaseClient = createClient(url, serviceRoleKey, {
 const AUTO_SUGGEST_THRESHOLD = 0.4;
 
 describe("Criterio de aceptación de TASKS.md 1.3: CSV de 200 filas, >=70% auto-sugerido correctamente", () => {
-  it("acierta en al menos el 70% de las 200 filas del fixture (positivos y negativos)", async () => {
-    // 200 filas x 2 round-trips (best_catalog_match + lookup del nombre) a la
+  it("acierta en al menos el 70% de las 220 filas del fixture (positivos y negativos, incluida la ampliación de IA de 1.1)", async () => {
+    // 220 filas x 2 round-trips (best_catalog_match + lookup del nombre) a la
     // instancia local de Supabase superan el timeout por defecto de 5s.
-    expect(BANK_STATEMENT_200).toHaveLength(200);
+    expect(BANK_STATEMENT_200).toHaveLength(220);
 
     let correct = 0;
     const failures: string[] = [];

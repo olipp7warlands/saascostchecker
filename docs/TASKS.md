@@ -39,6 +39,7 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 - [x] Componente `<AppLogo domain/>` (favicon + fallback a inicial con color derivado)
 - [x] Componente de autocompletado reutilizable (busca en nombre + aliases)
 - ✅ Aceptación: escribir "figm" sugiere Figma con su logo en <150 ms
+- [x] Ampliación (2026-07-15): +144 herramientas de IA en 7 categorías nuevas (`ai_assistant`, `ai_coding`, `ai_image_video`, `ai_audio_voice`, `ai_writing`, `ai_meeting_agents`, `ai_api_platform`), con alias de extracto bancario reales y fixture del matcher de 1.3 ampliado (200→220 filas, ≥70% se mantiene) — ver docs/DECISIONS.md
 
 ### 1.2 Vendors y contratos
 - [x] Migraciones: `vendors`, `contracts` + Storage bucket para PDFs

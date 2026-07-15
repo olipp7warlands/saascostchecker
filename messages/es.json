@@ -177,7 +177,14 @@
       "support": "Soporte",
       "project_management": "Gestión de proyectos",
       "video": "Vídeo",
-      "other": "Otros"
+      "other": "Otros",
+      "ai_assistant": "Asistente de IA",
+      "ai_coding": "IA para programar",
+      "ai_image_video": "IA de imagen/vídeo",
+      "ai_audio_voice": "IA de audio/voz",
+      "ai_writing": "IA de escritura",
+      "ai_meeting_agents": "Agente de reuniones IA",
+      "ai_api_platform": "Plataforma de API de IA"
     },
     "combobox": {
       "ariaLabel": "Buscar en el catálogo de SaaS",
