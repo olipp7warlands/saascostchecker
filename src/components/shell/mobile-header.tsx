@@ -1,5 +1,6 @@
 import { Wordmark } from "@/components/brand/wordmark";
 import { LocaleSwitcher } from "./locale-switcher";
+import { NotificationBell } from "./notification-bell";
 import { UserMenu } from "./user-menu";
 
 export function MobileHeader({
@@ -17,6 +18,7 @@ export function MobileHeader({
     <header className="flex items-center justify-between gap-3 border-b border-line bg-surface px-4 py-3 md:hidden">
       <Wordmark className="text-base text-ink" />
       <div className="flex min-w-0 items-center gap-3">
+        <NotificationBell dark={false} />
         <LocaleSwitcher locale={locale} dark={false} />
         <div className="w-[130px] min-w-0">
           <UserMenu

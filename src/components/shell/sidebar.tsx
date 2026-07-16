@@ -4,6 +4,7 @@ import type { Role } from "@/features/auth/session";
 import { LocaleSwitcher } from "./locale-switcher";
 import { isNavItemVisible, NAV_ITEMS } from "./nav-items";
 import { NavLink } from "./nav-link";
+import { NotificationBell } from "./notification-bell";
 import { UserMenu } from "./user-menu";
 
 export async function Sidebar({
@@ -32,8 +33,9 @@ export async function Sidebar({
 
   return (
     <aside className="hidden w-[216px] shrink-0 flex-col border-r border-line bg-surface py-5 text-ink md:flex">
-      <div className="px-5 pb-[22px]">
+      <div className="flex items-center justify-between px-5 pb-[22px]">
         <Wordmark className="text-[19px] text-ink" />
+        <NotificationBell dark={false} />
       </div>
 
       <nav aria-label={t("mainNavLabel")} className="flex flex-1 flex-col overflow-y-auto">

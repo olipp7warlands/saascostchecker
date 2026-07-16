@@ -260,6 +260,14 @@
     "localeSwitcher": {
       "label": "Language"
     },
+    "notifications": {
+      "bellLabel": "Notifications",
+      "unreadCount": "{count, plural, =0 {No unread notifications} one {1 unread notification} other {# unread notifications}}",
+      "empty": "You have no notifications",
+      "markAllRead": "Mark all as read",
+      "renewalAlert": "{vendorName} renews in {days} days",
+      "noticeExpired": "{vendorName}: the cancellation notice deadline is today"
+    },
     "dashboard": {
       "crumb": "Dashboard",
       "title": "Your stack, in numbers",

@@ -72,9 +72,11 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 ## FASE 2 — Renovaciones y alertas
 
 ### 2.1 Motor de alertas
-- [ ] Cron diario (Vercel Cron) que evalúa `renewal_date` y `cancellation_notice_days`
-- [ ] Alertas 90/60/30/7 días → tabla `notifications`; idempotente (no duplica)
-- ✅ Aceptación: test con fechas simuladas genera exactamente las alertas esperadas
+- [x] Cron diario (`pg_cron` en Supabase remoto, no Vercel/Railway — ver docs/DECISIONS.md) que evalúa `renewal_date` y `cancellation_notice_days`
+- [x] Alertas 90/60/30/7 días + aviso de preaviso vencido → tabla `notifications`; idempotente por unique index (no duplica)
+- [x] Destinatarios: owner del vendor + usuarios `finance` de la org (solo finance si no hay owner)
+- [x] Panel mínimo in-app: campanita en el shell con contador de no leídas + lista, marcar leída/marcar todo
+- ✅ Aceptación: test con fechas simuladas (91/90/89/60/30/7/6 días + preaviso vencido) genera exactamente las alertas esperadas — `src/features/renewals/renewal-alerts.test.ts`, incluye test explícito de idempotencia (ejecutar dos veces el mismo día no duplica)
 
 ### 2.2 Canales
 - [ ] Email vía Resend con plantillas bilingües
