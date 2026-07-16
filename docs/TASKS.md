@@ -126,3 +126,11 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 ### 5.1 Discovery IdP (Google Workspace, Microsoft Entra → `discovered_apps` → cola de reconciliación de 1.3)
 ### 5.2 Sync de licencias vía SSO (`last_seen_active_at`, inactivos 30/60/90)
 ### 5.3 APIs de gasto (ERP/contabilidad, agregadores bancarios)
+
+## FASE 6 — Backlog futuro (sin fase asignada, no comprometido)
+
+### 6.1 Inventario de herramientas internas (vibe-coded / no-code)
+- [ ] `vendors.source` (`'saas' | 'internal'`) — herramientas construidas in-house (vibe-coded, low-code/no-code) en vez de contratadas a un tercero
+- [ ] Campos específicos de `source = 'internal'`: owner técnico, repo/URL, hosting, APIs externas que consume (vinculables a los `spend_records` existentes de esos proveedores — p.ej. una herramienta interna que gasta en OpenAI/Vercel/Supabase aparece con su propio gasto de API), criticidad, estado de riesgo
+- [ ] Estado de riesgo: **huérfana** si el owner técnico deja la organización (sin owner técnico asignado tras la baja); reutiliza el motor de alertas de 2.1 (cron diario, tabla `notifications`, mismo patrón de idempotencia) en vez de construir uno nuevo
+- ✅ Aceptación (borrador, a refinar cuando se planifique el bloque): una herramienta interna sin owner técnico tras la baja de su responsable se marca huérfana y genera una alerta; el gasto de API que consume aparece correlacionado en su ficha
