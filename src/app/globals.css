@@ -19,6 +19,7 @@
   --color-lime: var(--lime);
   --color-lime-hover: var(--lime-hover);
   --color-lime-ink: var(--lime-ink);
+  --color-lime-soft: var(--lime-soft);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
@@ -71,6 +72,7 @@
   --lime: #9be000;
   --lime-hover: #8acc00;
   --lime-ink: #2a3d00;
+  --lime-soft: #efffc8;
 
   --success: #578500;
   --success-soft: #f0fadc;

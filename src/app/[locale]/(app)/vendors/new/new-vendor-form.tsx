@@ -128,28 +128,30 @@ export function NewVendorForm({
           </button>
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="vendorName">{t("nameLabel")}</Label>
-          <Input
-            id="vendorName"
-            name="vendorName"
-            required
-            minLength={1}
-            maxLength={200}
-            defaultValue={selection.name}
-          />
-        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="vendorName">{t("nameLabel")}</Label>
+            <Input
+              id="vendorName"
+              name="vendorName"
+              required
+              minLength={1}
+              maxLength={200}
+              defaultValue={selection.name}
+            />
+          </div>
 
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="website">{t("websiteLabel")}</Label>
-          <Input
-            id="website"
-            name="website"
-            required
-            maxLength={255}
-            placeholder="ejemplo.com"
-            defaultValue={selection.website}
-          />
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="website">{t("websiteLabel")}</Label>
+            <Input
+              id="website"
+              name="website"
+              required
+              maxLength={255}
+              placeholder="ejemplo.com"
+              defaultValue={selection.website}
+            />
+          </div>
         </div>
 
         <div className="flex flex-col gap-1.5">

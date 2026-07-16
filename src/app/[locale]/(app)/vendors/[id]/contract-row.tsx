@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { deleteContract, getContractDocumentUrl, updateContract } from "@/features/vendors/actions";
 import type { BillingCycle } from "@/features/vendors/types";
 import { ContractFields } from "../contract-fields";
@@ -50,6 +51,7 @@ export function ContractRow({
   const [error, setError] = useState<string | null>(null);
   const [documentError, setDocumentError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   function handleSave(formData: FormData) {
     setError(null);
@@ -79,9 +81,6 @@ export function ContractRow({
   }
 
   function handleDelete() {
-    if (!window.confirm(t("confirmDeleteContract"))) {
-      return;
-    }
     setError(null);
     startTransition(async () => {
       const result = await deleteContract(contract.id);
@@ -90,6 +89,7 @@ export function ContractRow({
       } else {
         router.refresh();
       }
+      setConfirmOpen(false);
     });
   }
 
@@ -149,11 +149,27 @@ export function ContractRow({
           <Button type="submit" disabled={isPending}>
             {t("save")}
           </Button>
-          <Button type="button" variant="destructive" disabled={isPending} onClick={handleDelete}>
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={isPending}
+            onClick={() => setConfirmOpen(true)}
+          >
             {t("deleteContract")}
           </Button>
         </div>
       </form>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={t("confirmDeleteContractTitle")}
+        description={t("confirmDeleteContract")}
+        confirmLabel={t("deleteContract")}
+        cancelLabel={tGeneric("cancel")}
+        onConfirm={handleDelete}
+        isPending={isPending}
+      />
 
       <ContractSeats
         contractId={contract.id}

@@ -130,6 +130,9 @@ export default async function DashboardPage({
       <h1 className="mt-1.5 font-disp text-2xl font-semibold tracking-tight text-ink sm:text-[26px]">
         {t("title")}
       </h1>
+      <p className="mt-1 text-sm text-ink-soft">
+        {t("greeting", { name: profile.fullName ?? profile.orgName })}
+      </p>
 
       <KpiCards kpis={kpis} locale={locale} orgCurrency={orgCurrency} />
       <RenewalTrack tickets={tickets} locale={locale} />

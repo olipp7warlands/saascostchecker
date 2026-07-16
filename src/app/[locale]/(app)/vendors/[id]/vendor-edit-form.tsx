@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CATALOG_CATEGORIES } from "@/features/catalog/types";
@@ -39,6 +40,7 @@ export function VendorEditForm({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   function handleSave(formData: FormData) {
     setError(null);
@@ -61,15 +63,13 @@ export function VendorEditForm({
   }
 
   function handleDelete() {
-    if (!window.confirm(t("confirmDeleteVendor"))) {
-      return;
-    }
     setError(null);
     startTransition(async () => {
       const result = await deleteVendor(locale, vendor.id);
       if (result && "error" in result) {
         setError(result.error || tGeneric("errorGeneric"));
       }
+      setConfirmOpen(false);
     });
   }
 
@@ -145,10 +145,26 @@ export function VendorEditForm({
         <Button type="submit" disabled={isPending}>
           {t("save")}
         </Button>
-        <Button type="button" variant="destructive" disabled={isPending} onClick={handleDelete}>
+        <Button
+          type="button"
+          variant="destructive"
+          disabled={isPending}
+          onClick={() => setConfirmOpen(true)}
+        >
           {t("deleteVendor")}
         </Button>
       </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={t("confirmDeleteVendorTitle")}
+        description={t("confirmDeleteVendor")}
+        confirmLabel={t("deleteVendor")}
+        cancelLabel={tGeneric("cancel")}
+        onConfirm={handleDelete}
+        isPending={isPending}
+      />
     </form>
   );
 }

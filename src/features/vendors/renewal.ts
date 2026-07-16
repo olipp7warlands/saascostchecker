@@ -24,3 +24,20 @@ export function renewalTone(days: number): RenewalTone {
 export function annualizedCost(amount: number, cycle: BillingCycle): number {
   return cycle === "monthly" ? amount * 12 : amount;
 }
+
+// Días hasta que la decisión de renovación deja de ser accionable: si el
+// contrato auto-renueva, el deadline real es el preaviso de cancelación
+// (pasado ese punto ya quedó bloqueado en auto-renovación), no la fecha de
+// renovación en sí. Fuente única de verdad compartida entre el "primario
+// contextual" de la cabecera (primary-action.ts) y el resaltado en rojo de
+// la tarjeta de renovación (vendor-rail.tsx) — antes cada uno calculaba la
+// urgencia por su cuenta y quedaban inconsistentes entre sí.
+export function actionableDaysUntil(
+  renewalDateIso: string,
+  autoRenews: boolean,
+  cancellationNoticeDays: number,
+  today: Date = new Date(),
+): number {
+  const days = daysUntil(renewalDateIso, today);
+  return autoRenews ? days - cancellationNoticeDays : days;
+}

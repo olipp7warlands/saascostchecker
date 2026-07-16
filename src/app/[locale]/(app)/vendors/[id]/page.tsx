@@ -1,13 +1,12 @@
 import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { Breadcrumbs } from "@/components/shell/breadcrumbs";
 import { getCurrentUserProfile } from "@/features/auth/session";
 import { routing } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
-import { ContractRow } from "./contract-row";
 import type { SeatRow } from "./contract-seats";
-import { NewContractForm } from "./new-contract-form";
-import { VendorEditForm } from "./vendor-edit-form";
+import { VendorFicha } from "./vendor-ficha";
 
 const MANAGER_ROLES = ["finance", "it_admin", "org_admin"];
 
@@ -65,59 +64,34 @@ export default async function VendorDetailPage({
 
   const membersById = new Map((members ?? []).map((member) => [member.id, member]));
 
-  const seatsByContract = new Map<string, SeatRow[]>();
+  const seatsByContract: Record<string, SeatRow[]> = {};
   for (const row of seatRows ?? []) {
     const member = membersById.get(row.user_id);
-    const list = seatsByContract.get(row.contract_id) ?? [];
+    const list = seatsByContract[row.contract_id] ?? [];
     list.push({
       id: row.id,
       userId: row.user_id,
       userName: member?.full_name ?? member?.email ?? row.user_id,
       active: row.last_seen_active_at !== null,
     });
-    seatsByContract.set(row.contract_id, list);
+    seatsByContract[row.contract_id] = list;
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <a href={`/${locale}/vendors`} className="text-sm text-ink-soft hover:text-ink">
-        {t("detail.back")}
-      </a>
-      <h1 className="mt-2 font-disp text-2xl font-semibold tracking-tight text-ink sm:text-[26px]">
-        {vendor.name}
-      </h1>
+    <div className="mx-auto max-w-4xl">
+      <Breadcrumbs items={[{ label: t("crumb"), href: `/${locale}/vendors` }, { label: vendor.name }]} />
 
-      <div className="mt-6">
-        <h2 className="mb-2 font-disp text-lg font-semibold text-ink">
-          {t("detail.vendorFieldsTitle")}
-        </h2>
-        <VendorEditForm locale={locale} vendor={vendor} members={members ?? []} />
-      </div>
-
-      <div className="mt-8">
-        <h2 className="font-disp text-lg font-semibold text-ink">{t("detail.contractsTitle")}</h2>
-        <ul className="mt-3 flex flex-col gap-3">
-          {(contracts ?? []).map((contract) => (
-            <ContractRow
-              key={contract.id}
-              contract={contract}
-              seats={seatsByContract.get(contract.id) ?? []}
-              members={members ?? []}
-              departments={departments ?? []}
-              companies={companies ?? []}
-              canManageOrgDimensions={canManageOrgDimensions}
-            />
-          ))}
-        </ul>
-        <div className="mt-4 rounded-lg border border-dashed border-line p-4">
-          <h3 className="mb-2 text-sm font-semibold text-ink">{t("detail.addContract")}</h3>
-          <NewContractForm
-            vendorId={vendor.id}
-            departments={departments ?? []}
-            companies={companies ?? []}
-            canManageOrgDimensions={canManageOrgDimensions}
-          />
-        </div>
+      <div className="mt-4">
+        <VendorFicha
+          locale={locale}
+          vendor={vendor}
+          contracts={contracts ?? []}
+          members={members ?? []}
+          departments={departments ?? []}
+          companies={companies ?? []}
+          seatsByContract={seatsByContract}
+          canManageOrgDimensions={canManageOrgDimensions}
+        />
       </div>
     </div>
   );

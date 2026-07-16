@@ -183,7 +183,8 @@
       "passwordLabel": "Elige una contraseña",
       "submit": "Unirme"
     },
-    "errorGeneric": "Ha ocurrido un error. Revisa los datos e inténtalo de nuevo."
+    "errorGeneric": "Ha ocurrido un error. Revisa los datos e inténtalo de nuevo.",
+    "cancel": "Cancelar"
   },
   "Team": {
     "invite": {
@@ -207,6 +208,8 @@
       "create": "Crear departamento",
       "edit": "Guardar",
       "delete": "Eliminar",
+      "confirmDeleteTitle": "Eliminar departamento",
+      "confirmDelete": "¿Seguro que quieres eliminar este departamento?",
       "empty": "Todavía no hay departamentos",
       "forbidden": "Solo un administrador puede gestionar departamentos"
     },
@@ -226,6 +229,8 @@
       "create": "Crear empresa",
       "edit": "Guardar",
       "delete": "Eliminar",
+      "confirmDeleteTitle": "Eliminar empresa",
+      "confirmDelete": "¿Seguro que quieres eliminar esta empresa?",
       "empty": "Todavía no hay empresas",
       "forbidden": "Solo un administrador puede gestionar empresas"
     }
@@ -258,6 +263,7 @@
     "dashboard": {
       "crumb": "Dashboard",
       "title": "Tu stack, en cifras",
+      "greeting": "Hola, {name}",
       "forbidden": "Los KPIs financieros están disponibles para Finance, IT o un administrador.",
       "kpis": {
         "annualizedSpend": {
@@ -351,7 +357,7 @@
     "noData": "sin datos",
     "table": {
       "vendor": "Vendor",
-      "category": "Categoría",
+      "status": "Estado",
       "annualCost": "Coste anual",
       "seats": "Asientos",
       "utilization": "Utilización",
@@ -372,6 +378,7 @@
       "notesLabel": "Notas",
       "contractSection": "Contrato",
       "contractNameLabel": "Nombre del contrato",
+      "costSection": "Coste y ciclo",
       "costLabel": "Coste",
       "currencyLabel": "Moneda",
       "billingCycleLabel": "Ciclo de facturación",
@@ -381,10 +388,12 @@
         "one_time": "Pago único"
       },
       "seatsLabel": "Asientos comprados",
+      "datesSection": "Fechas y renovación",
       "startDateLabel": "Fecha de inicio",
       "renewalDateLabel": "Fecha de renovación",
       "autoRenewsLabel": "Auto-renueva",
       "cancellationNoticeDaysLabel": "Preaviso de cancelación (días)",
+      "assignmentSection": "Asignación",
       "companyLabel": "Empresa",
       "companyNone": "Grupo / Sin asignar",
       "addCompany": "+ Nueva empresa",
@@ -402,6 +411,7 @@
         "nameLabel": "Nombre",
         "submit": "Crear departamento"
       },
+      "documentSection": "Documento",
       "documentLabel": "Contrato en PDF",
       "submit": "Crear vendor y contrato"
     },
@@ -425,7 +435,9 @@
       "viewDocument": "Ver PDF",
       "noDocument": "Sin PDF",
       "deleteContract": "Eliminar",
+      "confirmDeleteVendorTitle": "Eliminar vendor",
       "confirmDeleteVendor": "¿Seguro que quieres eliminar este vendor?",
+      "confirmDeleteContractTitle": "Eliminar contrato",
       "confirmDeleteContract": "¿Seguro que quieres eliminar este contrato?",
       "seatsTitle": "Licencias",
       "utilizationSummary": "{active} / {purchased} activos · {pct}%",
@@ -438,10 +450,38 @@
       "markActive": "Marcar activo",
       "markInactive": "Marcar inactivo",
       "removeSeat": "Quitar",
+      "confirmRemoveSeatTitle": "Quitar asiento",
       "confirmRemoveSeat": "¿Seguro que quieres quitar este asiento?",
       "selectMemberPlaceholder": "Selecciona un usuario",
       "assignButton": "Asignar asiento",
-      "allMembersAssigned": "Todos los miembros de la organización ya tienen asiento en este contrato"
+      "allMembersAssigned": "Todos los miembros de la organización ya tienen asiento en este contrato",
+      "edit": "Editar",
+      "renegotiate": "Renegociar",
+      "actions": "Acciones",
+      "tabs": {
+        "details": "Detalles",
+        "contracts": "Contratos",
+        "seats": "Asientos",
+        "documents": "Documentos",
+        "notes": "Notas"
+      },
+      "rail": {
+        "renewalTitle": "Renovación",
+        "annualSpendTitle": "Gasto anual",
+        "autoRenews": "Auto-renueva",
+        "noAutoRenew": "No auto-renueva",
+        "noticeDays": "{days} días de preaviso",
+        "noActiveContract": "Sin contrato activo"
+      },
+      "discardChangesTitle": "Descartar cambios",
+      "discardChanges": "Tienes cambios sin guardar en este contrato. ¿Seguro que quieres descartarlos?",
+      "discard": "Descartar",
+      "noContracts": "Todavía no hay contratos para este vendor",
+      "noOwnerAssigned": "Sin owner asignado",
+      "activeBadge": "Activo",
+      "historicalBadge": "Histórico",
+      "close": "Cerrar",
+      "notesPlaceholder": "Añade contexto de negociación, condiciones acordadas o cualquier nota relevante sobre este vendor."
     }
   },
   "SpendImport": {

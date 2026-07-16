@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { deleteCompany, updateCompany } from "@/features/companies/actions";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 
 type Company = { id: string; name: string; tax_id: string | null; is_default: boolean };
@@ -15,6 +16,7 @@ export function CompanyRow({ company }: { company: Company }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   function handleSave(formData: FormData) {
     setError(null);
@@ -42,6 +44,7 @@ export function CompanyRow({ company }: { company: Company }) {
       } else {
         router.refresh();
       }
+      setConfirmOpen(false);
     });
   }
 
@@ -80,12 +83,23 @@ export function CompanyRow({ company }: { company: Company }) {
           variant="destructive"
           size="sm"
           disabled={isPending}
-          onClick={handleDelete}
+          onClick={() => setConfirmOpen(true)}
         >
           {t("delete")}
         </Button>
       </form>
       {error && <p className="text-sm text-destructive">{error}</p>}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={t("confirmDeleteTitle")}
+        description={t("confirmDelete")}
+        confirmLabel={t("delete")}
+        cancelLabel={tGeneric("cancel")}
+        onConfirm={handleDelete}
+        isPending={isPending}
+      />
     </li>
   );
 }

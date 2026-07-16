@@ -183,7 +183,8 @@
       "passwordLabel": "Choose a password",
       "submit": "Join"
     },
-    "errorGeneric": "Something went wrong. Check your details and try again."
+    "errorGeneric": "Something went wrong. Check your details and try again.",
+    "cancel": "Cancel"
   },
   "Team": {
     "invite": {
@@ -207,6 +208,8 @@
       "create": "Create department",
       "edit": "Save",
       "delete": "Delete",
+      "confirmDeleteTitle": "Delete department",
+      "confirmDelete": "Are you sure you want to delete this department?",
       "empty": "No departments yet",
       "forbidden": "Only an admin can manage departments"
     },
@@ -226,6 +229,8 @@
       "create": "Create company",
       "edit": "Save",
       "delete": "Delete",
+      "confirmDeleteTitle": "Delete company",
+      "confirmDelete": "Are you sure you want to delete this company?",
       "empty": "No companies yet",
       "forbidden": "Only an admin can manage companies"
     }
@@ -258,6 +263,7 @@
     "dashboard": {
       "crumb": "Dashboard",
       "title": "Your stack, in numbers",
+      "greeting": "Hi, {name}",
       "forbidden": "Financial KPIs are available to Finance, IT, or an admin.",
       "kpis": {
         "annualizedSpend": {
@@ -351,7 +357,7 @@
     "noData": "no data",
     "table": {
       "vendor": "Vendor",
-      "category": "Category",
+      "status": "Status",
       "annualCost": "Annual cost",
       "seats": "Seats",
       "utilization": "Utilization",
@@ -372,6 +378,7 @@
       "notesLabel": "Notes",
       "contractSection": "Contract",
       "contractNameLabel": "Contract name",
+      "costSection": "Cost and billing",
       "costLabel": "Cost",
       "currencyLabel": "Currency",
       "billingCycleLabel": "Billing cycle",
@@ -381,10 +388,12 @@
         "one_time": "One-time"
       },
       "seatsLabel": "Seats purchased",
+      "datesSection": "Dates and renewal",
       "startDateLabel": "Start date",
       "renewalDateLabel": "Renewal date",
       "autoRenewsLabel": "Auto-renews",
       "cancellationNoticeDaysLabel": "Cancellation notice (days)",
+      "assignmentSection": "Assignment",
       "companyLabel": "Company",
       "companyNone": "Group / Unassigned",
       "addCompany": "+ New company",
@@ -402,6 +411,7 @@
         "nameLabel": "Name",
         "submit": "Create department"
       },
+      "documentSection": "Document",
       "documentLabel": "Contract PDF",
       "submit": "Create vendor and contract"
     },
@@ -425,7 +435,9 @@
       "viewDocument": "View PDF",
       "noDocument": "No PDF",
       "deleteContract": "Delete",
+      "confirmDeleteVendorTitle": "Delete vendor",
       "confirmDeleteVendor": "Are you sure you want to delete this vendor?",
+      "confirmDeleteContractTitle": "Delete contract",
       "confirmDeleteContract": "Are you sure you want to delete this contract?",
       "seatsTitle": "Licenses",
       "utilizationSummary": "{active} / {purchased} active · {pct}%",
@@ -438,10 +450,38 @@
       "markActive": "Mark active",
       "markInactive": "Mark inactive",
       "removeSeat": "Remove",
+      "confirmRemoveSeatTitle": "Remove seat",
       "confirmRemoveSeat": "Are you sure you want to remove this seat?",
       "selectMemberPlaceholder": "Select a user",
       "assignButton": "Assign seat",
-      "allMembersAssigned": "Every member of the organization already has a seat on this contract"
+      "allMembersAssigned": "Every member of the organization already has a seat on this contract",
+      "edit": "Edit",
+      "renegotiate": "Renegotiate",
+      "actions": "Actions",
+      "tabs": {
+        "details": "Details",
+        "contracts": "Contracts",
+        "seats": "Seats",
+        "documents": "Documents",
+        "notes": "Notes"
+      },
+      "rail": {
+        "renewalTitle": "Renewal",
+        "annualSpendTitle": "Annual spend",
+        "autoRenews": "Auto-renews",
+        "noAutoRenew": "Doesn't auto-renew",
+        "noticeDays": "{days} days' notice",
+        "noActiveContract": "No active contract"
+      },
+      "discardChangesTitle": "Discard changes",
+      "discardChanges": "You have unsaved changes on this contract. Are you sure you want to discard them?",
+      "discard": "Discard",
+      "noContracts": "No contracts for this vendor yet",
+      "noOwnerAssigned": "No owner assigned",
+      "activeBadge": "Active",
+      "historicalBadge": "Historical",
+      "close": "Close",
+      "notesPlaceholder": "Add negotiation context, agreed terms, or any other relevant notes about this vendor."
     }
   },
   "SpendImport": {

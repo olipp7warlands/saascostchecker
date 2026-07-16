@@ -42,8 +42,8 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale}>
-      <body className={`${inter.variable} ${ibmPlexMono.variable} antialiased`}>
+    <html lang={locale} className={`${inter.variable} ${ibmPlexMono.variable}`}>
+      <body className="antialiased">
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>

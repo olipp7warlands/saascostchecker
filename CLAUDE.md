@@ -39,8 +39,15 @@ Plataforma multi-tenant de gestión de SaaS (visibilidad de gasto, renovaciones,
 - Focus ring: `#E9FFB8`
 - Radios: cards `10px`, botones/pills `16px`, inputs `9px`
 - Tipos: Inter en todo (titulares + UI, sustituye a Bricolage Grotesque/Instrument Sans); IBM Plex Mono se mantiene para cifras (`tabular-nums`, clase `.num`)
-- Móvil: sidebar → bottom nav; tablas con scroll horizontal; acciones a ancho completo
+- Móvil: sidebar → bottom nav (ambos con el mismo tratamiento claro: `bg-surface`, borde `border-line`, ítem activo `bg-lime-soft`/`text-lime-ink`); tablas con scroll horizontal; acciones a ancho completo SOLO en móvil
 - Componente firma: la "pista de renovaciones" del dashboard (tickets posicionados por días restantes)
+
+## Jerarquía de botones (`src/components/ui/button.tsx`)
+- **Primario** (`variant="default"`, máx. 1 por vista): fondo `#15181A`, texto `#C6FF3E`
+- **Secundario** (`variant="outline"`): fondo blanco, borde `#E8EBE6`, texto ink
+- **Terciario** (`variant="link"`): texto ink subrayado (permanente, no solo hover), sin fondo
+- **Destructivo** (`variant="destructive"`): fondo blanco, borde y texto `#D92D20` — NUNCA relleno rosa/pill; toda acción destructiva confirma con `<ConfirmDialog>` (`src/components/ui/confirm-dialog.tsx`), nunca `window.confirm`
+- **Primario contextual** (patrón de la ficha de vendor, `src/features/vendors/primary-action.ts`): en vistas donde el "botón principal" depende del estado de la entidad, decidirlo con una función pura testeada (`pickPrimaryAction`), no hardcodear una sola acción — la regla de "máx. 1 primario" se mantiene, solo cambia CUÁL se muestra según el estado (ver `docs/DECISIONS.md` 2026-07-16)
 
 ## Convenciones de código
 - Server Actions para mutaciones; rutas API solo para webhooks/links firmados

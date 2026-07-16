@@ -1,6 +1,7 @@
 import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { Breadcrumbs } from "@/components/shell/breadcrumbs";
 import { getCurrentUserProfile } from "@/features/auth/session";
 import { routing } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
@@ -31,7 +32,7 @@ export default async function VendorsPage({
     supabase
       .from("vendors")
       .select(
-        "id, name, website, category, is_custom, owner_user_id, contracts(id, cost_amount, currency, billing_cycle, seats_purchased, renewal_date, status, start_date, seat_assignments(id, last_seen_active_at))",
+        "id, name, website, category, status, is_custom, owner_user_id, contracts(id, cost_amount, currency, billing_cycle, seats_purchased, renewal_date, status, start_date, seat_assignments(id, last_seen_active_at))",
       )
       .order("name", { ascending: true }),
     supabase.from("users").select("id, full_name, email").order("full_name", { ascending: true }),
@@ -51,6 +52,7 @@ export default async function VendorsPage({
       name: vendor.name,
       website: vendor.website,
       category: vendor.category,
+      status: vendor.status,
       isCustom: vendor.is_custom,
       ownerName: owner?.full_name ?? owner?.email ?? null,
       contract: contract
@@ -70,7 +72,7 @@ export default async function VendorsPage({
 
   return (
     <div>
-      <p className="text-xs tracking-[.08em] text-ink-soft uppercase">{t("crumb")}</p>
+      <Breadcrumbs items={[{ label: t("crumb") }]} />
       <div className="mt-1.5 flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-disp text-2xl font-semibold tracking-tight text-ink sm:text-[26px]">
           {t("title")}
@@ -95,7 +97,7 @@ export default async function VendorsPage({
                     {t("table.vendor")}
                   </th>
                   <th className="border-b border-line px-4 py-2.5 text-left text-[11px] font-semibold tracking-wider text-ink-soft uppercase">
-                    {t("table.category")}
+                    {t("table.status")}
                   </th>
                   <th className="border-b border-line px-4 py-2.5 text-left text-[11px] font-semibold tracking-wider text-ink-soft uppercase">
                     {t("table.annualCost")}
@@ -111,6 +113,9 @@ export default async function VendorsPage({
                   </th>
                   <th className="border-b border-line px-4 py-2.5 text-left text-[11px] font-semibold tracking-wider text-ink-soft uppercase">
                     {t("table.owner")}
+                  </th>
+                  <th className="border-b border-line px-2 py-2.5 text-right text-[11px] font-semibold tracking-wider text-ink-soft uppercase">
+                    <span className="sr-only">{t("detail.actions")}</span>
                   </th>
                 </tr>
               </thead>

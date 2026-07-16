@@ -14,12 +14,18 @@ export function MobileHeader({
   orgName: string;
 }) {
   return (
-    <header className="flex items-center justify-between gap-3 bg-ink px-4 py-3 md:hidden">
-      <Wordmark className="text-base text-white" />
+    <header className="flex items-center justify-between gap-3 border-b border-line bg-surface px-4 py-3 md:hidden">
+      <Wordmark className="text-base text-ink" />
       <div className="flex min-w-0 items-center gap-3">
-        <LocaleSwitcher locale={locale} />
+        <LocaleSwitcher locale={locale} dark={false} />
         <div className="w-[130px] min-w-0">
-          <UserMenu locale={locale} fullName={fullName} roleLabel={roleLabel} orgName={orgName} />
+          <UserMenu
+            locale={locale}
+            fullName={fullName}
+            roleLabel={roleLabel}
+            orgName={orgName}
+            dark={false}
+          />
         </div>
       </div>
     </header>

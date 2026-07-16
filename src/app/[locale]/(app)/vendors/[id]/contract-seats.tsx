@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Pill } from "@/components/ui/pill";
 import { UtilizationBar } from "@/components/ui/utilization-bar";
 import { assignSeat, setSeatActive, unassignSeat } from "@/features/vendors/actions";
@@ -46,6 +47,7 @@ export function ContractSeats({
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [seatToRemove, setSeatToRemove] = useState<SeatRow | null>(null);
 
   const assignedUserIds = new Set(seats.map((seat) => seat.userId));
   const eligibleMembers = members.filter((member) => !assignedUserIds.has(member.id));
@@ -95,9 +97,6 @@ export function ContractSeats({
   }
 
   function handleRemove(seat: SeatRow) {
-    if (!window.confirm(t("confirmRemoveSeat"))) {
-      return;
-    }
     setError(null);
     startTransition(async () => {
       const result = await unassignSeat({ seatId: seat.id });
@@ -106,6 +105,7 @@ export function ContractSeats({
       } else {
         router.refresh();
       }
+      setSeatToRemove(null);
     });
   }
 
@@ -150,7 +150,7 @@ export function ContractSeats({
                   type="button"
                   className="text-xs font-medium text-destructive hover:underline"
                   disabled={isPending}
-                  onClick={() => handleRemove(seat)}
+                  onClick={() => setSeatToRemove(seat)}
                 >
                   {t("removeSeat")}
                 </button>
@@ -182,6 +182,25 @@ export function ContractSeats({
       ) : (
         <p className="mt-3 text-xs text-ink-soft">{t("allMembersAssigned")}</p>
       )}
+
+      <ConfirmDialog
+        open={seatToRemove != null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSeatToRemove(null);
+          }
+        }}
+        title={t("confirmRemoveSeatTitle")}
+        description={t("confirmRemoveSeat")}
+        confirmLabel={t("removeSeat")}
+        cancelLabel={tGeneric("cancel")}
+        onConfirm={() => {
+          if (seatToRemove) {
+            handleRemove(seatToRemove);
+          }
+        }}
+        isPending={isPending}
+      />
     </div>
   );
 }
