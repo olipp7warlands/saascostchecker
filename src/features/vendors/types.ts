@@ -31,6 +31,7 @@ export type Contract = {
   documentUrl: string | null;
   status: ContractStatus;
   departmentId: string | null;
+  companyId: string | null;
 };
 
 export type SeatAssignment = {

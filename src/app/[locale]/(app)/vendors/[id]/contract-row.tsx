@@ -23,6 +23,7 @@ type Contract = {
   document_url: string | null;
   status: string;
   department_id: string | null;
+  company_id: string | null;
 };
 
 type Member = { id: string; full_name: string | null; email: string };
@@ -33,11 +34,15 @@ export function ContractRow({
   seats,
   members,
   departments,
+  companies,
+  canManageOrgDimensions,
 }: {
   contract: Contract;
   seats: SeatRow[];
   members: Member[];
   departments: Department[];
+  companies: Department[];
+  canManageOrgDimensions: boolean;
 }) {
   const t = useTranslations("Vendors.detail");
   const tGeneric = useTranslations("Auth");
@@ -61,6 +66,7 @@ export function ContractRow({
         autoRenews: formData.get("autoRenews") === "on",
         cancellationNoticeDays: formData.get("cancellationNoticeDays"),
         departmentId: formData.get("departmentId"),
+        companyId: formData.get("companyId"),
         document: formData.get("document"),
         status: formData.get("status"),
       });
@@ -104,6 +110,8 @@ export function ContractRow({
           idPrefix={`contract-${contract.id}`}
           includeStatus
           departments={departments}
+          companies={companies}
+          canManageOrgDimensions={canManageOrgDimensions}
           defaultValues={{
             contractName: contract.name,
             costAmount: contract.cost_amount,
@@ -116,6 +124,7 @@ export function ContractRow({
             cancellationNoticeDays: contract.cancellation_notice_days,
             status: contract.status,
             departmentId: contract.department_id,
+            companyId: contract.company_id,
           }}
         />
 

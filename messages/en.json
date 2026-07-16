@@ -216,6 +216,18 @@
       "departmentLabel": "Department",
       "noDepartment": "No department",
       "forbidden": "Only an admin can manage users"
+    },
+    "companies": {
+      "title": "New company",
+      "listTitle": "Companies",
+      "nameLabel": "Name",
+      "taxIdLabel": "Tax ID",
+      "isDefaultLabel": "Default company",
+      "create": "Create company",
+      "edit": "Save",
+      "delete": "Delete",
+      "empty": "No companies yet",
+      "forbidden": "Only an admin can manage companies"
     }
   },
   "Shell": {
@@ -232,6 +244,8 @@
       "reconciliation": "Reconciliation",
       "settingsSection": "Settings",
       "teamRules": "Team & rules",
+      "companies": "Companies",
+      "departments": "Departments",
       "comingSoon": "Soon"
     },
     "userMenu": {
@@ -371,8 +385,23 @@
       "renewalDateLabel": "Renewal date",
       "autoRenewsLabel": "Auto-renews",
       "cancellationNoticeDaysLabel": "Cancellation notice (days)",
+      "companyLabel": "Company",
+      "companyNone": "Group / Unassigned",
+      "addCompany": "+ New company",
+      "companyDialog": {
+        "title": "New company",
+        "nameLabel": "Name",
+        "taxIdLabel": "Tax ID",
+        "submit": "Create company"
+      },
       "departmentLabel": "Department",
       "departmentNone": "General / Unassigned",
+      "addDepartment": "+ New department",
+      "departmentDialog": {
+        "title": "New department",
+        "nameLabel": "Name",
+        "submit": "Create department"
+      },
       "documentLabel": "Contract PDF",
       "submit": "Create vendor and contract"
     },

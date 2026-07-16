@@ -331,4 +331,135 @@ describe("Matriz de permisos de SPECS §5 (bloque 0.3)", () => {
     expect(error).toBeNull();
     expect(Array.isArray(data)).toBe(true);
   });
+
+  // Soporte multi-empresa (2026-07-16) — mismo esqueleto de permisos que
+  // departments de arriba, ver docs/DECISIONS.md.
+  it("org_admin puede crear una empresa", async () => {
+    const { data, error } = await admin.client.rpc("create_company", {
+      p_name: `Acme ${randomSuffix()}`,
+      p_tax_id: "B12345678",
+      p_is_default: false,
+    });
+
+    expect(error).toBeNull();
+    expect(data).toBeTruthy();
+  });
+
+  it.each([
+    ["manager", () => manager],
+    ["finance", () => finance],
+    ["it_admin", () => itAdmin],
+    ["employee", () => employee],
+  ])("%s NO puede crear una empresa", async (_role, getTenant) => {
+    const { error } = await getTenant().client.rpc("create_company", {
+      p_name: `Blocked ${randomSuffix()}`,
+      p_tax_id: null,
+      p_is_default: false,
+    });
+
+    expect(error).not.toBeNull();
+    expect(error?.message).toMatch(/insufficient privileges/i);
+  });
+
+  it("org_admin puede actualizar y borrar una empresa propia; manager no puede ninguna de las dos cosas", async () => {
+    const { data: companyId, error: createError } = await admin.client.rpc("create_company", {
+      p_name: `Editable ${randomSuffix()}`,
+      p_tax_id: null,
+      p_is_default: false,
+    });
+    expect(createError).toBeNull();
+
+    const { error: managerUpdateError } = await manager.client.rpc("update_company", {
+      p_company_id: companyId,
+      p_name: "Hijacked",
+      p_tax_id: null,
+      p_is_default: false,
+    });
+    expect(managerUpdateError).not.toBeNull();
+    expect(managerUpdateError?.message).toMatch(/insufficient privileges/i);
+
+    const { error: managerDeleteError } = await manager.client.rpc("delete_company", {
+      p_company_id: companyId,
+    });
+    expect(managerDeleteError).not.toBeNull();
+    expect(managerDeleteError?.message).toMatch(/insufficient privileges/i);
+
+    const { error: updateError } = await admin.client.rpc("update_company", {
+      p_company_id: companyId,
+      p_name: "Renamed",
+      p_tax_id: "B99999999",
+      p_is_default: false,
+    });
+    expect(updateError).toBeNull();
+
+    const { error: deleteError } = await admin.client.rpc("delete_company", {
+      p_company_id: companyId,
+    });
+    expect(deleteError).toBeNull();
+  });
+
+  it("un org_admin no puede modificar una empresa de otra org", async () => {
+    const { data: otherCompanyId, error: createError } = await otherOrgAdmin.client.rpc(
+      "create_company",
+      { p_name: `OrgB ${randomSuffix()}`, p_tax_id: null, p_is_default: false },
+    );
+    expect(createError).toBeNull();
+
+    const { error: updateError } = await admin.client.rpc("update_company", {
+      p_company_id: otherCompanyId,
+      p_name: "Hijacked cross-org",
+      p_tax_id: null,
+      p_is_default: false,
+    });
+    expect(updateError).not.toBeNull();
+    expect(updateError?.message).toMatch(/company not found/i);
+
+    const { error: deleteError } = await otherOrgAdmin.client.rpc("delete_company", {
+      p_company_id: otherCompanyId,
+    });
+    expect(deleteError).toBeNull();
+  });
+
+  it("invariante de único default: marcar una segunda empresa como default desmarca la primera", async () => {
+    const { data: firstId, error: firstError } = await admin.client.rpc("create_company", {
+      p_name: `Default A ${randomSuffix()}`,
+      p_tax_id: null,
+      p_is_default: true,
+    });
+    expect(firstError).toBeNull();
+
+    const { data: secondId, error: secondError } = await admin.client.rpc("create_company", {
+      p_name: `Default B ${randomSuffix()}`,
+      p_tax_id: null,
+      p_is_default: true,
+    });
+    expect(secondError).toBeNull();
+
+    const { data: first } = await admin.client
+      .from("companies")
+      .select("is_default")
+      .eq("id", firstId)
+      .single();
+    const { data: second } = await admin.client
+      .from("companies")
+      .select("is_default")
+      .eq("id", secondId)
+      .single();
+
+    expect(first?.is_default).toBe(false);
+    expect(second?.is_default).toBe(true);
+  });
+
+  it.each([
+    ["org_admin", () => admin],
+    ["manager", () => manager],
+    ["finance", () => finance],
+    ["it_admin", () => itAdmin],
+    ["employee", () => employee],
+  ])("%s puede leer las empresas de su propia org", async (_role, getTenant) => {
+    const { data, error } = await getTenant().client.from("companies").select("id");
+
+    expect(error).toBeNull();
+    expect(Array.isArray(data)).toBe(true);
+  });
 });

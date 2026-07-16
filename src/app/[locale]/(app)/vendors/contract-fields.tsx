@@ -3,15 +3,17 @@
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-const SELECT_CLASSNAME =
-  "h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CompanyField } from "./company-field";
+import { DepartmentField } from "./department-field";
 
 export function ContractFields({
   idPrefix,
   defaultValues,
   includeStatus = false,
   departments,
+  companies,
+  canManageOrgDimensions,
 }: {
   idPrefix: string;
   defaultValues?: Partial<{
@@ -26,13 +28,26 @@ export function ContractFields({
     cancellationNoticeDays: number;
     status: string;
     departmentId: string | null;
+    companyId: string | null;
   }>;
   includeStatus?: boolean;
   departments: { id: string; name: string }[];
+  companies: { id: string; name: string }[];
+  canManageOrgDimensions: boolean;
 }) {
   const t = useTranslations("Vendors.new");
   const tDetail = useTranslations("Vendors.detail");
   const d = defaultValues ?? {};
+
+  const billingCycleLabels: Record<string, string> = {
+    monthly: t("billingCycle.monthly"),
+    annual: t("billingCycle.annual"),
+    one_time: t("billingCycle.one_time"),
+  };
+  const contractStatusLabels: Record<string, string> = {
+    active: tDetail("contractStatus.active"),
+    cancelled: tDetail("contractStatus.cancelled"),
+  };
 
   return (
     <>
@@ -76,17 +91,16 @@ export function ContractFields({
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor={`${idPrefix}-billingCycle`}>{t("billingCycleLabel")}</Label>
-        <select
-          id={`${idPrefix}-billingCycle`}
-          name="billingCycle"
-          required
-          defaultValue={d.billingCycle ?? "annual"}
-          className={SELECT_CLASSNAME}
-        >
-          <option value="monthly">{t("billingCycle.monthly")}</option>
-          <option value="annual">{t("billingCycle.annual")}</option>
-          <option value="one_time">{t("billingCycle.one_time")}</option>
-        </select>
+        <Select name="billingCycle" defaultValue={d.billingCycle ?? "annual"} required>
+          <SelectTrigger id={`${idPrefix}-billingCycle`}>
+            <SelectValue>{(current: string) => billingCycleLabels[current] ?? current}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="monthly">{t("billingCycle.monthly")}</SelectItem>
+            <SelectItem value="annual">{t("billingCycle.annual")}</SelectItem>
+            <SelectItem value="one_time">{t("billingCycle.one_time")}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -148,41 +162,38 @@ export function ContractFields({
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor={`${idPrefix}-departmentId`}>{t("departmentLabel")}</Label>
-        <select
-          id={`${idPrefix}-departmentId`}
-          name="departmentId"
-          defaultValue={d.departmentId ?? ""}
-          className={SELECT_CLASSNAME}
-        >
-          <option value="">{t("departmentNone")}</option>
-          {departments.map((department) => (
-            <option key={department.id} value={department.id}>
-              {department.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <CompanyField
+        idPrefix={idPrefix}
+        companies={companies}
+        defaultValue={d.companyId}
+        canCreate={canManageOrgDimensions}
+      />
+
+      <DepartmentField
+        idPrefix={idPrefix}
+        departments={departments}
+        defaultValue={d.departmentId}
+        canCreate={canManageOrgDimensions}
+      />
 
       {includeStatus && (
         <div className="flex flex-col gap-1.5">
           <Label htmlFor={`${idPrefix}-status`}>{tDetail("statusLabel")}</Label>
-          <select
-            id={`${idPrefix}-status`}
-            name="status"
-            defaultValue={d.status ?? "active"}
-            className={SELECT_CLASSNAME}
-          >
-            <option value="active">{tDetail("contractStatus.active")}</option>
-            <option value="cancelled">{tDetail("contractStatus.cancelled")}</option>
-          </select>
+          <Select name="status" defaultValue={d.status ?? "active"}>
+            <SelectTrigger id={`${idPrefix}-status`}>
+              <SelectValue>{(current: string) => contractStatusLabels[current] ?? current}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">{tDetail("contractStatus.active")}</SelectItem>
+              <SelectItem value="cancelled">{tDetail("contractStatus.cancelled")}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       )}
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor={`${idPrefix}-document`}>{t("documentLabel")}</Label>
-        <input id={`${idPrefix}-document`} name="document" type="file" accept="application/pdf" />
+        <Input id={`${idPrefix}-document`} name="document" type="file" accept="application/pdf" />
       </div>
     </>
   );

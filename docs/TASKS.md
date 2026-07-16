@@ -25,6 +25,7 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 - [x] CRUD de departamentos y gestión de usuarios/roles (solo org_admin)
 - [x] Asignación de departamento a cada usuario
 - ✅ Aceptación: matriz de permisos de SPECS §5 aplicada y testeada en server actions
+- [x] Ampliación (2026-07-16): `/team/departments` gana entrada real en el nav de Ajustes (antes solo accesible por URL directa, ver docs/DECISIONS.md)
 
 ### 0.4 Layout base
 - [x] Shell: sidebar desktop + bottom nav móvil (como mockups.html)
@@ -46,6 +47,7 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 - [x] CRUD vendors (desde catálogo o custom) y contratos (coste, ciclo, asientos, renewal_date, auto_renews, cancellation_notice_days)
 - [x] Vista de listado con utilización, renovación y owner (mockup pantalla 2)
 - ✅ Aceptación: crear vendor + contrato con PDF en <1 min; audit_log registra todo
+- [x] Ampliación (2026-07-16): soporte multi-empresa — tabla `companies` (dimensión independiente de `departments`, ver docs/DECISIONS.md) + `contracts.company_id`; selector de Empresa con creación inline (mini-modal, org_admin) junto al de Departamento en el formulario de vendor+contrato; CRUD propio en Ajustes → Empresas; `<select>`/input de archivo del formulario de contrato migrados a componentes del design system (`Select`/`Input type=file`)
 
 ### 1.3 Import de gasto (CSV)
 - [x] Migraciones: `spend_records`, `reconciliation_queue`, `import_batches`

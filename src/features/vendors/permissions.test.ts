@@ -123,6 +123,15 @@ async function createContractForVendor(tenant: TestTenant, vendorId: string) {
   return { contractId: data as string | null, error };
 }
 
+async function createCompanyForOrg(tenant: TestTenant, name: string) {
+  const { data, error } = await tenant.client.rpc("create_company", {
+    p_name: name,
+    p_tax_id: null,
+    p_is_default: false,
+  });
+  return { companyId: data as string | null, error };
+}
+
 describe("Permisos de vendors/contratos de SPECS §5 (bloque 1.2)", () => {
   let admin: TestTenant;
   let manager: TestTenant;
@@ -271,6 +280,59 @@ describe("Permisos de vendors/contratos de SPECS §5 (bloque 1.2)", () => {
 
     expect(auditError).toBeNull();
     expect(entries).toHaveLength(1);
+  });
+
+  it("create_contract/update_contract rechazan un company_id de otra org (soporte multi-empresa, 2026-07-16)", async () => {
+    const { vendorId } = await createVendor(admin, `CompanyScoped ${randomSuffix()}`);
+    const { companyId: otherCompanyId, error: companyError } = await createCompanyForOrg(
+      otherOrgAdmin,
+      `OrgB Co ${randomSuffix()}`,
+    );
+    expect(companyError).toBeNull();
+
+    const { data: contractId, error: createError } = await admin.client.rpc("create_contract", {
+      p_vendor_id: vendorId,
+      p_name: "Contract",
+      p_cost_amount: 1200,
+      p_currency: "EUR",
+      p_billing_cycle: "annual",
+      p_seats_purchased: 10,
+      p_start_date: futureDate(-30),
+      p_renewal_date: futureDate(300),
+      p_auto_renews: true,
+      p_cancellation_notice_days: 30,
+      p_document_url: null,
+      p_department_id: null,
+      p_company_id: otherCompanyId,
+    });
+    expect(createError).not.toBeNull();
+    expect(createError?.message).toMatch(/company_id does not belong/i);
+    expect(contractId).toBeNull();
+
+    const { contractId: validContractId, error: validCreateError } = await createContractForVendor(
+      admin,
+      vendorId!,
+    );
+    expect(validCreateError).toBeNull();
+
+    const { error: updateError } = await admin.client.rpc("update_contract", {
+      p_contract_id: validContractId,
+      p_name: "Contract",
+      p_cost_amount: 1200,
+      p_currency: "EUR",
+      p_billing_cycle: "annual",
+      p_seats_purchased: 10,
+      p_start_date: futureDate(-30),
+      p_renewal_date: futureDate(300),
+      p_auto_renews: true,
+      p_cancellation_notice_days: 30,
+      p_document_url: null,
+      p_status: "active",
+      p_department_id: null,
+      p_company_id: otherCompanyId,
+    });
+    expect(updateError).not.toBeNull();
+    expect(updateError?.message).toMatch(/company_id does not belong/i);
   });
 
   it("un org_admin no puede leer/editar/borrar un vendor de otra org", async () => {

@@ -28,10 +28,14 @@ export function NewVendorForm({
   locale,
   members,
   departments,
+  companies,
+  canManageOrgDimensions,
 }: {
   locale: string;
   members: Member[];
   departments: Department[];
+  companies: Department[];
+  canManageOrgDimensions: boolean;
 }) {
   const t = useTranslations("Vendors.new");
   const tGeneric = useTranslations("Auth");
@@ -84,6 +88,7 @@ export function NewVendorForm({
         autoRenews: formData.get("autoRenews") === "on",
         cancellationNoticeDays: formData.get("cancellationNoticeDays"),
         departmentId: formData.get("departmentId"),
+        companyId: formData.get("companyId"),
         document: formData.get("document"),
       });
       if (result && "error" in result) {
@@ -199,6 +204,8 @@ export function NewVendorForm({
           idPrefix="new"
           defaultValues={{ contractName: selection.name }}
           departments={departments}
+          companies={companies}
+          canManageOrgDimensions={canManageOrgDimensions}
         />
       </fieldset>
 

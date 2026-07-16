@@ -216,6 +216,18 @@
       "departmentLabel": "Departamento",
       "noDepartment": "Sin departamento",
       "forbidden": "Solo un administrador puede gestionar usuarios"
+    },
+    "companies": {
+      "title": "Nueva empresa",
+      "listTitle": "Empresas",
+      "nameLabel": "Nombre",
+      "taxIdLabel": "CIF",
+      "isDefaultLabel": "Empresa por defecto",
+      "create": "Crear empresa",
+      "edit": "Guardar",
+      "delete": "Eliminar",
+      "empty": "Todavía no hay empresas",
+      "forbidden": "Solo un administrador puede gestionar empresas"
     }
   },
   "Shell": {
@@ -232,6 +244,8 @@
       "reconciliation": "Reconciliación",
       "settingsSection": "Ajustes",
       "teamRules": "Equipo y reglas",
+      "companies": "Empresas",
+      "departments": "Departamentos",
       "comingSoon": "Pronto"
     },
     "userMenu": {
@@ -371,8 +385,23 @@
       "renewalDateLabel": "Fecha de renovación",
       "autoRenewsLabel": "Auto-renueva",
       "cancellationNoticeDaysLabel": "Preaviso de cancelación (días)",
+      "companyLabel": "Empresa",
+      "companyNone": "Grupo / Sin asignar",
+      "addCompany": "+ Nueva empresa",
+      "companyDialog": {
+        "title": "Nueva empresa",
+        "nameLabel": "Nombre",
+        "taxIdLabel": "CIF",
+        "submit": "Crear empresa"
+      },
       "departmentLabel": "Departamento",
       "departmentNone": "General / Sin asignar",
+      "addDepartment": "+ Nuevo departamento",
+      "departmentDialog": {
+        "title": "Nuevo departamento",
+        "nameLabel": "Nombre",
+        "submit": "Crear departamento"
+      },
       "documentLabel": "Contrato en PDF",
       "submit": "Crear vendor y contrato"
     },

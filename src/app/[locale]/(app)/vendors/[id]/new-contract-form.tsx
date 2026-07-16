@@ -12,9 +12,13 @@ type Department = { id: string; name: string };
 export function NewContractForm({
   vendorId,
   departments,
+  companies,
+  canManageOrgDimensions,
 }: {
   vendorId: string;
   departments: Department[];
+  companies: Department[];
+  canManageOrgDimensions: boolean;
 }) {
   const t = useTranslations("Vendors.detail");
   const tGeneric = useTranslations("Auth");
@@ -37,6 +41,7 @@ export function NewContractForm({
         autoRenews: formData.get("autoRenews") === "on",
         cancellationNoticeDays: formData.get("cancellationNoticeDays"),
         departmentId: formData.get("departmentId"),
+        companyId: formData.get("companyId"),
         document: formData.get("document"),
       });
       if (result && "error" in result) {
@@ -49,7 +54,12 @@ export function NewContractForm({
 
   return (
     <form action={handleSubmit} className="flex flex-col gap-3">
-      <ContractFields idPrefix="add" departments={departments} />
+      <ContractFields
+        idPrefix="add"
+        departments={departments}
+        companies={companies}
+        canManageOrgDimensions={canManageOrgDimensions}
+      />
       {error && <p className="text-sm text-red-600">{error}</p>}
       <Button type="submit" disabled={isPending} className="self-start">
         {t("addContract")}

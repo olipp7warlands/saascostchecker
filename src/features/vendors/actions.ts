@@ -97,6 +97,7 @@ export async function createVendorWithContract(
     p_cancellation_notice_days: data.cancellationNoticeDays,
     p_document_url: null,
     p_department_id: data.departmentId,
+    p_company_id: data.companyId,
   });
 
   if (contractError || !contractId) {
@@ -123,6 +124,7 @@ export async function createVendorWithContract(
       p_document_url: uploaded.path,
       p_status: "active",
       p_department_id: data.departmentId,
+      p_company_id: data.companyId,
     });
 
     if (updateError) {
@@ -189,6 +191,7 @@ export async function createContract(input: unknown): Promise<ActionResult> {
     p_cancellation_notice_days: data.cancellationNoticeDays,
     p_document_url: null,
     p_department_id: data.departmentId,
+    p_company_id: data.companyId,
   });
 
   if (error || !contractId) {
@@ -215,6 +218,7 @@ export async function createContract(input: unknown): Promise<ActionResult> {
       p_document_url: uploaded.path,
       p_status: "active",
       p_department_id: data.departmentId,
+      p_company_id: data.companyId,
     });
 
     if (updateError) {
@@ -263,6 +267,7 @@ export async function updateContract(input: unknown): Promise<ActionResult> {
     p_document_url: documentPath,
     p_status: data.status,
     p_department_id: data.departmentId,
+    p_company_id: data.companyId,
   });
 
   if (error) {

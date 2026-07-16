@@ -28,9 +28,10 @@ Todas las tablas llevan `org_id` (FK a `organizations`) con Row Level Security p
 - **organizations**: name, slug, default_currency, locale
 - **users**: auth_id (Supabase Auth), org_id, email, full_name, department_id, role (`employee | manager | finance | it_admin | org_admin`)
 - **departments**: name, manager_user_id
+- **companies** (grupos con varias sociedades): name, tax_id (opcional), is_default (bool, como mucho una por org). Dimensión INDEPENDIENTE de `departments`: empresa = quién paga, departamento = quién usa; los departamentos son transversales al grupo (un mismo departamento puede tener gasto en varias empresas)
 - **saas_catalog** (global, sin org_id): name, aliases text[], category, website, logo_url, verified (bool)
 - **vendors**: catalog_id (nullable), name, website, category, logo_url, status (`active | inactive | trial`), owner_user_id, is_custom (bool), notes
-- **contracts**: vendor_id, name, cost_amount, currency, billing_cycle (`monthly | annual | one_time`), seats_purchased, start_date, renewal_date, auto_renews (bool), cancellation_notice_days, document_url (Storage), status
+- **contracts**: vendor_id, name, cost_amount, currency, billing_cycle (`monthly | annual | one_time`), seats_purchased, start_date, renewal_date, auto_renews (bool), cancellation_notice_days, document_url (Storage), status, department_id (nullable, quién usa), company_id (nullable, quién paga — independiente de department_id)
 - **licenses / seat_assignments**: contract_id, user_id, source (`manual | sso_sync`), last_seen_active_at (sso_sync se activa en fase final)
 - **spend_records**: vendor_id (nullable hasta reconciliar), amount, currency, date, source (`card_csv | erp_csv | manual`), raw_description, import_batch_id
 - **reconciliation_queue**: spend_record_id o discovered_app_id, suggested_catalog_id, confidence, status (`pending | linked | ignored`)

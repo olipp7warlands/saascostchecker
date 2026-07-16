@@ -8,23 +8,23 @@ function firstIssueMessage(error: { issues: { message: string }[] }) {
   return error.issues[0]?.message ?? "Invalid input";
 }
 
-export async function createDepartment(input: unknown): Promise<ActionResult> {
+export async function createDepartment(input: unknown): Promise<ActionResult & { id?: string }> {
   const parsed = createDepartmentSchema.safeParse(input);
   if (!parsed.success) {
     return { error: firstIssueMessage(parsed.error) };
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc("create_department", {
+  const { data, error } = await supabase.rpc("create_department", {
     p_name: parsed.data.name,
     p_manager_user_id: parsed.data.managerUserId,
   });
 
-  if (error) {
-    return { error: error.message };
+  if (error || !data) {
+    return { error: error?.message ?? "Could not create department" };
   }
 
-  return { success: true };
+  return { success: true, id: data as string };
 }
 
 export async function updateDepartment(input: unknown): Promise<ActionResult> {

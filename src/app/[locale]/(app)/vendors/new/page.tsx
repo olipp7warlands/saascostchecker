@@ -27,9 +27,10 @@ export default async function NewVendorPage({
   }
 
   const supabase = await createClient();
-  const [{ data: members }, { data: departments }] = await Promise.all([
+  const [{ data: members }, { data: departments }, { data: companies }] = await Promise.all([
     supabase.from("users").select("id, full_name, email").order("full_name", { ascending: true }),
     supabase.from("departments").select("id, name").order("name", { ascending: true }),
+    supabase.from("companies").select("id, name").order("name", { ascending: true }),
   ]);
 
   return (
@@ -39,7 +40,13 @@ export default async function NewVendorPage({
         {t("new.title")}
       </h1>
       <div className="mt-6">
-        <NewVendorForm locale={locale} members={members ?? []} departments={departments ?? []} />
+        <NewVendorForm
+          locale={locale}
+          members={members ?? []}
+          departments={departments ?? []}
+          companies={companies ?? []}
+          canManageOrgDimensions={profile.role === "org_admin"}
+        />
       </div>
     </div>
   );

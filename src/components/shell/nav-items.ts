@@ -2,7 +2,9 @@ import {
   Building2,
   ClipboardCheck,
   GitMerge,
+  Landmark,
   LayoutDashboard,
+  Network,
   RefreshCw,
   Upload,
   Users,
@@ -17,7 +19,9 @@ export type NavItemKey =
   | "requests"
   | "importSpend"
   | "reconciliation"
-  | "teamRules";
+  | "teamRules"
+  | "companies"
+  | "departments";
 
 export type NavItem = {
   key: NavItemKey;
@@ -68,6 +72,20 @@ export const NAV_ITEMS: NavItem[] = [
     key: "teamRules",
     href: "/team/members",
     icon: Users,
+    roles: ["org_admin"],
+    section: "settings",
+  },
+  {
+    key: "companies",
+    href: "/team/companies",
+    icon: Landmark,
+    roles: ["org_admin"],
+    section: "settings",
+  },
+  {
+    key: "departments",
+    href: "/team/departments",
+    icon: Network,
     roles: ["org_admin"],
     section: "settings",
   },
