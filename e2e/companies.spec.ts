@@ -86,11 +86,16 @@ test.describe("Soporte multi-empresa: creación inline de empresa", () => {
     await page.getByRole("button", { name: "Crear vendor y contrato" }).click();
     await page.waitForURL(/\/es\/vendors\/[0-9a-f-]+$/, { timeout: 30_000 });
 
-    // 4. Detalle del vendor: la empresa queda asignada al contrato, no
-    // "Grupo / Sin asignar".
+    // 4. Detalle del vendor: la empresa queda asignada a ESE contrato
+    // concreto (no al "+ Añadir contrato" de debajo, que sigue sin empresa
+    // por defecto — de ahí el scope al <li> del contrato, no a toda la
+    // página).
     await expect(page.getByRole("heading", { name: "Figma" })).toBeVisible();
-    await expect(page.getByText(companyName, { exact: true })).toBeVisible();
-    await expect(page.getByText("Grupo / Sin asignar")).toHaveCount(0);
+    // Scope al <li> del contrato, no a los ids de sus campos internos
+    // (p.ej. "contract-<id>-companyId" también empieza por "contract-").
+    const contractRow = page.locator('li[id^="contract-"]');
+    await expect(contractRow.getByText(companyName, { exact: true })).toBeVisible();
+    await expect(contractRow.getByText("Grupo / Sin asignar")).toHaveCount(0);
 
     // 5. Ajustes → Empresas: la empresa aparece en el listado CRUD, una sola
     // vez (sin duplicados).
