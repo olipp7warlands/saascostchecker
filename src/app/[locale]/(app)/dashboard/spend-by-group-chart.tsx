@@ -2,10 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Tabs, TabsList, TabsPanel, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsPanel } from "@/components/ui/tabs";
+import {
+  SegmentedControlList,
+  SegmentedControlItem,
+} from "@/components/ui/segmented-control";
 import type { SpendGroupRow } from "@/features/dashboard/types";
 
-const BAR_HEIGHT = 10;
+const BAR_HEIGHT = 9;
 
 function GroupBars({
   rows,
@@ -38,13 +42,15 @@ function GroupBars({
               <span className="w-24 shrink-0 truncate text-sm text-ink sm:w-32" title={row.groupName}>
                 {row.groupName}
               </span>
-              <div className="flex-1">
+              <div
+                className="relative flex-1 rounded-[4px] bg-line/40"
+                style={{ height: BAR_HEIGHT }}
+              >
                 <div
-                  className="rounded-[4px]"
+                  className="absolute inset-y-0 left-0 rounded-[4px]"
                   style={{
-                    height: BAR_HEIGHT,
                     width: `${pct}%`,
-                    backgroundColor: index === 0 ? "var(--lime)" : "var(--barfill)",
+                    backgroundColor: index === 0 ? "var(--lime-chart)" : "var(--barfill)",
                   }}
                 />
               </div>
@@ -110,20 +116,14 @@ export function SpendByGroupChart({
           <h2 className="font-disp text-base font-semibold text-ink">
             {activeTab === "company" ? t("companySpend.title") : t("departmentSpend.title")}
           </h2>
-          <TabsList className="border-b-0 gap-1">
-            <TabsTrigger
-              value="department"
-              className="rounded-btn border border-line px-3 py-1 text-xs data-[active]:border-ink data-[active]:bg-ink data-[active]:text-lime-ink"
-            >
+          <SegmentedControlList>
+            <SegmentedControlItem value="department">
               {t("spendByGroup.toggle.department")}
-            </TabsTrigger>
-            <TabsTrigger
-              value="company"
-              className="rounded-btn border border-line px-3 py-1 text-xs data-[active]:border-ink data-[active]:bg-ink data-[active]:text-lime-ink"
-            >
+            </SegmentedControlItem>
+            <SegmentedControlItem value="company">
               {t("spendByGroup.toggle.company")}
-            </TabsTrigger>
-          </TabsList>
+            </SegmentedControlItem>
+          </SegmentedControlList>
         </div>
 
         <TabsPanel value="department">
