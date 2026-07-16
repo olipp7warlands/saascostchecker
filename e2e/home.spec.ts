@@ -41,6 +41,38 @@ test.describe("Home pública", () => {
     await expect(page.getByRole("heading", { name: "De extracto bancario a control total, en tres pasos." })).toBeInViewport();
   });
 
+  test("en móvil (<640px) la pista de renovaciones es una lista vertical con Salesforce completo y sin cortar", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 900 });
+    await page.goto("/es");
+
+    // Lista vertical: el hint "ordenado por días restantes" está visible,
+    // los ticks de escala (7d/30d/...) de la franja horizontal no.
+    await expect(page.getByText("ordenado por días restantes")).toBeVisible();
+    await expect(page.getByText("120d")).toBeHidden();
+
+    // El texto existe dos veces en el DOM (rama móvil visible + rama
+    // desktop oculta con `hidden`) — .and(':visible') se queda solo con la
+    // instancia realmente visible en este viewport.
+    const salesforceWarning = page.getByText("auto-renueva en 5 días").and(page.locator(":visible"));
+    await expect(salesforceWarning).toBeVisible();
+    const box = await salesforceWarning.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(375);
+  });
+
+  test("en desktop (>=640px) la pista de renovaciones sigue siendo la franja horizontal con ticks", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 768, height: 900 });
+    await page.goto("/es");
+
+    await expect(page.getByText("posición = días restantes")).toBeVisible();
+    await expect(page.getByText("120d")).toBeVisible();
+  });
+
   test("con sesión activa, redirige a /dashboard antes de renderizar", async ({ page }) => {
     test.skip(!usesLocalSupabase, "Requiere Supabase local — ver docs/DECISIONS.md");
 

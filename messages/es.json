@@ -24,6 +24,7 @@
     "demo": {
       "title": "Tu pista de renovaciones",
       "hint": "próximos 120 días · posición = días restantes",
+      "hintMobile": "próximos 120 días · ordenado por días restantes",
       "perYear": "{amount}/año",
       "autoRenewsWarning": "⚠ auto-renueva en {days} días",
       "daysRemaining": "{days} días",

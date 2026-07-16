@@ -24,6 +24,7 @@
     "demo": {
       "title": "Your renewals runway",
       "hint": "next 120 days · position = days remaining",
+      "hintMobile": "next 120 days · sorted by days remaining",
       "perYear": "{amount}/yr",
       "autoRenewsWarning": "⚠ auto-renews in {days} days",
       "daysRemaining": "{days} days",
