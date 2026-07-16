@@ -115,6 +115,10 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 - [ ] Reactivar login con Google (OAuth) — código ya implementado desde el bloque 0.2, oculto tras el feature flag `NEXT_PUBLIC_FEATURE_GOOGLE_OAUTH` (ver docs/DECISIONS.md)
 - [ ] Wizard: departamentos → CSV → invitar equipo → configurar matriz de aprobación
 ### 4.3 Hardening (rate limiting, export de datos, marketing site)
+- [x] Tarea extra (adelantada, 2026-07-16): home pública real sustituyendo el placeholder de 0.1, fidelidad exacta a `landing.html` (hero + pista de renovaciones demo animada, sección IA, cómo funciona, funciones, CTA final, footer)
+- [x] Redirect a `/dashboard` si hay sesión activa; CTAs a `/signup`/`/login`; anclas de la nav funcionales
+- [x] Bilingüe (es/en), cero strings hardcodeadas; SEO básico (title/description por locale, og tags)
+- ✅ Aceptación: e2e verifica carga en ambos idiomas, navegación de CTAs/anclas, y redirect con sesión activa — ver docs/DECISIONS.md
 
 ## FASE 5 — Integraciones API (al final)
 ### 5.1 Discovery IdP (Google Workspace, Microsoft Entra → `discovered_apps` → cola de reconciliación de 1.3)

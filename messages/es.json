@@ -1,10 +1,140 @@
 {
-  "HomePage": {
-    "title": "Stackly",
-    "tagline": "Visibilidad y control de tu stack de SaaS",
-    "greeting": "Fase 0 · Bloque 0.1 — Scaffolding",
-    "sampleLabel": "Gasto anualizado (ejemplo)",
-    "localeSwitchLabel": "Idioma"
+  "Home": {
+    "meta": {
+      "title": "Stackly — Cada euro de tu software, a la vista",
+      "description": "Stackly descubre todo el SaaS y las herramientas de IA que paga tu empresa, avisa antes de cada renovación y pone orden en las compras."
+    },
+    "nav": {
+      "product": "Producto",
+      "ai": "IA",
+      "how": "Cómo funciona",
+      "features": "Funciones",
+      "login": "Iniciar sesión",
+      "signup": "Crear organización"
+    },
+    "hero": {
+      "eyebrow": "Gestión de SaaS + IA para equipos de 25–500",
+      "titleMain": "Cada euro de tu software y tu IA, a la vista.",
+      "titleEmphasis": "Cero renovaciones sorpresa.",
+      "subtitle": "Stackly descubre todo el SaaS y todas las herramientas de IA que paga tu empresa, te avisa antes de cada renovación y pone orden en las compras — sin conectar nada: empieza con el CSV de tu banco.",
+      "ctaPrimary": "Empezar gratis",
+      "ctaSecondary": "Ver cómo funciona",
+      "micro": "Sin tarjeta · Tu inventario en 15 minutos"
+    },
+    "demo": {
+      "title": "Tu pista de renovaciones",
+      "hint": "próximos 120 días · posición = días restantes",
+      "perYear": "{amount}/año",
+      "autoRenewsWarning": "⚠ auto-renueva en {days} días",
+      "daysRemaining": "{days} días",
+      "daysRemainingWithSeats": "{days} días · {seats} asientos",
+      "alertLabel": "Alerta enviada →",
+      "alertMessage": "Email + Teams al owner y a Finanzas: «Salesforce renueva el 11 de julio por 38.400 €. El preaviso de cancelación vence hoy»."
+    },
+    "logoStrip": {
+      "label": "Entiende el stack que ya usas — SaaS e IA",
+      "more": "+ 650 en el catálogo"
+    },
+    "pains": {
+      "kicker": "El problema",
+      "title": "El gasto en software crece solo. El control, no.",
+      "subtitle": "Entre tarjetas corporativas, facturas por email y herramientas que cada equipo contrata por su cuenta, nadie tiene la foto completa.",
+      "wasted": {
+        "stat": "~30%",
+        "title": "del gasto SaaS se desperdicia",
+        "body": "Licencias sin usar, herramientas duplicadas y planes sobredimensionados que nadie revisa porque nadie los ve."
+      },
+      "lockIn": {
+        "stat": "12 meses",
+        "title": "te ata una renovación perdida",
+        "body": "Los contratos anuales auto-renuevan en silencio. Si el preaviso pasó, pagas un año entero de algo que ibas a cancelar."
+      },
+      "friction": {
+        "stat": "0 fricción",
+        "title": "para empezar a verlo todo",
+        "body": "Sin integraciones, sin IT, sin proyecto de meses: importa el CSV del banco y Stackly reconoce a tus proveedores."
+      }
+    },
+    "ai": {
+      "kicker": "Nuevo · Gasto en IA",
+      "title": "La IA es el nuevo shadow IT. Stackly lo tiene en el catálogo.",
+      "subtitle": "Suscripciones personales en tarjetas de empresa, asientos de equipo que se duplican, APIs con coste variable que nadie presupuestó. El gasto en IA crece más rápido que cualquier otra categoría — y con menos control que ninguna.",
+      "catalog": {
+        "stat": "150+",
+        "title": "herramientas de IA en el catálogo",
+        "body": "ChatGPT, Claude, Gemini, Midjourney, Copilot, Cursor, ElevenLabs, Perplexity… con los alias con los que aparecen en tu extracto bancario."
+      },
+      "duplicated": {
+        "stat": "×3",
+        "title": "la misma IA, pagada tres veces",
+        "body": "Marketing con su Plus, Producto con su Team, un dev con su API key. Stackly agrupa los cargos y te enseña el solape antes de renovar."
+      },
+      "variable": {
+        "stat": "Variable",
+        "title": "el coste por uso también cuenta",
+        "body": "Los cargos de API (OpenAI, Anthropic, ElevenLabs) no son suscripciones fijas: Stackly los reconcilia igual y los suma a tu gasto real por proveedor."
+      }
+    },
+    "how": {
+      "kicker": "Cómo funciona",
+      "title": "De extracto bancario a control total, en tres pasos.",
+      "subtitle": "Diseñado para empezar hoy, no después de un trimestre de implantación.",
+      "step1": {
+        "label": "PASO 1",
+        "title": "Importa tu gasto",
+        "body": "Sube el CSV de tu banco o contabilidad. Stackly reconoce automáticamente los cargos de SaaS — «PDDLE.NET* LOOM» incluido — y monta tu inventario.",
+        "chip": "≥70% reconciliado automático"
+      },
+      "step2": {
+        "label": "PASO 2",
+        "title": "Completa contratos y asientos",
+        "body": "Fecha de renovación, preaviso de cancelación, licencias por persona. A partir de aquí, Stackly calcula utilización y euros desperdiciados.",
+        "chip": "contratos + PDFs en un sitio"
+      },
+      "step3": {
+        "label": "PASO 3",
+        "title": "Duerme tranquilo",
+        "body": "Alertas a 90, 60, 30 y 7 días por email y Teams, antes de que venza cada preaviso. Y un flujo de aprobación para cada compra nueva.",
+        "chip": "0 renovaciones sorpresa"
+      }
+    },
+    "features": {
+      "kicker": "Funciones",
+      "title": "Todo lo que Finanzas e IT llevan años pidiendo.",
+      "dashboard": {
+        "title": "Dashboard de gasto",
+        "body": "Anualizado total, por categoría y por departamento. Cifras que cuadran con contabilidad."
+      },
+      "runway": {
+        "title": "Pista de renovaciones",
+        "body": "Cada contrato posicionado por días restantes, con el preaviso de cancelación en primer plano."
+      },
+      "inventory": {
+        "title": "Inventario de vendors",
+        "body": "Catálogo de 650+ SaaS y herramientas de IA con autocompletado, owners, contratos y documentos adjuntos."
+      },
+      "licenses": {
+        "title": "Licencias y utilización",
+        "body": "Asientos comprados vs. usados, y el coste exacto de los que están vacíos."
+      },
+      "reconciliation": {
+        "title": "Reconciliación bancaria",
+        "body": "Cada movimiento del extracto vinculado a su proveedor, con sugerencias automáticas."
+      },
+      "approvals": {
+        "title": "Solicitudes y aprobaciones",
+        "body": "Flujo por departamento y monto, con aviso de «esto ya lo tenéis» para evitar duplicados."
+      }
+    },
+    "final": {
+      "title": "Tu inventario de SaaS, esta misma tarde.",
+      "subtitle": "Crea tu organización, sube un CSV y mira tu pista de renovaciones con datos reales.",
+      "cta": "Empezar gratis"
+    },
+    "footer": {
+      "tagline": "visibilidad y control de tu stack de SaaS",
+      "links": "ES / EN · Privacidad · Términos"
+    }
   },
   "Auth": {
     "roles": {

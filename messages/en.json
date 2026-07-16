@@ -1,10 +1,140 @@
 {
-  "HomePage": {
-    "title": "Stackly",
-    "tagline": "Visibility and control over your SaaS stack",
-    "greeting": "Phase 0 · Block 0.1 — Scaffolding",
-    "sampleLabel": "Annualized spend (sample)",
-    "localeSwitchLabel": "Language"
+  "Home": {
+    "meta": {
+      "title": "Stackly — Every euro of your software, visible",
+      "description": "Stackly finds every SaaS and AI tool your company pays for, alerts you before each renewal, and brings order to purchasing."
+    },
+    "nav": {
+      "product": "Product",
+      "ai": "AI",
+      "how": "How it works",
+      "features": "Features",
+      "login": "Log in",
+      "signup": "Create organization"
+    },
+    "hero": {
+      "eyebrow": "SaaS + AI spend management for teams of 25–500",
+      "titleMain": "Every euro of your software and AI spend, visible.",
+      "titleEmphasis": "Zero surprise renewals.",
+      "subtitle": "Stackly finds every SaaS and AI tool your company pays for, alerts you before each renewal, and brings order to purchasing — no integrations required: start with your bank's CSV.",
+      "ctaPrimary": "Start for free",
+      "ctaSecondary": "See how it works",
+      "micro": "No credit card · Your inventory in 15 minutes"
+    },
+    "demo": {
+      "title": "Your renewals runway",
+      "hint": "next 120 days · position = days remaining",
+      "perYear": "{amount}/yr",
+      "autoRenewsWarning": "⚠ auto-renews in {days} days",
+      "daysRemaining": "{days} days",
+      "daysRemainingWithSeats": "{days} days · {seats} seats",
+      "alertLabel": "Alert sent →",
+      "alertMessage": "Email + Teams to the owner and Finance: «Salesforce renews on July 11 for €38,400. The cancellation notice deadline is today»."
+    },
+    "logoStrip": {
+      "label": "Understand the stack you already use — SaaS and AI",
+      "more": "+ 650 in the catalog"
+    },
+    "pains": {
+      "kicker": "The problem",
+      "title": "Software spend keeps growing. Control doesn't.",
+      "subtitle": "Between corporate cards, emailed invoices, and tools every team signs up for on its own, nobody has the full picture.",
+      "wasted": {
+        "stat": "~30%",
+        "title": "of SaaS spend is wasted",
+        "body": "Unused licenses, duplicate tools, and oversized plans nobody reviews because nobody sees them."
+      },
+      "lockIn": {
+        "stat": "12 months",
+        "title": "is what a missed renewal costs you",
+        "body": "Annual contracts auto-renew silently. Miss the notice window and you pay a full year for something you meant to cancel."
+      },
+      "friction": {
+        "stat": "0 friction",
+        "title": "to start seeing everything",
+        "body": "No integrations, no IT, no months-long project: import your bank's CSV and Stackly recognizes your vendors."
+      }
+    },
+    "ai": {
+      "kicker": "New · AI spend",
+      "title": "AI is the new shadow IT. Stackly has it in the catalog.",
+      "subtitle": "Personal subscriptions on company cards, team seats that get duplicated, variable-cost APIs nobody budgeted for. AI spend is growing faster than any other category — with less control than any of them.",
+      "catalog": {
+        "stat": "150+",
+        "title": "AI tools in the catalog",
+        "body": "ChatGPT, Claude, Gemini, Midjourney, Copilot, Cursor, ElevenLabs, Perplexity… with the aliases they use on your bank statement."
+      },
+      "duplicated": {
+        "stat": "×3",
+        "title": "the same AI tool, paid for three times",
+        "body": "Marketing with its Plus plan, Product with its Team plan, a dev with an API key. Stackly groups the charges and shows you the overlap before you renew."
+      },
+      "variable": {
+        "stat": "Variable",
+        "title": "usage-based cost counts too",
+        "body": "API charges (OpenAI, Anthropic, ElevenLabs) aren't fixed subscriptions: Stackly reconciles them the same way and adds them to your real spend per vendor."
+      }
+    },
+    "how": {
+      "kicker": "How it works",
+      "title": "From bank statement to full control, in three steps.",
+      "subtitle": "Built to start today, not after a quarter-long rollout.",
+      "step1": {
+        "label": "STEP 1",
+        "title": "Import your spend",
+        "body": "Upload your bank or accounting CSV. Stackly automatically recognizes SaaS charges — «PDDLE.NET* LOOM» included — and builds your inventory.",
+        "chip": "≥70% auto-reconciled"
+      },
+      "step2": {
+        "label": "STEP 2",
+        "title": "Fill in contracts and seats",
+        "body": "Renewal date, cancellation notice, per-person licenses. From here, Stackly calculates utilization and wasted euros.",
+        "chip": "contracts + PDFs in one place"
+      },
+      "step3": {
+        "label": "STEP 3",
+        "title": "Sleep easy",
+        "body": "Alerts at 90, 60, 30 and 7 days by email and Teams, before every notice window closes. Plus an approval flow for every new purchase.",
+        "chip": "0 surprise renewals"
+      }
+    },
+    "features": {
+      "kicker": "Features",
+      "title": "Everything Finance and IT have wanted for years.",
+      "dashboard": {
+        "title": "Spend dashboard",
+        "body": "Total annualized spend, by category and by department. Figures that match accounting."
+      },
+      "runway": {
+        "title": "Renewals runway",
+        "body": "Every contract positioned by days remaining, with the cancellation notice front and center."
+      },
+      "inventory": {
+        "title": "Vendor inventory",
+        "body": "A catalog of 650+ SaaS and AI tools with autocomplete, owners, contracts and attached documents."
+      },
+      "licenses": {
+        "title": "Licenses and utilization",
+        "body": "Seats purchased vs. used, and the exact cost of the ones sitting empty."
+      },
+      "reconciliation": {
+        "title": "Bank reconciliation",
+        "body": "Every statement transaction linked to its vendor, with automatic suggestions."
+      },
+      "approvals": {
+        "title": "Requests and approvals",
+        "body": "A flow by department and amount, with a “you already have this” warning to avoid duplicates."
+      }
+    },
+    "final": {
+      "title": "Your SaaS inventory, this afternoon.",
+      "subtitle": "Create your organization, upload a CSV, and see your renewals runway with real data.",
+      "cta": "Start for free"
+    },
+    "footer": {
+      "tagline": "visibility and control for your SaaS stack",
+      "links": "ES / EN · Privacy · Terms"
+    }
   },
   "Auth": {
     "roles": {

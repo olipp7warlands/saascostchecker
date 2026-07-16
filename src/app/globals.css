@@ -113,3 +113,23 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+/* Home pública (landing.html) — pista de renovaciones animada del hero. */
+@keyframes drift {
+  from {
+    margin-left: 26px;
+  }
+  to {
+    margin-left: -26px;
+  }
+}
+
+.animate-drift {
+  animation: drift 26s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-drift {
+    animation: none;
+  }
+}
