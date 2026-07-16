@@ -14,12 +14,12 @@ export async function sendInvitationEmail(params: {
   const { email, orgName, inviteUrl, locale } = params;
   const subject =
     locale === "es"
-      ? `Te han invitado a ${orgName} en Stackly`
-      : `You've been invited to ${orgName} on Stackly`;
+      ? `Te han invitado a ${orgName} en StackX`
+      : `You've been invited to ${orgName} on StackX`;
   const body =
     locale === "es"
-      ? `Únete a ${orgName} en Stackly: ${inviteUrl}\n\nEste enlace caduca en 7 días.`
-      : `Join ${orgName} on Stackly: ${inviteUrl}\n\nThis link expires in 7 days.`;
+      ? `Únete a ${orgName} en StackX: ${inviteUrl}\n\nEste enlace caduca en 7 días.`
+      : `Join ${orgName} on StackX: ${inviteUrl}\n\nThis link expires in 7 days.`;
 
   if (!resend) {
     // Sin RESEND_API_KEY configurada (dev local): loguea el enlace en vez de fallar.
@@ -28,7 +28,7 @@ export async function sendInvitationEmail(params: {
   }
 
   await resend.emails.send({
-    from: "Stackly <onboarding@resend.dev>",
+    from: "StackX <onboarding@resend.dev>",
     to: email,
     subject,
     text: body,

@@ -68,7 +68,7 @@ export function DepartmentField({
               }
             }}
           >
-            <DialogTrigger className="text-xs font-medium text-primary hover:underline">
+            <DialogTrigger className="text-xs font-medium text-ink underline underline-offset-4 hover:text-ink-soft">
               {t("addDepartment")}
             </DialogTrigger>
             <DialogContent>
@@ -86,7 +86,7 @@ export function DepartmentField({
                     maxLength={120}
                   />
                 </div>
-                {error && <p className="text-sm text-red-600">{error}</p>}
+                {error && <p className="text-sm text-destructive">{error}</p>}
                 <Button type="submit" disabled={isPending} className="self-start">
                   {t("departmentDialog.submit")}
                 </Button>

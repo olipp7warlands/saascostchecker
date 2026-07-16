@@ -21,7 +21,7 @@ export type SeatRow = {
 type Member = { id: string; full_name: string | null; email: string };
 
 const SELECT_CLASSNAME =
-  "h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+  "h-8 rounded-input border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 export function ContractSeats({
   contractId,
@@ -122,7 +122,7 @@ export function ContractSeats({
         </div>
       )}
       {pct != null && wasted > 0 && (
-        <p className="num mt-1 text-xs text-[#B27A1E]">
+        <p className="num mt-1 text-xs text-warning">
           {t("wastedEstimate", { amount: currencyFormatter.format(wasted) })}
         </p>
       )}
@@ -140,7 +140,7 @@ export function ContractSeats({
               <span className="flex gap-3">
                 <button
                   type="button"
-                  className="text-xs font-medium text-primary hover:underline"
+                  className="text-xs font-medium text-ink underline underline-offset-4 hover:text-ink-soft"
                   disabled={isPending}
                   onClick={() => handleToggleActive(seat)}
                 >
@@ -160,8 +160,8 @@ export function ContractSeats({
         </ul>
       )}
 
-      {warning && <p className="mt-2 text-xs text-[#B27A1E]">{warning}</p>}
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {warning && <p className="mt-2 text-xs text-warning">{warning}</p>}
+      {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
 
       {eligibleMembers.length > 0 ? (
         <form action={handleAssign} className="mt-3 flex items-center gap-2">

@@ -53,7 +53,7 @@ export function LoginForm({
           <Input id="password" name="password" type="password" required />
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
 
         <Button type="submit" disabled={isPending} className="mt-2 w-full">
           {t("submit")}
@@ -78,7 +78,7 @@ export function LoginForm({
 
       <p className="text-center text-sm text-ink-soft">
         {t("noAccount")}{" "}
-        <a href={`/${locale}/signup`} className="font-medium text-primary hover:underline">
+        <a href={`/${locale}/signup`} className="font-medium text-ink underline underline-offset-4 hover:text-ink-soft">
           {t("signupLink")}
         </a>
       </p>

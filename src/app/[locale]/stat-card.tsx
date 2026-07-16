@@ -1,7 +1,7 @@
 const STAT_TONE_CLASSES = {
   red: "text-destructive",
-  amber: "text-[#B27A1E]",
-  teal: "text-primary",
+  amber: "text-warning",
+  success: "text-success",
 } as const;
 
 export function StatCard({
@@ -13,7 +13,7 @@ export function StatCard({
   stat: string;
   title: string;
   body: string;
-  tone: "red" | "amber" | "teal";
+  tone: "red" | "amber" | "success";
 }) {
   return (
     <div className="rounded-[14px] border border-line bg-surface p-6.5">

@@ -14,7 +14,7 @@ export async function FeaturesGrid() {
 
   return (
     <section id="funciones" className="mx-auto max-w-[1080px] px-6 py-21">
-      <div className="mb-3 font-mono text-xs tracking-[.12em] text-primary uppercase">{t("kicker")}</div>
+      <div className="mb-3 font-mono text-xs tracking-[.12em] text-ink-soft uppercase">{t("kicker")}</div>
       <h2 className="max-w-[640px] font-disp text-[clamp(26px,3.6vw,38px)] leading-[1.12] font-bold tracking-tight text-ink">
         {t("title")}
       </h2>
@@ -23,7 +23,7 @@ export async function FeaturesGrid() {
           <div key={feature.key} className="flex gap-3.5 rounded-xl border border-line bg-surface p-5">
             <div
               aria-hidden="true"
-              className="flex size-8.5 shrink-0 items-center justify-center rounded-[9px] bg-primary-soft text-base text-primary"
+              className="flex size-8.5 shrink-0 items-center justify-center rounded-[9px] bg-lime/14 text-base text-lime-ink"
             >
               {feature.icon}
             </div>

@@ -2,8 +2,8 @@ import { cn } from "@/lib/utils";
 import type { UtilizationTone } from "@/features/vendors/seats";
 
 const FILL_CLASSES: Record<UtilizationTone, string> = {
-  primary: "bg-primary",
-  amber: "bg-amber",
+  success: "bg-success",
+  warning: "bg-warning",
 };
 
 // Replica .bar/.bar i/.bar i.low de docs/mockups.html: pista de 90px, teal

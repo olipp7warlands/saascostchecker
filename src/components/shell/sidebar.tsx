@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { Wordmark } from "@/components/brand/wordmark";
 import type { Role } from "@/features/auth/session";
 import { LocaleSwitcher } from "./locale-switcher";
 import { isNavItemVisible, NAV_ITEMS } from "./nav-items";
@@ -31,8 +32,8 @@ export async function Sidebar({
 
   return (
     <aside className="hidden w-[216px] shrink-0 flex-col bg-ink py-5 text-[#C9D2D6] md:flex">
-      <div className="px-5 pb-[22px] font-disp text-[19px] font-bold tracking-tight text-white">
-        stack<span className="text-[#5FBFB4]">ly</span>
+      <div className="px-5 pb-[22px]">
+        <Wordmark className="text-[19px] text-white" />
       </div>
 
       <nav aria-label={t("mainNavLabel")} className="flex flex-1 flex-col overflow-y-auto">

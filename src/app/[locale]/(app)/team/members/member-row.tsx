@@ -67,7 +67,7 @@ export function MemberRow({
             defaultValue={member.role}
             disabled={isPending}
             onChange={(event) => handleRoleChange(event.target.value)}
-            className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="h-8 rounded-input border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             {ROLES.map((role) => (
               <option key={role} value={role}>
@@ -81,7 +81,7 @@ export function MemberRow({
             defaultValue={member.department_id ?? ""}
             disabled={isPending}
             onChange={(event) => handleDepartmentChange(event.target.value)}
-            className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="h-8 rounded-input border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             <option value="">{t("noDepartment")}</option>
             {departments.map((department) => (
@@ -92,7 +92,7 @@ export function MemberRow({
           </select>
         </div>
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </li>
   );
 }

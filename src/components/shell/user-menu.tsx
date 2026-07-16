@@ -32,7 +32,7 @@ export function UserMenu({
           "focus-visible:ring-2 focus-visible:ring-offset-1",
           dark
             ? "focus-visible:ring-white/50 focus-visible:ring-offset-ink hover:bg-white/5"
-            : "focus-visible:ring-primary/50 focus-visible:ring-offset-surface hover:bg-muted",
+            : "focus-visible:ring-ring/50 focus-visible:ring-offset-surface hover:bg-muted",
         )}
       >
         <span className="min-w-0">

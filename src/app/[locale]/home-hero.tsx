@@ -7,7 +7,7 @@ export async function HomeHero({ locale }: { locale: string }) {
 
   return (
     <section className="px-6 pt-19 pb-7.5 text-center">
-      <span className="mb-5.5 inline-block rounded-full bg-primary-soft px-3.5 py-1.5 font-mono text-xs tracking-[.12em] text-primary uppercase">
+      <span className="mb-5.5 inline-block rounded-full bg-muted px-3.5 py-1.5 font-mono text-xs tracking-[.12em] text-ink-soft uppercase">
         {t("eyebrow")}
       </span>
       <h1 className="mx-auto max-w-[820px] font-disp text-[clamp(34px,5.6vw,58px)] leading-[1.06] font-extrabold tracking-tight text-ink">

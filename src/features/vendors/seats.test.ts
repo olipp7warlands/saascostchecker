@@ -27,15 +27,15 @@ describe("seatUtilizationPct", () => {
 
 describe("utilizationTone", () => {
   it("es ámbar por debajo del 70%", () => {
-    expect(utilizationTone(60)).toBe("amber");
-    expect(utilizationTone(69)).toBe("amber");
+    expect(utilizationTone(60)).toBe("warning");
+    expect(utilizationTone(69)).toBe("warning");
   });
 
-  it("es teal (primary) a partir del 70%", () => {
-    expect(utilizationTone(70)).toBe("primary");
-    expect(utilizationTone(80)).toBe("primary");
-    expect(utilizationTone(100)).toBe("primary");
-    expect(utilizationTone(125)).toBe("primary");
+  it("es teal (success) a partir del 70%", () => {
+    expect(utilizationTone(70)).toBe("success");
+    expect(utilizationTone(80)).toBe("success");
+    expect(utilizationTone(100)).toBe("success");
+    expect(utilizationTone(125)).toBe("success");
   });
 });
 

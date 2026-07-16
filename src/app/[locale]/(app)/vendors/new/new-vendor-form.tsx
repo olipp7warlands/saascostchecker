@@ -122,7 +122,7 @@ export function NewVendorForm({
           <button
             type="button"
             onClick={() => setSelection(null)}
-            className="ml-auto text-xs font-medium text-primary hover:underline"
+            className="ml-auto text-xs font-medium text-ink underline underline-offset-4 hover:text-ink-soft"
           >
             {t("changeSelection")}
           </button>
@@ -159,7 +159,7 @@ export function NewVendorForm({
             name="category"
             required
             defaultValue={selection.category}
-            className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="h-8 rounded-input border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             {CATALOG_CATEGORIES.map((category) => (
               <option key={category} value={category}>
@@ -175,7 +175,7 @@ export function NewVendorForm({
             id="ownerUserId"
             name="ownerUserId"
             defaultValue=""
-            className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="h-8 rounded-input border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             <option value="">{t("noOwnerOption")}</option>
             {members.map((member) => (
@@ -193,7 +193,7 @@ export function NewVendorForm({
             name="notes"
             rows={2}
             maxLength={2000}
-            className="rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="rounded-input border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           />
         </div>
       </fieldset>
@@ -209,7 +209,7 @@ export function NewVendorForm({
         />
       </fieldset>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
 
       <Button type="submit" disabled={isPending}>
         {t("submit")}

@@ -1,4 +1,4 @@
-# Specs — Plataforma de Gestión de SaaS (working name: "Stackly")
+# Specs — Plataforma de Gestión de SaaS (working name: "StackX"; nombre interno del código/paquete: `stackly`)
 
 ## 1. Visión
 Plataforma multi-tenant de gestión de software (tipo Sastrify) que da visibilidad del stack de SaaS, gestiona renovaciones y contratos, y orquesta solicitudes de compra con aprobaciones. Uso interno primero (empresa de 25-100 empleados), comercialización después. **Estrategia: todo manual/CSV primero; integraciones API con terceros en la fase final.**

@@ -41,15 +41,15 @@ const TICKS = [
 ];
 
 const TONE_CLASSES = {
-  hot: "border-destructive bg-red-soft shadow-[0_6px_18px_-4px_rgba(196,69,47,.35)]",
-  soon: "border-amber bg-amber-soft",
+  hot: "border-destructive bg-danger-soft shadow-[0_6px_18px_-4px_rgba(217,45,32,.35)]",
+  soon: "border-warning bg-warning-soft",
   ok: "border-line bg-surface",
 } as const;
 
 const TONE_TEXT_CLASSES = {
   hot: "text-destructive",
-  soon: "text-[#B27A1E]",
-  ok: "text-primary",
+  soon: "text-warning",
+  ok: "text-ink-soft",
 } as const;
 
 function ticketStatusLabel(
@@ -95,7 +95,7 @@ export async function RenewalDemo({ locale }: { locale: string }) {
   });
 
   const alertCompact = (
-    <div className="mt-2 rounded-md border border-[#EFC4BA] bg-red-soft px-2.5 py-2 text-xs">
+    <div className="mt-2 rounded-md border border-[#F5C2BC] bg-danger-soft px-2.5 py-2 text-xs">
       <span className="num block font-semibold text-destructive">{t("alertLabel")}</span>
       <span className="mt-0.5 block text-ink">{t("alertMessage")}</span>
     </div>
@@ -166,7 +166,7 @@ export async function RenewalDemo({ locale }: { locale: string }) {
           </div>
         </div>
 
-        <div className="mt-4 flex items-center gap-2.5 rounded-lg border border-[#EFC4BA] bg-red-soft px-3.5 py-2.75 text-sm">
+        <div className="mt-4 flex items-center gap-2.5 rounded-lg border border-[#F5C2BC] bg-danger-soft px-3.5 py-2.75 text-sm">
           <span className="num font-semibold whitespace-nowrap text-destructive">{t("alertLabel")}</span>
           <span>{t("alertMessage")}</span>
         </div>

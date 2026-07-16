@@ -1,8 +1,8 @@
 {
   "Home": {
     "meta": {
-      "title": "Stackly — Every euro of your software, visible",
-      "description": "Stackly finds every SaaS and AI tool your company pays for, alerts you before each renewal, and brings order to purchasing."
+      "title": "StackX — Every euro of your software, visible",
+      "description": "StackX finds every SaaS and AI tool your company pays for, alerts you before each renewal, and brings order to purchasing."
     },
     "nav": {
       "product": "Product",
@@ -16,7 +16,7 @@
       "eyebrow": "SaaS + AI spend management for teams of 25–500",
       "titleMain": "Every euro of your software and AI spend, visible.",
       "titleEmphasis": "Zero surprise renewals.",
-      "subtitle": "Stackly finds every SaaS and AI tool your company pays for, alerts you before each renewal, and brings order to purchasing — no integrations required: start with your bank's CSV.",
+      "subtitle": "StackX finds every SaaS and AI tool your company pays for, alerts you before each renewal, and brings order to purchasing — no integrations required: start with your bank's CSV.",
       "ctaPrimary": "Start for free",
       "ctaSecondary": "See how it works",
       "micro": "No credit card · Your inventory in 15 minutes"
@@ -53,12 +53,12 @@
       "friction": {
         "stat": "0 friction",
         "title": "to start seeing everything",
-        "body": "No integrations, no IT, no months-long project: import your bank's CSV and Stackly recognizes your vendors."
+        "body": "No integrations, no IT, no months-long project: import your bank's CSV and StackX recognizes your vendors."
       }
     },
     "ai": {
       "kicker": "New · AI spend",
-      "title": "AI is the new shadow IT. Stackly has it in the catalog.",
+      "title": "AI is the new shadow IT. StackX has it in the catalog.",
       "subtitle": "Personal subscriptions on company cards, team seats that get duplicated, variable-cost APIs nobody budgeted for. AI spend is growing faster than any other category — with less control than any of them.",
       "catalog": {
         "stat": "150+",
@@ -68,12 +68,12 @@
       "duplicated": {
         "stat": "×3",
         "title": "the same AI tool, paid for three times",
-        "body": "Marketing with its Plus plan, Product with its Team plan, a dev with an API key. Stackly groups the charges and shows you the overlap before you renew."
+        "body": "Marketing with its Plus plan, Product with its Team plan, a dev with an API key. StackX groups the charges and shows you the overlap before you renew."
       },
       "variable": {
         "stat": "Variable",
         "title": "usage-based cost counts too",
-        "body": "API charges (OpenAI, Anthropic, ElevenLabs) aren't fixed subscriptions: Stackly reconciles them the same way and adds them to your real spend per vendor."
+        "body": "API charges (OpenAI, Anthropic, ElevenLabs) aren't fixed subscriptions: StackX reconciles them the same way and adds them to your real spend per vendor."
       }
     },
     "how": {
@@ -83,13 +83,13 @@
       "step1": {
         "label": "STEP 1",
         "title": "Import your spend",
-        "body": "Upload your bank or accounting CSV. Stackly automatically recognizes SaaS charges — «PDDLE.NET* LOOM» included — and builds your inventory.",
+        "body": "Upload your bank or accounting CSV. StackX automatically recognizes SaaS charges — «PDDLE.NET* LOOM» included — and builds your inventory.",
         "chip": "≥70% auto-reconciled"
       },
       "step2": {
         "label": "STEP 2",
         "title": "Fill in contracts and seats",
-        "body": "Renewal date, cancellation notice, per-person licenses. From here, Stackly calculates utilization and wasted euros.",
+        "body": "Renewal date, cancellation notice, per-person licenses. From here, StackX calculates utilization and wasted euros.",
         "chip": "contracts + PDFs in one place"
       },
       "step3": {
@@ -163,7 +163,7 @@
     },
     "login": {
       "title": "Log in",
-      "tagline": "Access your organization on Stackly",
+      "tagline": "Access your organization on StackX",
       "emailLabel": "Email",
       "passwordLabel": "Password",
       "submit": "Sign in",
@@ -231,7 +231,7 @@
     }
   },
   "Shell": {
-    "logo": "stackly",
+    "logo": "stackx",
     "mainNavLabel": "Main navigation",
     "mobileNavLabel": "Mobile navigation",
     "nav": {

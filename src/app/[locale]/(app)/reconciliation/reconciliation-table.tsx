@@ -22,7 +22,7 @@ const TIER_TONE: Record<string, PillTone> = {
 };
 
 const SELECT_CLASSNAME =
-  "h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+  "h-8 rounded-input border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 type Vendor = { id: string; name: string };
 
@@ -163,7 +163,7 @@ export function ReconciliationTable({
         </div>
       )}
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
 
       <div className="overflow-x-auto rounded-xl border border-line bg-surface">
         <table className="w-full min-w-[900px] border-collapse">

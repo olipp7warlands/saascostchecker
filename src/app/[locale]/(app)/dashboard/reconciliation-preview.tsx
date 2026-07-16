@@ -45,9 +45,9 @@ export async function ReconciliationPreview({
               );
             })}
           </ul>
-          <div className="mt-3.5 rounded-lg border border-amber-soft bg-amber-soft p-3 text-[13px] text-ink">
+          <div className="mt-3.5 rounded-lg border border-warning-soft bg-warning-soft p-3 text-[13px] text-ink">
             {t("note", { count: totalPending })}{" "}
-            <a href={`/${locale}/reconciliation`} className="font-semibold text-primary hover:underline">
+            <a href={`/${locale}/reconciliation`} className="font-semibold text-ink underline underline-offset-4 hover:text-ink-soft">
               {t("viewAll")}
             </a>
           </div>

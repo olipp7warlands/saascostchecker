@@ -156,7 +156,7 @@ export function SaasCombobox({
           setDismissed(false);
         }}
         onKeyDown={handleKeyDown}
-        className="h-9 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="h-9 w-full rounded-input border border-line bg-surface px-3 text-sm text-ink outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
       />
 
       {showListbox && (
@@ -212,7 +212,7 @@ export function SaasCombobox({
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => selectAt(results.length)}
               className={cn(
-                "cursor-pointer px-3 py-2 text-sm font-medium text-primary",
+                "cursor-pointer px-3 py-2 text-sm font-medium text-ink underline underline-offset-4 hover:text-ink-soft",
                 activeIndex === results.length && "bg-muted",
               )}
             >

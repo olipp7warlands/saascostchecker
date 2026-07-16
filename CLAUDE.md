@@ -1,10 +1,10 @@
-# Stackly — Instrucciones para Claude Code
+# StackX — Instrucciones para Claude Code
 
-Plataforma multi-tenant de gestión de SaaS (visibilidad de gasto, renovaciones, procurement). Los documentos fuente de verdad son:
+Plataforma multi-tenant de gestión de SaaS (visibilidad de gasto, renovaciones, procurement). El nombre de marca es **StackX** (nombre interno del código/paquete/proyecto Supabase: `stackly`, sin renombrar — ver `docs/DECISIONS.md`). Los documentos fuente de verdad son:
 
 - `docs/SPECS.md` — especificaciones completas: modelo de datos, roles, motor de aprobaciones (§6), fases y bloques
 - `docs/TASKS.md` — roadmap por bloques con criterios de aceptación; trabaja SIEMPRE un bloque a la vez y marca los checkboxes al terminar
-- `docs/mockups.html` — referencia visual de las 4 pantallas clave (ábrelo en navegador); replica su sistema de diseño
+- `docs/design-stackx.html` — referencia visual vigente del sistema de diseño (skin "23 · Lima quirúrgica"; ábrelo en navegador); replica su sistema de diseño. `docs/mockups.html` es el mockup histórico pre-rebrand, ya no vigente — no se actualiza en cada cambio de marca.
 
 ## Stack (no cambiar sin consultar)
 - Next.js 15 (App Router, Server Components por defecto) + TypeScript estricto
@@ -31,9 +31,14 @@ Plataforma multi-tenant de gestión de SaaS (visibilidad de gasto, renovaciones,
 - **No intentes arrancar Docker Desktop ni `supabase start` en esta máquina** aunque un test lo requiera — si `pnpm test` local falla solo en `rls-isolation.test.ts`/`permissions.test.ts`/e2e con tenants reales, es esperado: confirma que el resto de la suite pasa, y verifica esos tests concretos vía CI.
 - Google OAuth queda aplazado al bloque 4.2 (Onboarding self-service) — el botón está oculto tras un feature flag (`NEXT_PUBLIC_FEATURE_GOOGLE_OAUTH`) hasta entonces.
 
-## Sistema de diseño (de docs/mockups.html)
-- Tokens: fondo `#F5F6F2`, superficie `#FFF`, tinta `#1B2733`, primario `#0E5F59`, ámbar `#E8A13C` (SOLO para urgencia/renovaciones), rojo `#C4452F`, línea `#E3E6DF`
-- Tipos: Bricolage Grotesque (titulares), Instrument Sans (UI), IBM Plex Mono (toda cifra)
+## Sistema de diseño (de docs/design-stackx.html, skin "23 · Lima quirúrgica")
+- Tokens: fondo `#FFFFFF`, superficie `#FAFBF8`, tinta `#15181A`, muted `#6E7478`, línea `#E8EBE6`
+- Acento lima `#9BE000` (hover `#8ACC00`, texto sobre lima siempre oscuro `#2A3D00`) — SOLO en fondos/bordes/glifos grandes, NUNCA como texto pequeño/regular (falla contraste AA sobre blanco)
+- CTA primario: fondo `#15181A`, texto `#C6FF3E`
+- Estados: éxito `#578500` sobre `#F0FADC`; aviso `#B45309` sobre `#FEF3C7`; peligro `#D92D20` sobre `#FEECEA` (rojo real, AJUSTE deliberado sobre el mock de la piel 23 — la urgencia de renovación NUNCA va en lima/negro, se leería como "todo bien")
+- Focus ring: `#E9FFB8`
+- Radios: cards `10px`, botones/pills `16px`, inputs `9px`
+- Tipos: Inter en todo (titulares + UI, sustituye a Bricolage Grotesque/Instrument Sans); IBM Plex Mono se mantiene para cifras (`tabular-nums`, clase `.num`)
 - Móvil: sidebar → bottom nav; tablas con scroll horizontal; acciones a ancho completo
 - Componente firma: la "pista de renovaciones" del dashboard (tickets posicionados por días restantes)
 

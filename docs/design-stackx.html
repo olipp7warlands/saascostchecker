@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StackX — Definitivo · 6 finalistas × 4 pantallas</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@500;600;700;800&family=Syne:wght@600;700;800&family=Schibsted+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#E5E6E0;color:#111;padding:34px 18px 80px}
+.intro{max-width:1280px;margin:0 auto 26px}
+.intro h1{font-weight:800;font-size:25px;letter-spacing:-.02em}
+.intro p{color:#555;margin-top:5px;font-size:14px;max-width:820px}
+.skin{max-width:1280px;margin:0 auto 40px}
+.skin>.sl{display:flex;justify-content:space-between;align-items:baseline;margin:0 2px 10px;border-bottom:2px solid #111;padding-bottom:6px}
+.skin>.sl b{font-size:17px}
+.skin>.sl span{font-family:'IBM Plex Mono';font-size:11px;color:#555}
+.four{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:1100px){.four{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.four{grid-template-columns:1fr}}
+.scr{background:var(--bg);color:var(--ink);border:1px solid #C8CAC2;border-radius:11px;overflow:hidden;font-family:var(--font);min-height:262px;position:relative;display:flex;flex-direction:column}
+.stag{position:absolute;top:7px;right:7px;z-index:5;font-family:'IBM Plex Mono';font-size:7.5px;background:#111;color:#fff;padding:2px 7px;border-radius:8px;opacity:.7}
+img.lg{width:12px;height:12px;object-fit:contain;background:#fff;border-radius:3px;padding:1px;border:1px solid rgba(0,0,0,.12)}
+.mono{font-family:'IBM Plex Mono'}
+/* barra superior común */
+.tb{display:flex;align-items:center;gap:7px;padding:8px 11px;border-bottom:var(--bw) solid var(--line);background:var(--tbbg)}
+.tb .lgx{font-family:var(--headfont);font-weight:800;font-size:10.5px;color:var(--ink);letter-spacing:-.01em}
+.tb .lgx i{font-style:normal;color:var(--x)}
+.tb .tt{font-family:var(--headfont);font-weight:700;font-size:9px;color:var(--muted)}
+.tb .cta{margin-left:auto;background:var(--btn);color:var(--btnink);font-size:7.5px;font-weight:700;padding:4px 9px;border-radius:var(--rb)}
+.pad{padding:10px 11px;flex:1;display:flex;flex-direction:column}
+/* A · KPIs */
+.krow{display:flex;gap:6px;margin-bottom:8px}
+.kpi{flex:1;background:var(--surface);border:var(--bw) solid var(--line);border-radius:var(--r);padding:6px 8px;box-shadow:var(--csh)}
+.kpi .l{font-size:6.2px;color:var(--muted);font-weight:700;text-transform:var(--lc);letter-spacing:var(--ll)}
+.kpi .v{font-family:'IBM Plex Mono';font-size:11px;font-weight:650;margin-top:2px}
+.kpi.hot .v{color:var(--danger)}
+.chart{background:var(--surface);border:var(--bw) solid var(--line);border-radius:var(--r);padding:8px 9px;box-shadow:var(--csh);margin-bottom:8px}
+.chart .ch{font-size:6.6px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:var(--lc);letter-spacing:var(--ll)}
+.bars{display:flex;align-items:flex-end;gap:7px;height:44px}
+.bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.bar i{background:var(--barfill);border-radius:var(--rbar)}
+.bar.hi i{background:var(--accent)}
+.bar b{font-size:5.8px;color:var(--muted);margin-top:2px;text-align:center;font-weight:600}
+.tkr{display:flex;gap:6px}
+.tk{flex:1;border:var(--bw) solid var(--line);border-radius:var(--r);padding:5px 7px;background:var(--surface);box-shadow:var(--csh)}
+.tk .nm{display:flex;align-items:center;gap:5px;font-size:7.4px;font-weight:700}
+.tk .d{font-family:'IBM Plex Mono';font-size:6.4px;font-weight:700;margin-top:2px;color:var(--ok)}
+.tk.hot{background:var(--dangerbg);border-color:var(--danger)}
+.tk.hot .d{color:var(--danger)}
+.tk.soon .d{color:var(--warnink)}
+/* B · FORM */
+.fh{font-family:var(--headfont);font-weight:700;font-size:10.5px;margin-bottom:8px}
+.fg{margin-bottom:7px}
+.fg label{display:block;font-size:6.6px;font-weight:700;color:var(--muted);margin-bottom:3px;text-transform:var(--lc);letter-spacing:var(--ll)}
+.inp{background:var(--inpbg);border:var(--bw) solid var(--line);border-radius:var(--ri);padding:6px 8px;font-size:8px;color:var(--ink);display:flex;align-items:center;gap:6px}
+.inp.focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--focus)}
+.inp .ph{color:var(--muted)}
+.inp .car{width:1px;height:9px;background:var(--accent);animation:car 1.1s step-end infinite}
+@keyframes car{50%{opacity:0}}
+.frow2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.sel:after{content:"▾";margin-left:auto;font-size:7px;color:var(--muted)}
+.chk{display:flex;align-items:center;gap:6px;font-size:7.6px;font-weight:600}
+.chk i{width:10px;height:10px;border:var(--bw) solid var(--accent);border-radius:3px;background:var(--accent);color:var(--btnink);font-style:normal;font-size:7px;display:flex;align-items:center;justify-content:center}
+.fbtns{display:flex;gap:6px;margin-top:auto;padding-top:8px}
+.b1{background:var(--btn);color:var(--btnink);font-size:8px;font-weight:700;padding:6px 12px;border-radius:var(--rb)}
+.b2{background:transparent;color:var(--ink);border:var(--bw) solid var(--line);font-size:8px;font-weight:700;padding:6px 12px;border-radius:var(--rb)}
+.hint{font-size:6.4px;color:var(--muted);margin-top:3px}
+/* C · COSTES */
+.tabl{background:var(--surface);border:var(--bw) solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--csh)}
+.thd{display:grid;grid-template-columns:1.5fr .8fr .9fr .7fr;font-size:5.8px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;padding:5px 9px;border-bottom:var(--bw) solid var(--line);background:var(--thbg)}
+.trw{display:grid;grid-template-columns:1.5fr .8fr .9fr .7fr;align-items:center;padding:5.5px 9px;border-bottom:1px solid var(--line);font-size:7.6px}
+.trw:last-child{border-bottom:none}
+.trw .vn{display:flex;align-items:center;gap:5px;font-weight:700}
+.trw .ut{display:flex;align-items:center;gap:4px}
+.trw .ub{width:30px;height:4px;background:var(--barfill);border-radius:3px;overflow:hidden}
+.trw .ub i{display:block;height:100%;background:var(--good)}
+.trw .ub i.low{background:var(--warncol)}
+.trw .ut em{font-style:normal;font-family:'IBM Plex Mono';font-size:6.2px;color:var(--muted)}
+.pill{font-size:6px;font-weight:700;padding:2px 6px;border-radius:var(--rp);justify-self:start}
+.pill.r{background:var(--dangerbg);color:var(--danger)}
+.pill.a{background:var(--warnbg);color:var(--warnink)}
+.pill.g{background:var(--goodbg);color:var(--good)}
+.tots{display:flex;gap:6px;margin-top:8px}
+.tot{flex:1;background:var(--surface);border:var(--bw) solid var(--line);border-radius:var(--r);padding:6px 8px;box-shadow:var(--csh)}
+.tot .l{font-size:6px;color:var(--muted);font-weight:700;text-transform:var(--lc);letter-spacing:var(--ll)}
+.tot .v{font-family:'IBM Plex Mono';font-size:10px;font-weight:650}
+.tot.hl{background:var(--hlbg);border-color:var(--hlbr)}
+/* D · APROBACIÓN */
+.req{background:var(--surface);border:var(--bw) solid var(--line);border-radius:var(--r);padding:8px 10px;box-shadow:var(--csh);margin-bottom:8px}
+.req .rh{display:flex;align-items:center;gap:6px;font-family:var(--headfont);font-weight:700;font-size:9.5px}
+.req .sub{font-size:6.8px;color:var(--muted);margin-top:2px}
+.req .amt{font-family:'IBM Plex Mono';font-size:13px;font-weight:650;margin-top:6px}
+.note{background:var(--warnbg);border:var(--bw) solid var(--warnbr);border-radius:var(--r);padding:6px 8px;font-size:6.9px;margin-bottom:8px}
+.steps .st{display:flex;gap:7px;font-size:7.4px;padding:3px 0;align-items:center}
+.steps .st i{width:12px;height:12px;border-radius:50%;font-style:normal;font-size:6.5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800}
+.steps .st i.d{background:var(--good);color:#fff}
+.steps .st i.n{background:var(--warncol);color:#fff}
+.steps .st b{font-weight:700}
+.steps .st span{color:var(--muted);font-family:'IBM Plex Mono';font-size:6.2px;margin-left:auto}
+/* ===== PIELES ===== */
+.scr{--font:'Inter';--headfont:'Inter';--bw:1px;--r:9px;--rb:8px;--rp:9px;--ri:8px;--rbar:3px;--csh:none;--lc:none;--ll:0;--tbbg:var(--bg);--inpbg:var(--surface);--thbg:var(--surface);--focus:transparent;--x:var(--accent);--warncol:#E8A13C;--hlbg:var(--surface);--hlbr:var(--line)}
+/* 6 SUIZO B/N */
+.s6{--bg:#fff;--surface:#fff;--ink:#000;--muted:#555;--line:#000;--accent:#FF3B00;--btn:#FF3B00;--btnink:#fff;--danger:#FF3B00;--dangerbg:#fff;--warnbg:#fff;--warnbr:#000;--warnink:#000;--good:#000;--goodbg:#fff;--barfill:#EDEDE9;--ok:#000;--r:0;--rb:0;--rp:0;--ri:0;--rbar:0;--lc:uppercase;--ll:.06em;--focus:#FFD9CC;--warncol:#000;--thbg:#F4F4F0;--hlbg:#000;--hlbr:#000}
+.s6 .pill{border:1px solid #000}
+.s6 .tot.hl .l,.s6 .tot.hl .v{color:#fff}
+/* 13 TINTA+CORAL */
+.s13{--font:'Manrope';--headfont:'Manrope';--bg:#FCFBF9;--surface:#fff;--ink:#191C1F;--muted:#6C7076;--line:#E7E5E0;--accent:#FF6B57;--btn:#191C1F;--btnink:#fff;--danger:#FF6B57;--dangerbg:#FFF0ED;--warnbg:#FFF8EC;--warnbr:#F1DFB8;--warnink:#9A7B24;--good:#191C1F;--goodbg:#F0EFEA;--barfill:#EBE9E3;--ok:#191C1F;--r:11px;--rb:18px;--rp:18px;--ri:10px;--focus:#FFE2DC;--hlbg:#FFF0ED;--hlbr:#FF6B57}
+/* 19 AURORA */
+.s19{--font:'Manrope';--headfont:'Syne';--bg:#F7F8FC;--surface:#fff;--ink:#1F2340;--muted:#6F7594;--line:#E6E8F2;--accent:#4353FF;--btn:linear-gradient(90deg,#4353FF,#9C3FE4);--btnink:#fff;--danger:#E5484D;--dangerbg:#FDECEE;--warnbg:#FFF5E4;--warnbr:#F0DDB2;--warnink:#9C781F;--good:#4353FF;--goodbg:#EAECFF;--barfill:#E8EAF8;--ok:#4353FF;--r:12px;--rb:18px;--rp:18px;--ri:10px;--rbar:5px;--csh:0 2px 8px -5px rgba(31,35,64,.15);--focus:#E4E7FF;--hlbg:#EAECFF;--hlbr:#4353FF}
+/* 23 LIMA QUIRÚRGICA */
+.s23{--bg:#FFFFFF;--surface:#FAFBF8;--ink:#15181A;--muted:#6E7478;--line:#E8EBE6;--accent:#79B300;--btn:#15181A;--btnink:#C6FF3E;--danger:#15181A;--dangerbg:#EFFFC8;--warnbg:#FAFBF8;--warnbr:#D6DBD2;--warnink:#6E7478;--good:#578500;--goodbg:#F0FADC;--barfill:#EDF0EA;--ok:#578500;--r:10px;--rb:16px;--rp:16px;--ri:9px;--focus:#E9FFB8;--warncol:#9BB562;--hlbg:#EFFFC8;--hlbr:#9BE000}
+.s23 .pill.r{color:#3E5200}
+/* 30 JAPANDI */
+.s30{--font:'DM Sans';--headfont:'DM Sans';--bg:#FAF8F4;--surface:#FAF8F4;--ink:#2B2B28;--muted:#8C8A82;--line:#DBD8CE;--accent:#D4553B;--btn:#2B2B28;--btnink:#FAF8F4;--danger:#D4553B;--dangerbg:#F7E7E2;--warnbg:#F4EFE2;--warnbr:#DBD0AE;--warnink:#8A7638;--good:#5F6D5A;--goodbg:#E9EDE5;--barfill:#E7E3D8;--ok:#5F6D5A;--r:7px;--rb:20px;--rp:20px;--ri:6px;--rbar:2px;--focus:#F3DCD5;--hlbg:#F4EFE2;--hlbr:#DBD0AE}
+/* 58 PRENSA MARCADOR */
+.s58{--font:'Schibsted Grotesk';--headfont:'Schibsted Grotesk';--bg:#FFFFFF;--surface:#fff;--ink:#0F0F0F;--muted:#666;--line:#E9E9E9;--accent:#0F0F0F;--btn:#FFE81A;--btnink:#0F0F0F;--danger:#D92D20;--dangerbg:#FEECEA;--warnbg:#FFFAD1;--warnbr:#F0E27A;--warnink:#7A6A00;--good:#137A4E;--goodbg:#E6F4ED;--barfill:#EFEFEF;--ok:#137A4E;--r:8px;--rb:12px;--rp:11px;--ri:7px;--x:#B9A800;--focus:#FFF6A8;--warncol:#E3C700;--thbg:#FAFAF7;--hlbg:#FFE81A;--hlbr:#FFE81A}
+.s58 .bar.hi i{background:#FFE81A;border:1px solid #0F0F0F}
+</style>
+</head>
+<body>
+<div class="intro">
+  <h1>StackX · Definitivo — 6 finalistas × 4 pantallas</h1>
+  <p>Cada piel finalista aplicada a las 4 pantallas clave: <b>Dashboard</b> (KPIs+gráfico+pista), <b>Formulario</b> (nuevo vendor+contrato, con foco e inline-create), <b>Costes</b> (tabla con utilización) y <b>Aprobación</b> (solicitud+cadena). Las estructuras 31/34/38 del shortlist se aplican después sobre la piel ganadora. Marca la definitiva o pide mezclas.</p>
+</div>
+<script>
+const skins=[
+ [6,"Suizo B/N","sin radios · un acento · labels uppercase"],
+ [13,"Tinta + coral","Manrope · cálida redondeada"],
+ [19,"Aurora","Syne + Manrope · degradado en CTAs"],
+ [23,"Lima quirúrgica","blanco clínico · lima eléctrica"],
+ [30,"Japandi","DM Sans · blanco roto · punto bermellón"],
+ [58,"Prensa marcador","Schibsted · amarillo subrayador"]
+];
+const fav=d=>`https://www.google.com/s2/favicons?domain=${d}&sz=64`;
+const A=`<div class="tb"><span class="lgx">stack<i>X</i></span><span class="tt">Dashboard</span><span class="cta">+ Solicitud</span></div>
+<div class="pad">
+  <div class="krow">
+    <div class="kpi"><div class="l">Gasto anual</div><div class="v">214.360 €</div></div>
+    <div class="kpi hot"><div class="l">Sin uso</div><div class="v">11.940 €</div></div>
+    <div class="kpi"><div class="l">Renov. 90d</div><div class="v">9</div></div>
+  </div>
+  <div class="chart"><div class="ch">Gasto por departamento</div>
+    <div class="bars"><div class="bar hi"><i style="height:82%"></i><b>ING</b></div><div class="bar"><i style="height:58%"></i><b>VEN</b></div><div class="bar"><i style="height:38%"></i><b>MKT</b></div><div class="bar"><i style="height:23%"></i><b>OPS</b></div><div class="bar"><i style="height:16%"></i><b>IA</b></div></div>
+  </div>
+  <div class="tkr">
+    <div class="tk hot"><div class="nm"><img class="lg" src="${fav('salesforce.com')}">Salesforce</div><div class="d">⚠ 5 días</div></div>
+    <div class="tk soon"><div class="nm"><img class="lg" src="${fav('figma.com')}">Figma</div><div class="d">26 días</div></div>
+    <div class="tk"><div class="nm"><img class="lg" src="${fav('openai.com')}">ChatGPT</div><div class="d">86 días</div></div>
+  </div>
+</div>`;
+const B=`<div class="tb"><span class="lgx">stack<i>X</i></span><span class="tt">Nuevo vendor + contrato</span></div>
+<div class="pad">
+  <div class="fg"><label>Software</label><div class="inp focus"><img class="lg" src="${fav('linear.app')}"><span>Linear</span><span class="car"></span></div><div class="hint">Del catálogo · 657 SaaS e IAs — o crea uno custom</div></div>
+  <div class="frow2">
+    <div class="fg"><label>Coste anual</label><div class="inp"><span class="mono">7.680,00</span><span class="ph" style="margin-left:auto">EUR</span></div></div>
+    <div class="fg"><label>Asientos</label><div class="inp"><span class="mono">16</span></div></div>
+  </div>
+  <div class="frow2">
+    <div class="fg"><label>Empresa</label><div class="inp sel"><span>Wowinx Labs SL</span></div><div class="hint">+ Nueva empresa</div></div>
+    <div class="fg"><label>Departamento</label><div class="inp sel"><span class="ph">General / Sin asignar</span></div></div>
+  </div>
+  <div class="frow2">
+    <div class="fg"><label>Renovación</label><div class="inp"><span class="mono">01/08/2027</span></div></div>
+    <div class="fg"><label>Preaviso (días)</label><div class="inp"><span class="mono">30</span></div></div>
+  </div>
+  <div class="chk"><i>✓</i>Auto-renueva</div>
+  <div class="fbtns"><span class="b1">Crear vendor y contrato</span><span class="b2">Cancelar</span></div>
+</div>`;
+const C=`<div class="tb"><span class="lgx">stack<i>X</i></span><span class="tt">Costes · Vendors</span><span class="cta">Exportar</span></div>
+<div class="pad">
+  <div class="tabl">
+    <div class="thd"><span>Vendor</span><span>€/año</span><span>Utilización</span><span>Renueva</span></div>
+    <div class="trw"><span class="vn"><img class="lg" src="${fav('salesforce.com')}">Salesforce</span><span class="mono">38.400</span><span class="ut"><span class="ub"><i style="width:80%"></i></span><em>80%</em></span><span class="pill r">5d</span></div>
+    <div class="trw"><span class="vn"><img class="lg" src="${fav('hubspot.com')}">HubSpot</span><span class="mono">21.600</span><span class="ut"><span class="ub"><i class="low" style="width:60%"></i></span><em>60%</em></span><span class="pill a">43d</span></div>
+    <div class="trw"><span class="vn"><img class="lg" src="${fav('openai.com')}">ChatGPT Team</span><span class="mono">18.000</span><span class="ut"><span class="ub"><i style="width:100%"></i></span><em>100%</em></span><span class="pill g">86d</span></div>
+    <div class="trw"><span class="vn"><img class="lg" src="${fav('anthropic.com')}">Claude Team</span><span class="mono">10.800</span><span class="ut"><span class="ub"><i class="low" style="width:72%"></i></span><em>72%</em></span><span class="pill r">Sin owner</span></div>
+    <div class="trw"><span class="vn"><img class="lg" src="${fav('figma.com')}">Figma</span><span class="mono">9.120</span><span class="ut"><span class="ub"><i style="width:100%"></i></span><em>100%</em></span><span class="pill a">26d</span></div>
+  </div>
+  <div class="tots">
+    <div class="tot"><div class="l">Total anualizado</div><div class="v">214.360 €</div></div>
+    <div class="tot hl"><div class="l">Recuperable</div><div class="v">11.940 €</div></div>
+    <div class="tot"><div class="l">Ahorro 2026</div><div class="v">18.300 €</div></div>
+  </div>
+</div>`;
+const D=`<div class="tb"><span class="lgx">stack<i>X</i></span><span class="tt">Solicitud #2041</span></div>
+<div class="pad">
+  <div class="req">
+    <div class="rh"><img class="lg" src="${fav('linear.app')}">Linear — Business</div>
+    <div class="sub">Pablo Sanz · Ingeniería · 16 asientos</div>
+    <div class="amt">7.680 € <span style="font-size:7px;color:var(--muted)">/año</span></div>
+  </div>
+  <div class="note">💡 <b>Ya tienes Jira</b> (9.900 €/año, renueva 2 nov). Ahorro neto si lo cancelas: <b class="mono">2.220 €/año</b>.</div>
+  <div class="steps">
+    <div class="st"><i class="d">✓</i><b>Manager Ingeniería</b> · J. Peña<span>4 jul 09:12</span></div>
+    <div class="st"><i class="n">2</i><b>Finance</b> · Laura Gómez (tú)<span>recordatorio 72h</span></div>
+  </div>
+  <div class="fbtns"><span class="b1">Aprobar</span><span class="b2">Rechazar…</span></div>
+</div>`;
+const tags=["dashboard","formulario","costes","aprobación"];
+document.currentScript.outerHTML=skins.map(([n,name,desc])=>`
+<div class="skin">
+  <div class="sl"><b>${n} · ${name}</b><span>${desc}</span></div>
+  <div class="four">
+    ${[A,B,C,D].map((t,i)=>`<div class="scr s${n}"><span class="stag">${tags[i]}</span>${t}</div>`).join("")}
+  </div>
+</div>`).join("");
+</script>
+</body>
+</html>

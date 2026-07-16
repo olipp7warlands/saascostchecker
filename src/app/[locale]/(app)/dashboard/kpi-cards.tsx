@@ -17,7 +17,7 @@ function Kpi({
     <div className="rounded-[10px] border border-line bg-surface p-4">
       <div className="mb-1.5 text-xs text-ink-soft">{label}</div>
       <div className="num text-[22px] font-semibold tracking-tight text-ink">{value}</div>
-      <div className={cn("mt-1 text-xs", warn ? "text-[#B27A1E]" : "text-ink-soft")}>{sub}</div>
+      <div className={cn("mt-1 text-xs", warn ? "text-warning" : "text-ink-soft")}>{sub}</div>
     </div>
   );
 }

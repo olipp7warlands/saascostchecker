@@ -17,10 +17,10 @@ export function CtaLink({
     <a
       href={href}
       className={cn(
-        "inline-block rounded-[9px] font-semibold whitespace-nowrap transition-colors",
+        "inline-block rounded-btn font-semibold whitespace-nowrap transition-colors",
         size === "big" ? "px-6.5 py-3.5 text-base" : "px-5 py-2.5 text-[15px]",
         variant === "primary"
-          ? "bg-primary text-white hover:bg-[#0B4D48]"
+          ? "bg-primary text-primary-foreground hover:bg-[#2A2E30]"
           : "border border-line bg-transparent text-ink hover:bg-muted",
         className,
       )}

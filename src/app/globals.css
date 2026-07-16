@@ -9,17 +9,22 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
-  --font-disp: var(--font-disp);
-  --font-heading: var(--font-disp);
+  --font-disp: var(--font-sans);
+  --font-heading: var(--font-sans);
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-line: var(--line);
-  --color-amber: var(--amber);
-  --color-amber-soft: var(--amber-soft);
-  --color-red-soft: var(--red-soft);
-  --color-primary-soft: var(--primary-soft);
+  --color-lime: var(--lime);
+  --color-lime-hover: var(--lime-hover);
+  --color-lime-ink: var(--lime-ink);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -51,21 +56,28 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-btn: 1rem;
+  --radius-input: 0.5625rem;
 }
 
-/* Tokens de docs/mockups.html — sistema de diseño Stackly */
+/* Tokens de docs/design-stackx.html — sistema de diseño StackX (skin 23 · Lima quirúrgica) */
 :root {
-  --bg: #f5f6f2;
-  --surface: #ffffff;
-  --ink: #1b2733;
-  --ink-soft: #5b6874;
-  --line: #e3e6df;
-  --primary: #0e5f59;
-  --primary-soft: #e3efec;
-  --amber: #e8a13c;
-  --amber-soft: #fbf1de;
-  --red: #c4452f;
-  --red-soft: #f9e7e2;
+  --bg: #ffffff;
+  --surface: #fafbf8;
+  --ink: #15181a;
+  --ink-soft: #6e7478;
+  --line: #e8ebe6;
+
+  --lime: #9be000;
+  --lime-hover: #8acc00;
+  --lime-ink: #2a3d00;
+
+  --success: #578500;
+  --success-soft: #f0fadc;
+  --warning: #b45309;
+  --warning-soft: #fef3c7;
+  --danger: #d92d20;
+  --danger-soft: #feecea;
 
   --background: var(--bg);
   --foreground: var(--ink);
@@ -73,26 +85,27 @@
   --card-foreground: var(--ink);
   --popover: var(--surface);
   --popover-foreground: var(--ink);
-  --primary-foreground: #ffffff;
-  --secondary: var(--primary-soft);
-  --secondary-foreground: var(--primary);
+  --primary: #15181a;
+  --primary-foreground: #c6ff3e;
+  --secondary: var(--muted);
+  --secondary-foreground: var(--ink);
   --muted: #edf0ea;
   --muted-foreground: var(--ink-soft);
-  --accent: var(--primary-soft);
-  --accent-foreground: var(--primary);
-  --destructive: var(--red);
+  --accent: var(--muted);
+  --accent-foreground: var(--ink);
+  --destructive: var(--danger);
   --border: var(--line);
   --input: var(--line);
-  --ring: var(--primary);
+  --ring: #e9ffb8;
   --radius: 0.625rem;
   --sidebar: var(--ink);
   --sidebar-foreground: #c9d2d6;
-  --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: #ffffff;
+  --sidebar-primary: var(--lime);
+  --sidebar-primary-foreground: var(--lime-ink);
   --sidebar-accent: rgba(255, 255, 255, 0.06);
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgba(255, 255, 255, 0.1);
-  --sidebar-ring: var(--primary);
+  --sidebar-ring: var(--lime);
 }
 
 @layer base {

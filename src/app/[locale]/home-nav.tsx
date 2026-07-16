@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { Wordmark } from "@/components/brand/wordmark";
 import { CtaLink } from "./cta-link";
 
 export async function HomeNav({ locale }: { locale: string }) {
@@ -14,8 +15,8 @@ export async function HomeNav({ locale }: { locale: string }) {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-bg/92 backdrop-blur-sm">
       <div className="mx-auto flex h-[62px] max-w-[1080px] items-center gap-4 px-4 sm:gap-7 sm:px-6">
-        <a href={`/${locale}`} className="font-disp text-[21px] font-extrabold tracking-tight text-ink">
-          stack<span className="text-primary">ly</span>
+        <a href={`/${locale}`}>
+          <Wordmark className="text-[21px] text-ink" />
         </a>
         <nav className="ml-2 hidden gap-5.5 md:flex">
           {navLinks.map((link) => (

@@ -64,7 +64,7 @@ export function AcceptInvitationForm({
           <Input id="password" name="password" type="password" required minLength={8} />
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
 
         <Button type="submit" disabled={isPending} className="mt-2 w-full">
           {t("submit")}

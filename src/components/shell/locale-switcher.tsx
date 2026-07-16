@@ -33,9 +33,9 @@ export function LocaleSwitcher({ locale, dark = true }: { locale: string; dark?:
                     active ? "bg-white/15 text-white" : "text-[#9AA7AE] hover:text-white",
                   )
                 : cn(
-                    "focus-visible:ring-primary/50 focus-visible:ring-offset-surface",
+                    "focus-visible:ring-ring/50 focus-visible:ring-offset-surface",
                     active
-                      ? "bg-primary-soft text-primary"
+                      ? "bg-success-soft text-success"
                       : "text-ink-soft hover:text-ink",
                   ),
             )}

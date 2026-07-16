@@ -55,7 +55,7 @@ export async function VendorRow({ vendor, locale }: { vendor: VendorRowData; loc
       <td className="border-b border-line px-4 py-3">
         <a
           href={`/${locale}/vendors/${vendor.id}`}
-          className="flex items-center gap-2.5 font-medium text-ink hover:text-primary"
+          className="flex items-center gap-2.5 font-medium text-ink underline underline-offset-4 hover:text-ink-soft"
         >
           <AppLogo domain={vendor.website} name={vendor.name} size={26} />
           <span className="whitespace-nowrap">{vendor.name}</span>

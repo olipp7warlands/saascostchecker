@@ -13,15 +13,15 @@ const TICKS = [
 ];
 
 const TONE_CLASSES = {
-  red: "border-destructive bg-red-soft",
-  amber: "border-amber bg-amber-soft",
+  red: "border-destructive bg-danger-soft",
+  amber: "border-warning bg-warning-soft",
   neutral: "border-line bg-surface",
 } as const;
 
 const TONE_TEXT_CLASSES = {
   red: "text-destructive",
-  amber: "text-[#B27A1E]",
-  neutral: "text-primary",
+  amber: "text-warning",
+  neutral: "text-ink-soft",
 } as const;
 
 export async function RenewalTrack({

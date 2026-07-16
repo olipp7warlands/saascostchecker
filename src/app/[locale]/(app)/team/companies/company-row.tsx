@@ -85,7 +85,7 @@ export function CompanyRow({ company }: { company: Company }) {
           {t("delete")}
         </Button>
       </form>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </li>
   );
 }

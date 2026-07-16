@@ -1,4 +1,4 @@
-export type UtilizationTone = "primary" | "amber";
+export type UtilizationTone = "success" | "warning";
 
 // % redondeado de asientos activos sobre comprados. seats_purchased=0 (o
 // negativo, no debería ocurrir por el check de la migración) se trata como
@@ -11,7 +11,7 @@ export function seatUtilizationPct(activeSeats: number, seatsPurchased: number):
 // teal >=70%, ámbar por debajo (umbral literal de docs/TASKS.md 1.4 y del
 // mockup: HubSpot 60% y Notion 63% en ámbar, Salesforce 80% en teal).
 export function utilizationTone(pct: number): UtilizationTone {
-  return pct < 70 ? "amber" : "primary";
+  return pct < 70 ? "warning" : "success";
 }
 
 // € desperdiciado estimado = coste por asiento (coste anualizado / asientos

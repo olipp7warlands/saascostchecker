@@ -77,7 +77,7 @@ export default async function VendorsPage({
         </h1>
         <a
           href={`/${locale}/vendors/new`}
-          className="inline-flex h-9 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+          className="inline-flex h-9 items-center rounded-btn bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-[#2A2E30]"
         >
           {t("addButton")}
         </a>

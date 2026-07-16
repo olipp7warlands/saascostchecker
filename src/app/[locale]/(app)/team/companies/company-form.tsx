@@ -51,7 +51,7 @@ export function CompanyForm() {
           <Label htmlFor="isDefault">{t("isDefaultLabel")}</Label>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
 
         <Button type="submit" disabled={isPending} className="w-fit">
           {t("create")}

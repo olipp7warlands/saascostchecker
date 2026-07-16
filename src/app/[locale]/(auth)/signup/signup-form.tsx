@@ -84,7 +84,7 @@ export function SignUpForm({ locale }: { locale: "es" | "en" }) {
           <Input id="password" name="password" type="password" required minLength={8} />
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
 
         <Button type="submit" disabled={isPending} className="mt-2 w-full">
           {t("submit")}
@@ -109,7 +109,7 @@ export function SignUpForm({ locale }: { locale: "es" | "en" }) {
 
       <p className="text-center text-sm text-ink-soft">
         {t("haveAccount")}{" "}
-        <a href={`/${locale}/login`} className="font-medium text-primary hover:underline">
+        <a href={`/${locale}/login`} className="font-medium text-ink underline underline-offset-4 hover:text-ink-soft">
           {t("loginLink")}
         </a>
       </p>

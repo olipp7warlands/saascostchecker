@@ -65,7 +65,7 @@ export function DepartmentRow({
         <select
           name="managerUserId"
           defaultValue={department.manager_user_id ?? ""}
-          className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="h-8 rounded-input border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           <option value="">{t("noManager")}</option>
           {members.map((member) => (
@@ -87,7 +87,7 @@ export function DepartmentRow({
           {t("delete")}
         </Button>
       </form>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </li>
   );
 }

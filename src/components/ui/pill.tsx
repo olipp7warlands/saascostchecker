@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
 
 const TONE_CLASSES = {
-  green: "bg-primary-soft text-primary",
-  amber: "bg-amber-soft text-[#B27A1E]",
-  red: "bg-red-soft text-destructive",
+  green: "bg-success-soft text-success",
+  amber: "bg-warning-soft text-warning",
+  red: "bg-danger-soft text-destructive",
   neutral: "bg-muted text-ink-soft",
 } as const;
 
@@ -21,7 +21,7 @@ export function Pill({
   return (
     <span
       className={cn(
-        "inline-block rounded-full px-2.5 py-0.5 text-[11.5px] font-semibold whitespace-nowrap",
+        "inline-block rounded-btn px-2.5 py-0.5 text-[11.5px] font-semibold whitespace-nowrap",
         TONE_CLASSES[tone],
         className,
       )}

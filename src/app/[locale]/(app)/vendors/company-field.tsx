@@ -72,7 +72,7 @@ export function CompanyField({
               }
             }}
           >
-            <DialogTrigger className="text-xs font-medium text-primary hover:underline">
+            <DialogTrigger className="text-xs font-medium text-ink underline underline-offset-4 hover:text-ink-soft">
               {t("addCompany")}
             </DialogTrigger>
             <DialogContent>
@@ -90,7 +90,7 @@ export function CompanyField({
                   </Label>
                   <Input id={`${idPrefix}-new-company-taxId`} name="taxId" maxLength={50} />
                 </div>
-                {error && <p className="text-sm text-red-600">{error}</p>}
+                {error && <p className="text-sm text-destructive">{error}</p>}
                 <Button type="submit" disabled={isPending} className="self-start">
                   {t("companyDialog.submit")}
                 </Button>

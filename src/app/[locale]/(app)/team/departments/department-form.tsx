@@ -48,7 +48,7 @@ export function DepartmentForm({ members }: { members: Member[] }) {
             id="managerUserId"
             name="managerUserId"
             defaultValue=""
-            className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="h-8 rounded-input border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             <option value="">{t("noManager")}</option>
             {members.map((member) => (
@@ -59,7 +59,7 @@ export function DepartmentForm({ members }: { members: Member[] }) {
           </select>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
 
         <Button type="submit" disabled={isPending} className="w-fit">
           {t("create")}

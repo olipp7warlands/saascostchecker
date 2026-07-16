@@ -9,7 +9,7 @@ import { CSV_DATE_FORMATS, CSV_DECIMAL_FORMATS, type CsvDateFormat, type CsvDeci
 import type { CsvPreview } from "@/features/spend-import/types";
 
 const SELECT_CLASSNAME =
-  "h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+  "h-8 rounded-input border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 type Step = "upload" | "mapping" | "done";
 
@@ -97,7 +97,7 @@ export function ImportWizard({ locale }: { locale: string }) {
             className="text-sm text-ink-soft file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-primary-foreground"
           />
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
         <Button type="submit" disabled={isPending}>
           {t("uploadButton")}
         </Button>
@@ -236,7 +236,7 @@ export function ImportWizard({ locale }: { locale: string }) {
           </div>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
 
         <Button onClick={handleCommit} disabled={isPending}>
           {t("continueButton")}

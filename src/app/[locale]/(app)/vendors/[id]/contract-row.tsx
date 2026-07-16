@@ -133,17 +133,17 @@ export function ContractRow({
             <button
               type="button"
               onClick={handleViewDocument}
-              className="text-sm font-medium text-primary hover:underline"
+              className="text-sm font-medium text-ink underline underline-offset-4 hover:text-ink-soft"
             >
               {t("viewDocument")}
             </button>
           ) : (
             <span className="text-sm text-ink-soft">{t("noDocument")}</span>
           )}
-          {documentError && <p className="mt-1 text-sm text-red-600">{documentError}</p>}
+          {documentError && <p className="mt-1 text-sm text-destructive">{documentError}</p>}
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
 
         <div className="flex gap-2">
           <Button type="submit" disabled={isPending}>

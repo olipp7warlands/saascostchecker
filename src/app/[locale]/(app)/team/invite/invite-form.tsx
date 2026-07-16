@@ -55,7 +55,7 @@ export function InviteForm({
             id="role"
             name="role"
             defaultValue="employee"
-            className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="h-8 rounded-input border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             {ROLES.map((role) => (
               <option key={role} value={role}>
@@ -65,7 +65,7 @@ export function InviteForm({
           </select>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
         {sent && <p className="text-sm text-primary">{t("sentConfirmation")}</p>}
 
         <Button type="submit" disabled={isPending} className="w-fit">
