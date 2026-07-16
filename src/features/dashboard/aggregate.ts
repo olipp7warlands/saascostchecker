@@ -1,13 +1,22 @@
-import { annualizedCost, daysUntil, renewalTone } from "@/features/vendors/renewal";
+import {
+  actionableDaysUntil,
+  annualizedCost,
+  CRITICAL_THRESHOLD_DAYS,
+  daysUntil,
+  renewalTone,
+  WARNING_THRESHOLD_DAYS,
+} from "@/features/vendors/renewal";
 import { wastedSeatCost } from "@/features/vendors/seats";
 import { convertAmount } from "./currency";
 import type {
+  CompanySpendRow,
   DashboardContract,
   DashboardKpis,
   DashboardVendor,
   DepartmentSpendRow,
   ExchangeRate,
   RenewalTicket,
+  StackStatusSummary,
 } from "./types";
 
 const RENEWAL_WINDOW_DAYS = 120;
@@ -114,12 +123,18 @@ export function buildRenewalTrack(
 
 const UNASSIGNED_KEY = "__unassigned__";
 
-export function buildDepartmentSpend(
+// Agrupamiento genérico de gasto anualizado por una clave del contrato
+// (departamento o empresa) — misma lógica exacta, solo cambia qué campos del
+// contrato se leen. buildDepartmentSpend/buildCompanySpend son wrappers finos
+// sobre esto para no duplicar la agregación dos veces.
+function buildSpendByKey(
   contracts: DashboardContract[],
   orgCurrency: string,
   rates: ExchangeRate[],
   unassignedLabel: string,
-): DepartmentSpendRow[] {
+  getKey: (contract: DashboardContract) => string | null,
+  getName: (contract: DashboardContract) => string | null,
+): { key: string | null; name: string; annualizedSpend: number; vendorCount: number }[] {
   const rows = new Map<string, { name: string; spend: number; vendorIds: Set<string> }>();
 
   for (const contract of contracts) {
@@ -127,8 +142,9 @@ export function buildDepartmentSpend(
       continue;
     }
 
-    const key = contract.departmentId ?? UNASSIGNED_KEY;
-    const name = contract.departmentId ? (contract.departmentName ?? "") : unassignedLabel;
+    const contractKey = getKey(contract);
+    const key = contractKey ?? UNASSIGNED_KEY;
+    const name = contractKey ? (getName(contract) ?? "") : unassignedLabel;
     const annual = annualizedCost(contract.costAmount, contract.billingCycle);
     const converted = convertAmount(annual, contract.currency, orgCurrency, rates);
 
@@ -140,10 +156,110 @@ export function buildDepartmentSpend(
 
   return [...rows.entries()]
     .map(([key, row]) => ({
-      departmentId: key === UNASSIGNED_KEY ? null : key,
-      departmentName: row.name,
+      key: key === UNASSIGNED_KEY ? null : key,
+      name: row.name,
       annualizedSpend: row.spend,
       vendorCount: row.vendorIds.size,
     }))
     .sort((a, b) => b.annualizedSpend - a.annualizedSpend);
+}
+
+export function buildDepartmentSpend(
+  contracts: DashboardContract[],
+  orgCurrency: string,
+  rates: ExchangeRate[],
+  unassignedLabel: string,
+): DepartmentSpendRow[] {
+  return buildSpendByKey(
+    contracts,
+    orgCurrency,
+    rates,
+    unassignedLabel,
+    (c) => c.departmentId,
+    (c) => c.departmentName,
+  ).map((row) => ({
+    departmentId: row.key,
+    departmentName: row.name,
+    annualizedSpend: row.annualizedSpend,
+    vendorCount: row.vendorCount,
+  }));
+}
+
+export function buildCompanySpend(
+  contracts: DashboardContract[],
+  orgCurrency: string,
+  rates: ExchangeRate[],
+  unassignedLabel: string,
+): CompanySpendRow[] {
+  return buildSpendByKey(
+    contracts,
+    orgCurrency,
+    rates,
+    unassignedLabel,
+    (c) => c.companyId,
+    (c) => c.companyName,
+  ).map((row) => ({
+    companyId: row.key,
+    companyName: row.name,
+    annualizedSpend: row.annualizedSpend,
+    vendorCount: row.vendorCount,
+  }));
+}
+
+// Clasifica cada vendor ACTIVO (mismo filtro que activeVendorCount) por la
+// urgencia de su contrato activo más próximo a ser accionable
+// (actionableDaysUntil, la misma fuente única de verdad que usa
+// primary-action.ts y la pista de renovaciones): crítico/próximo/estable, o
+// "sin contrato activo" si el vendor no tiene ningún contrato activo del que
+// colgar una fecha.
+export function buildStackStatus(
+  vendors: DashboardVendor[],
+  contracts: DashboardContract[],
+  today: Date = new Date(),
+): StackStatusSummary {
+  const activeContractsByVendor = new Map<string, DashboardContract[]>();
+  for (const contract of contracts) {
+    if (contract.status !== "active") {
+      continue;
+    }
+    const list = activeContractsByVendor.get(contract.vendorId) ?? [];
+    list.push(contract);
+    activeContractsByVendor.set(contract.vendorId, list);
+  }
+
+  const summary: StackStatusSummary = { critical: 0, upcoming: 0, stable: 0, noContract: 0, total: 0 };
+
+  for (const vendor of vendors) {
+    if (vendor.status !== "active") {
+      continue;
+    }
+    summary.total += 1;
+
+    const activeContracts = activeContractsByVendor.get(vendor.id) ?? [];
+    if (activeContracts.length === 0) {
+      summary.noContract += 1;
+      continue;
+    }
+
+    const minActionableDays = Math.min(
+      ...activeContracts.map((contract) =>
+        actionableDaysUntil(
+          contract.renewalDate,
+          contract.autoRenews,
+          contract.cancellationNoticeDays,
+          today,
+        ),
+      ),
+    );
+
+    if (minActionableDays <= CRITICAL_THRESHOLD_DAYS) {
+      summary.critical += 1;
+    } else if (minActionableDays <= WARNING_THRESHOLD_DAYS) {
+      summary.upcoming += 1;
+    } else {
+      summary.stable += 1;
+    }
+  }
+
+  return summary;
 }

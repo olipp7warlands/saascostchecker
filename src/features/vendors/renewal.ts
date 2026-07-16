@@ -2,6 +2,14 @@ import type { BillingCycle } from "./types";
 
 export type RenewalTone = "red" | "amber" | "neutral";
 
+// Único sitio donde viven los umbrales de urgencia de renovación (criterio de
+// docs/TASKS.md 1.2) — reusados por renewalTone(), por el primario contextual
+// de la ficha de vendor (primary-action.ts) y por la categorización del donut
+// "Estado del stack" del dashboard, para que los 3 lean exactamente el mismo
+// número en vez de repetir el "7"/"45" por su cuenta.
+export const CRITICAL_THRESHOLD_DAYS = 7;
+export const WARNING_THRESHOLD_DAYS = 45;
+
 // Redondea a días de calendario completos, ignorando la hora del día —
 // "hoy" y "mañana" no deben depender de a qué hora se ejecuta esto.
 export function daysUntil(dateIso: string, today: Date = new Date()): number {
@@ -11,10 +19,10 @@ export function daysUntil(dateIso: string, today: Date = new Date()): number {
   return Math.round((target.getTime() - start.getTime()) / msPerDay);
 }
 
-// rojo <=7d, ámbar <=45d, neutro después (criterio de docs/TASKS.md 1.2).
+// rojo <=7d, ámbar <=45d, neutro después.
 export function renewalTone(days: number): RenewalTone {
-  if (days <= 7) return "red";
-  if (days <= 45) return "amber";
+  if (days <= CRITICAL_THRESHOLD_DAYS) return "red";
+  if (days <= WARNING_THRESHOLD_DAYS) return "amber";
   return "neutral";
 }
 

@@ -26,6 +26,8 @@ export type DashboardContract = {
   status: ContractStatus;
   departmentId: string | null;
   departmentName: string | null;
+  companyId: string | null;
+  companyName: string | null;
 };
 
 export type DashboardVendor = {
@@ -66,6 +68,49 @@ export type DepartmentSpendRow = {
   departmentName: string;
   annualizedSpend: number;
   vendorCount: number;
+};
+
+export type CompanySpendRow = {
+  companyId: string | null;
+  companyName: string;
+  annualizedSpend: number;
+  vendorCount: number;
+};
+
+// Fila normalizada que consume el chart de barras — mismo shape para
+// departamento y empresa, así el componente no necesita conocer cuál de los
+// dos agrupamientos está mostrando.
+export type SpendGroupRow = {
+  groupId: string | null;
+  groupName: string;
+  annualizedSpend: number;
+  vendorCount: number;
+};
+
+export type StackStatusBucket = "critical" | "upcoming" | "stable" | "noContract";
+
+export type StackStatusSummary = {
+  critical: number;
+  upcoming: number;
+  stable: number;
+  noContract: number;
+  total: number;
+};
+
+export type MonthlySpendPoint = {
+  month: string; // "YYYY-MM"
+  amount: number;
+};
+
+export type MonthlySpendSeries = {
+  points: MonthlySpendPoint[];
+  monthsWithData: number;
+};
+
+export type MonthlySpendRow = {
+  month: string; // "YYYY-MM-01" (date_trunc del mes), tal como devuelve la RPC
+  currency: string;
+  total: number;
 };
 
 export type ReconciliationPreviewRow = {

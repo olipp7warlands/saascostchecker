@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { buildDepartmentSpend, buildKpis, buildRenewalTrack } from "./aggregate";
+import {
+  buildCompanySpend,
+  buildDepartmentSpend,
+  buildKpis,
+  buildRenewalTrack,
+  buildStackStatus,
+} from "./aggregate";
 import type { DashboardContract, DashboardVendor } from "./types";
 
 const TODAY = new Date(2026, 6, 10); // 10 jul 2026
@@ -21,6 +27,8 @@ function contract(overrides: Partial<DashboardContract>): DashboardContract {
     status: "active",
     departmentId: null,
     departmentName: null,
+    companyId: null,
+    companyName: null,
     ...overrides,
   };
 }
@@ -211,5 +219,72 @@ describe("buildDepartmentSpend", () => {
         vendorCount: 1,
       },
     ]);
+  });
+});
+
+describe("buildCompanySpend", () => {
+  const contracts: DashboardContract[] = [
+    contract({
+      id: "e1",
+      vendorId: "v1",
+      costAmount: 2000,
+      billingCycle: "annual",
+      companyId: "co-a",
+      companyName: "Acme ES",
+    }),
+    contract({
+      id: "e2",
+      vendorId: "v2",
+      costAmount: 500,
+      billingCycle: "annual",
+      companyId: null,
+    }),
+    contract({
+      id: "e3",
+      vendorId: "v3",
+      costAmount: 9999,
+      billingCycle: "annual",
+      companyId: "co-b",
+      companyName: "Acme US",
+      status: "cancelled", // excluido
+    }),
+  ];
+
+  const rows = buildCompanySpend(contracts, "EUR", [], "Grupo / Sin asignar");
+
+  it("agrupa por empresa igual que por departamento, suma solo activos, ordena por gasto desc", () => {
+    expect(rows).toEqual([
+      { companyId: "co-a", companyName: "Acme ES", annualizedSpend: 2000, vendorCount: 1 },
+      { companyId: null, companyName: "Grupo / Sin asignar", annualizedSpend: 500, vendorCount: 1 },
+    ]);
+  });
+});
+
+describe("buildStackStatus", () => {
+  const vendors: DashboardVendor[] = [
+    { id: "v1", status: "active", ownerUserId: null }, // crítico
+    { id: "v2", status: "active", ownerUserId: null }, // próximo
+    { id: "v3", status: "active", ownerUserId: null }, // estable
+    { id: "v4", status: "active", ownerUserId: null }, // sin contrato activo (0 contratos)
+    { id: "v5", status: "active", ownerUserId: null }, // solo contrato cancelado -> sin contrato activo
+    { id: "v6", status: "inactive", ownerUserId: null }, // excluido: vendor no activo
+  ];
+
+  const contracts: DashboardContract[] = [
+    contract({ id: "c1", vendorId: "v1", renewalDate: isoDaysFrom(TODAY, 3), autoRenews: false }),
+    contract({ id: "c2", vendorId: "v2", renewalDate: isoDaysFrom(TODAY, 30), autoRenews: false }),
+    contract({ id: "c3", vendorId: "v3", renewalDate: isoDaysFrom(TODAY, 90), autoRenews: false }),
+    contract({
+      id: "c5",
+      vendorId: "v5",
+      renewalDate: isoDaysFrom(TODAY, 200),
+      status: "cancelled",
+    }),
+  ];
+
+  const summary = buildStackStatus(vendors, contracts, TODAY);
+
+  it("clasifica cada vendor activo por la urgencia de su contrato más próximo", () => {
+    expect(summary).toEqual({ critical: 1, upcoming: 1, stable: 1, noContract: 2, total: 5 });
   });
 });

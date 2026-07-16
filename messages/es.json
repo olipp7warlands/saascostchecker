@@ -302,6 +302,41 @@
           "vendors": "Vendors"
         }
       },
+      "companySpend": {
+        "title": "Gasto por empresa",
+        "empty": "Todavía no hay contratos activos con coste",
+        "unassigned": "Grupo / Sin asignar",
+        "table": {
+          "company": "Empresa",
+          "annualized": "Anualizado",
+          "vendors": "Vendors"
+        }
+      },
+      "spendByGroup": {
+        "toggle": {
+          "department": "Departamento",
+          "company": "Empresa"
+        }
+      },
+      "stackStatus": {
+        "title": "Estado del stack",
+        "empty": "Todavía no hay vendors activos",
+        "vendorsTotal": "vendors activos",
+        "critical": "Crítico",
+        "upcoming": "Próximo",
+        "stable": "Estable",
+        "noContract": "Sin contrato activo",
+        "noContractHint": "→ añadir su primer contrato"
+      },
+      "monthlySpend": {
+        "title": "Evolución de gasto",
+        "empty": "Todavía no hay suficiente histórico de gasto reconciliado.",
+        "emptyCta": "Importa tu histórico para ver la evolución →",
+        "table": {
+          "month": "Mes",
+          "amount": "Importe"
+        }
+      },
       "reconciliation": {
         "title": "Pendiente de reconciliar",
         "empty": "No hay movimientos pendientes de reconciliar",

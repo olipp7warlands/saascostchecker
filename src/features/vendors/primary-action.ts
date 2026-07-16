@@ -1,4 +1,4 @@
-import { actionableDaysUntil } from "./renewal";
+import { actionableDaysUntil, CRITICAL_THRESHOLD_DAYS } from "./renewal";
 
 export type PrimaryAction =
   | { type: "addContract" }
@@ -12,8 +12,6 @@ type ContractForAction = {
   autoRenews: boolean;
   cancellationNoticeDays: number;
 };
-
-const CRITICAL_THRESHOLD_DAYS = 7;
 
 // Decide la única acción "primaria" a mostrar en la cabecera de la página de
 // un vendor: renegociar el contrato más urgente si alguno está a punto de

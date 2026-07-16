@@ -302,6 +302,41 @@
           "vendors": "Vendors"
         }
       },
+      "companySpend": {
+        "title": "Spend by company",
+        "empty": "No active contracts with cost yet",
+        "unassigned": "Group / Unassigned",
+        "table": {
+          "company": "Company",
+          "annualized": "Annualized",
+          "vendors": "Vendors"
+        }
+      },
+      "spendByGroup": {
+        "toggle": {
+          "department": "Department",
+          "company": "Company"
+        }
+      },
+      "stackStatus": {
+        "title": "Stack status",
+        "empty": "No active vendors yet",
+        "vendorsTotal": "active vendors",
+        "critical": "Critical",
+        "upcoming": "Upcoming",
+        "stable": "Stable",
+        "noContract": "No active contract",
+        "noContractHint": "→ add its first contract"
+      },
+      "monthlySpend": {
+        "title": "Spend evolution",
+        "empty": "Not enough reconciled spend history yet.",
+        "emptyCta": "Import your history to see the trend →",
+        "table": {
+          "month": "Month",
+          "amount": "Amount"
+        }
+      },
       "reconciliation": {
         "title": "Pending reconciliation",
         "empty": "No transactions pending reconciliation",
