@@ -81,7 +81,7 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 ### 2.2 Canales
 - [x] Email vía Resend con plantillas bilingües
 - [x] Teams Incoming Webhook por org (URL en settings, mensaje con tarjeta adaptativa)
-- ✅ Aceptación: alerta de prueba llega a email y Teams con deep-link al contrato — código completo y verificado con datos reales pendiente de 2 pasos manuales fuera de esta máquina (secretos de Supabase Vault + env vars de Railway, ver docs/DECISIONS.md)
+- ✅ Aceptación: alerta de prueba llega a email y Teams con deep-link al contrato — verificado con datos reales: secretos de Vault y env vars de Railway creados, pasada real del cron con 200 en logs de Railway, alerta de prueba entregada a email y Teams con deep-link aterrizando en la pestaña Contratos (ver docs/DECISIONS.md)
 
 ### 2.3 Calendario de renovaciones
 - [ ] Vista lista/calendario (mockup pantalla 3), snooze, estados renegociado/cancelado
