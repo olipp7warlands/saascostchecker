@@ -79,9 +79,9 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 - ✅ Aceptación: test con fechas simuladas (91/90/89/60/30/7/6 días + preaviso vencido) genera exactamente las alertas esperadas — `src/features/renewals/renewal-alerts.test.ts`, incluye test explícito de idempotencia (ejecutar dos veces el mismo día no duplica)
 
 ### 2.2 Canales
-- [ ] Email vía Resend con plantillas bilingües
-- [ ] Teams Incoming Webhook por org (URL en settings, mensaje con tarjeta adaptativa)
-- ✅ Aceptación: alerta de prueba llega a email y Teams con deep-link al contrato
+- [x] Email vía Resend con plantillas bilingües
+- [x] Teams Incoming Webhook por org (URL en settings, mensaje con tarjeta adaptativa)
+- ✅ Aceptación: alerta de prueba llega a email y Teams con deep-link al contrato — código completo y verificado con datos reales pendiente de 2 pasos manuales fuera de esta máquina (GUCs de Postgres + env vars de Railway, ver docs/DECISIONS.md)
 
 ### 2.3 Calendario de renovaciones
 - [ ] Vista lista/calendario (mockup pantalla 3), snooze, estados renegociado/cancelado

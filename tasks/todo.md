@@ -48,4 +48,37 @@ Plan: `C:\Users\olcas\.claude\plans\elegant-gliding-kite.md`
 - [x] `docs/DECISIONS.md` actualizado con la elección de SVG propio, semántica del donut, criterio "reconciliado", patrón de accesibilidad
 - [x] Verificación: `pnpm lint && pnpm typecheck && pnpm test && pnpm build` en verde (mismos suites de Supabase local fallando como siempre); `supabase db push` de la migración 0014 al remoto confirmado
 - [x] Verificación visual autenticada (usuario+org+vendors en los 4 estados del donut+contratos con departamento y empresa+spend_records en 5 meses con un hueco, sembrados vía service-role con autorización explícita del usuario, borrados por completo al terminar — 0 filas huérfanas confirmado): encontrados y corregidos 2 bugs reales solo visibles en captura — (1) el área del chart de evolución era opaca y tapaba 3 de las 4 etiquetas del eje Y (fix: wash semitransparente al 12% + labels repintadas por encima); (2) el título de "Gasto por departamento" no cambiaba a "Gasto por empresa" al activar el toggle (fix: título condicional al tab activo). Estado vacío, estado con datos, desktop y móvil, y el toggle Departamento/Empresa capturados.
-- [ ] Pendiente: commit + push a `main` + verificación de producción con `curl`.
+- [x] Commit `999ccbd` + fix de seguimiento `90808df` (toggle ilegible + barras del chart) pusheados a `main`. Producción verificada con `curl`: `/`, `/es`, `/en`, `/es/login`, `/es/signup` → 307/200.
+
+# Bloque 2.1 — Motor de alertas de renovación — todo
+
+## Checklist
+- [x] Cron diario `pg_cron` (`evaluate_renewal_alerts()`, `supabase/migrations/0015_renewal_alerts.sql`), decisión documentada en `docs/DECISIONS.md` (evita la causa raíz del incidente de producción del 2026-07-15)
+- [x] Alertas 90/60/30/7 días + preaviso vencido en tabla `notifications`, idempotente por unique index
+- [x] Destinatarios: owner del vendor + finance de la org
+- [x] Panel campanita in-app (`notification-bell.tsx`) en sidebar + mobile header
+- [x] Tests con fechas simuladas + idempotencia (`renewal-alerts.test.ts`) — requiere Supabase local, se verifica en CI
+- [x] `docs/TASKS.md` bloque 2.1 marcado completo, `docs/DECISIONS.md` actualizado
+- [x] Commit `5f45db3` pusheado a `main`. Producción verificada con `curl` en esta sesión: `/es`, `/en`, `/es/login`, `/es/signup` → 200.
+
+# Bloque 2.2 — Canales (email + Teams) — todo
+
+Plan: `C:\Users\olcas\.claude\plans\toasty-gathering-stallman.md`
+
+## Checklist
+- [x] Migración `0016_notification_channels.sql`: tabla `org_notification_settings` (RLS org_admin-only, más estricta que `organizations`), RPCs `upsert_org_notification_settings`/`get_org_notification_settings` con validación anti-SSRF del webhook (https + host anclado a `.webhook.office.com`/`.logic.azure.com`), `pg_net`, función `trigger_send_pending_notifications()` + segundo `pg_cron` cada 15 min — pusheada al remoto (`supabase db push`)
+- [x] `src/lib/supabase/service-role.ts` + `src/features/renewals/send-notifications.ts` (plantillas bilingües HTML/Adaptive Card, deep-link, envío Resend/Teams)
+- [x] `src/app/api/cron/send-notifications/route.ts` — secreto comparado con `crypto.timingSafeEqual`, semántica de fallo parcial por canal, try/catch por fila
+- [x] Fix `vendor-ficha.tsx`: lee `#contract-{id}` del hash al montar y activa la pestaña Contratos (afecta también al deep-link ya existente del dashboard)
+- [x] Feature `notification-settings` (schemas con anti-SSRF duplicado + i18n, actions: get/save/sendTestAlert con deep-link real y fallback sintético) + UI `settings/notifications` + entrada de nav
+- [x] i18n `Settings.notifications.*` + `Shell.nav.notificationSettings` en es/en
+- [x] Tests unitarios: `send-notifications.test.ts` (plantillas, deep-link, escape HTML) + `notification-settings/schemas.test.ts` (anti-SSRF, incluido el caso trampa `evil.com/webhook.office.com`)
+- [x] `.env.local.example` con `CRON_SECRET`/`NEXT_PUBLIC_SITE_URL` nuevos
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` en verde (mismos suites de Supabase local fallando como siempre)
+- [x] Verificación en vivo contra el proyecto remoto (usuario+org de prueba sembrados vía service-role con autorización explícita del usuario, borrados al terminar — 0 filas huérfanas confirmado): defaults correctos sin fila, RPC rechaza el dominio SSRF-trampa, acepta un dominio válido, persiste, y escribe exactamente 1 fila de `audit_log`
+- [x] `docs/TASKS.md` §2.2 marcado, `docs/DECISIONS.md` con la entrada completa (trigger desacoplado, GUCs, las 2 decisiones de seguridad, semántica de fallo parcial, fix del hash/tab, formato de tarjeta de Teams)
+- [ ] **Pendiente — 2 pasos manuales que solo puede hacer el usuario, fuera del alcance de esta máquina/sesión:**
+  1. Railway: añadir env vars `CRON_SECRET` (secreto generado en esta sesión, pedir al usuario si se perdió) y `NEXT_PUBLIC_SITE_URL=https://saascostchecker-production.up.railway.app` — la segunda es `NEXT_PUBLIC_*`, debe estar presente en tiempo de BUILD, no solo runtime. Confirmar también si `RESEND_API_KEY` ya está puesta en Railway (bloque 2.1 no lo confirmó) — sin ella, el envío de email cae al fallback de `console.info`, no llega email real.
+  2. SQL editor del proyecto remoto de Supabase: ejecutar `alter database postgres set app.settings.site_url = '...'; alter database postgres set app.settings.cron_secret = '<mismo valor que CRON_SECRET>';` (mismo secreto que el paso 1). Sin esto, el cron de envío corre cada 15 min sin efecto (no-op vía `raise warning`, no rompe nada, pero no envía nada tampoco).
+- [ ] Pendiente: una vez completados los 2 pasos anteriores, probar de extremo a extremo con el botón "Enviar alerta de prueba" de la página de ajustes contra un email y un webhook de Teams reales.
+- [ ] Pendiente: commit + push a `main` + verificación de producción con `curl` (incluyendo `/api/cron/send-notifications` sin secreto → 401).

@@ -235,6 +235,25 @@
       "forbidden": "Only an admin can manage companies"
     }
   },
+  "Settings": {
+    "notifications": {
+      "title": "Notifications",
+      "emailLabel": "Email alerts",
+      "teamsLabel": "Teams alerts",
+      "teamsWebhookLabel": "Teams webhook URL",
+      "teamsWebhookPlaceholder": "https://...",
+      "teamsWebhookRequired": "Add the webhook URL to enable Teams alerts",
+      "teamsWebhookInvalidDomain": "URL must be a valid Teams webhook (https, webhook.office.com or logic.azure.com domain)",
+      "save": "Save",
+      "saved": "Changes saved",
+      "sendTest": "Send test alert",
+      "testSentEmail": "Test alert sent by email.",
+      "testSentTeams": "Test alert sent to Teams.",
+      "testSyntheticNotice": "This organization has no active contracts, so the alert uses example data.",
+      "testFailed": "The test alert could not be sent.",
+      "forbidden": "Only an admin can manage notifications"
+    }
+  },
   "Shell": {
     "logo": "stackx",
     "mainNavLabel": "Main navigation",
@@ -251,6 +270,7 @@
       "teamRules": "Team & rules",
       "companies": "Companies",
       "departments": "Departments",
+      "notificationSettings": "Notifications",
       "comingSoon": "Soon"
     },
     "userMenu": {

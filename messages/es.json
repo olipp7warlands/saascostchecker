@@ -235,6 +235,25 @@
       "forbidden": "Solo un administrador puede gestionar empresas"
     }
   },
+  "Settings": {
+    "notifications": {
+      "title": "Notificaciones",
+      "emailLabel": "Alertas por email",
+      "teamsLabel": "Alertas por Teams",
+      "teamsWebhookLabel": "URL del webhook de Teams",
+      "teamsWebhookPlaceholder": "https://...",
+      "teamsWebhookRequired": "Añade la URL del webhook para activar las alertas por Teams",
+      "teamsWebhookInvalidDomain": "La URL debe ser un webhook de Teams válido (https, dominio webhook.office.com o logic.azure.com)",
+      "save": "Guardar",
+      "saved": "Cambios guardados",
+      "sendTest": "Enviar alerta de prueba",
+      "testSentEmail": "Alerta de prueba enviada por email.",
+      "testSentTeams": "Alerta de prueba enviada a Teams.",
+      "testSyntheticNotice": "La organización no tiene contratos activos, así que la alerta usa datos de ejemplo.",
+      "testFailed": "No se pudo enviar la alerta de prueba.",
+      "forbidden": "Solo un administrador puede gestionar las notificaciones"
+    }
+  },
   "Shell": {
     "logo": "stackx",
     "mainNavLabel": "Navegación principal",
@@ -251,6 +270,7 @@
       "teamRules": "Equipo y reglas",
       "companies": "Empresas",
       "departments": "Departamentos",
+      "notificationSettings": "Notificaciones",
       "comingSoon": "Pronto"
     },
     "userMenu": {

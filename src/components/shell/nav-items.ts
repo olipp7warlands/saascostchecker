@@ -1,4 +1,5 @@
 import {
+  Bell,
   Building2,
   ClipboardCheck,
   GitMerge,
@@ -21,7 +22,8 @@ export type NavItemKey =
   | "reconciliation"
   | "teamRules"
   | "companies"
-  | "departments";
+  | "departments"
+  | "notificationSettings";
 
 export type NavItem = {
   key: NavItemKey;
@@ -86,6 +88,13 @@ export const NAV_ITEMS: NavItem[] = [
     key: "departments",
     href: "/team/departments",
     icon: Network,
+    roles: ["org_admin"],
+    section: "settings",
+  },
+  {
+    key: "notificationSettings",
+    href: "/settings/notifications",
+    icon: Bell,
     roles: ["org_admin"],
     section: "settings",
   },

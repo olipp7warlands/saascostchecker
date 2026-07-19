@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Tabs, TabsList, TabsPanel, TabsTrigger } from "@/components/ui/tabs";
 import { pickPrimaryAction } from "@/features/vendors/primary-action";
@@ -68,6 +68,16 @@ export function VendorFicha({
   const [vendorEditMode, setVendorEditMode] = useState(false);
   const [contractsSeed, setContractsSeed] = useState(0);
   const [contractsInitialPanel, setContractsInitialPanel] = useState<OpenPanel>(null);
+
+  // Deep-links a un contrato concreto (dashboard, alertas de renovación por
+  // email/Teams) apuntan a #contract-{id} dentro de esta ficha — sin esto, el
+  // navegador intenta el scroll nativo mientras la pestaña Contratos sigue
+  // sin montar (estado inicial "details"), y el ancla no lleva a ningún sitio.
+  useEffect(() => {
+    if (window.location.hash.startsWith("#contract-")) {
+      setActiveTab("contracts");
+    }
+  }, []);
 
   const ownerMember = members.find((member) => member.id === vendor.owner_user_id) ?? null;
   const ownerName = ownerMember ? (ownerMember.full_name ?? ownerMember.email) : null;
