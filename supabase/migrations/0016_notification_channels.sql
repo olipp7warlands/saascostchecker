@@ -17,18 +17,16 @@
 --      SEGUNDO pg_cron (cada 15 min, independiente del diario de 2.1) que la
 --      invoca — dispara una llamada HTTP a una ruta interna de la app
 --      (`/api/cron/send-notifications`) que hace el envío real (plantillas +
---      Resend/Teams) en TypeScript. La URL base y el secreto compartido se
---      leen de GUCs de Postgres (`app.settings.site_url`/`app.settings.cron_secret`),
---      NO se hardcodean aquí, porque SQL no puede leer `.env` — ver el paso
---      manual pendiente más abajo y docs/DECISIONS.md.
+--      Resend/Teams) en TypeScript. La URL base y el secreto compartido NO
+--      se hardcodean aquí, porque SQL no puede leer `.env`.
 --
--- PASO MANUAL PENDIENTE (no versionable como migración normal — `alter
--- database` no es transaccional con el resto y debe ejecutarse una sola vez
--- en el SQL editor del proyecto remoto tras aplicar esta migración):
---   alter database postgres set app.settings.site_url = 'https://saascostchecker-production.up.railway.app';
---   alter database postgres set app.settings.cron_secret = '<mismo valor que CRON_SECRET en Railway>';
--- Sin esto, `trigger_send_pending_notifications()` sale con un `raise
--- warning` y no hace nada (falla "abierto" hacia no-op, nunca rompe el cron).
+-- OBSOLETO — leído originalmente de GUCs de Postgres (`app.settings.site_url`/
+-- `app.settings.cron_secret` vía `alter database postgres set ...`): ese paso
+-- manual falla con "permission denied to set parameter" en el proyecto
+-- remoto gestionado (el rol `postgres` no puede fijar parámetros a nivel de
+-- database/role ahí). Sustituido por Supabase Vault en
+-- `0017_notification_secrets_vault.sql` — ver ese archivo y docs/DECISIONS.md
+-- para el paso manual vigente.
 
 -- =========================================================================
 -- 1. EXTENSIÓN
