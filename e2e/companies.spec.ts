@@ -91,9 +91,14 @@ test.describe("Soporte multi-empresa: creación inline de empresa", () => {
     // por defecto — de ahí el scope al <li> del contrato, no a toda la
     // página).
     await expect(page.getByRole("heading", { name: "Figma" })).toBeVisible();
-    // Scope al <li> del contrato, no a los ids de sus campos internos
-    // (p.ej. "contract-<id>-companyId" también empieza por "contract-").
-    const contractRow = page.locator('li[id^="contract-"]');
+    // Los contratos viven en la pestaña Contratos desde el rediseño de la
+    // ficha con tabs (2026-07-16), ya no en la vista por defecto (Detalles).
+    await page.getByRole("tab", { name: "Contratos" }).click();
+    // Scope al contenedor del contrato (id="contract-{id}", presente tanto en
+    // la fila compacta como en el formulario de edición), no a los ids de sus
+    // campos internos (p.ej. "contract-<id>-companyId" también empieza por
+    // "contract-") — de ahí el atributo genérico en vez de acotar por tag.
+    const contractRow = page.locator('[id^="contract-"]');
     await expect(contractRow.getByText(companyName, { exact: true })).toBeVisible();
     await expect(contractRow.getByText("Grupo / Sin asignar")).toHaveCount(0);
 

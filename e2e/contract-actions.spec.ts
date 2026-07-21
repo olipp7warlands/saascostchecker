@@ -101,8 +101,11 @@ test.describe("Acciones sobre contratos (bloque 2.3b)", () => {
     await page.getByRole("button", { name: "Guardar renegociación" }).click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
 
-    // El contrato refleja el nuevo coste.
-    await expect(page.getByText("900 €")).toBeVisible();
+    // El contrato refleja el nuevo coste. Texto completo de la subfila del
+    // contrato ("900 € · Anual"), no "900 €" a secas — ese substring también
+    // matchea el número grande de "Coste anual" en VendorRail (siempre
+    // visible en la barra lateral, sin importar la pestaña activa).
+    await expect(page.getByText("900 € · Anual")).toBeVisible();
 
     // La tarjeta de ahorro de la ficha del vendor refleja el ahorro (1200-900=300).
     const railSavingsCard = page.getByText("Ahorro conseguido", { exact: true }).locator("..");

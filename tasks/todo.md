@@ -257,3 +257,76 @@ Plan: aprobado tras exploración con 3 agentes en paralelo + 2 preguntas explíc
   login para no autenticados, confirma que las rutas están vivas y no dan 500).
 - [x] **Bloque 2.3 CERRADO por completo** (calendario + 2.3b) — checkbox de aceptación en
   `docs/TASKS.md` §2.3 marcado, sin pendientes.
+
+# Sesión de reparación de CI — 2026-07-21
+
+Contexto: main en rojo desde el push de `2460ace` (2026-07-16T18:32, "fix: light
+sidebar, button hierarchy, and vendor ficha with tabs") — 15 runs consecutivos en
+failure hasta hoy. Objetivo: CI completamente verde, sin features nuevas.
+
+## 1. `renewal-actions.test.ts` — DIAGNOSTICADO Y ARREGLADO (bug del test, no real)
+- Causa: PostgREST devuelve columnas `numeric` como JSON number, no string. Las 2
+  aserciones nuevas (`renegotiate_contract`/`cancel_contract`) comparaban con
+  literales de texto (`"1200.00"`) vía `toMatchObject`, mientras el resto del
+  repo (incluida la línea 281 del mismo archivo, y 2 suites de bloques
+  anteriores) ya usa `Number(...)` para esto — convención establecida que estas
+  2 aserciones nuevas no siguieron.
+- Los valores calculados eran correctos (300/800/900/1200) — no hay bug de
+  cálculo, no hay `savings_records` de producción afectados.
+- Fix: `src/features/renewals/renewal-actions.test.ts` — sustituidas las 2
+  aserciones `toMatchObject` con literales string por comparaciones
+  `Number(...)`, con comentario explicando la causa.
+
+## 2. 4 e2e rotos — diagnosticados por separado
+- [x] `e2e/dashboard.spec.ts` — REGRESIÓN REAL de 2.3b, ya arreglada (era del
+  test): helper local `cancelContract()` duplicado (propio de este archivo,
+  no compartido con `renewals.spec.ts`) seguía llamando
+  `update_contract(p_status='cancelled')`, bloqueado por 0018. Solo se migró
+  la copia de `renewals.spec.ts` a `cancel_contract()`; esta se quedó atrás.
+  Migrada al mismo patrón.
+- [x] `e2e/vendors.spec.ts` — selector desactualizado tras el rediseño de tabs
+  (2026-07-16): el botón "Ver PDF" vive ahora en la pestaña Documentos, ya no
+  en la vista por defecto. Fix: clic en la pestaña antes de la aserción.
+- [x] `e2e/contract-actions.spec.ts` — locator ambiguo (mismo patrón que el
+  fix ya aplicado a budgets/tags): `getByText("900 €")` sin `exact` matcheaba
+  tanto la subfila del contrato ("900 € · Anual") como el número grande de
+  VendorRail en la barra lateral (siempre visible, no depende de la pestaña
+  activa). Fix: texto completo `"900 € · Anual"`.
+- [ ] `e2e/companies.spec.ts` — **REGRESIÓN REAL, pendiente de decisión del
+  usuario antes de tocar código de producción.** Ver mensaje al usuario en
+  esta conversación para el diagnóstico completo. Resumen: el rediseño de
+  tabs (`2460ace`) sustituyó la fila de contrato siempre-expandida (con
+  `<li id="contract-{id}">` y el formulario completo visible) por una fila
+  compacta en `ContractList` que NO muestra compañía/departamento del
+  contrato en ningún sitio, y que solo tiene `id="contract-{id}"` cuando el
+  contrato está en modo edición. Company/department ahora solo se ve en (a)
+  la cabecera de la ficha, para el contrato "primario" (el de renovación más
+  próxima), o (b) dentro del formulario de edición de cada contrato. Para un
+  vendor con 2+ contratos activos en compañías distintas — el caso que el
+  soporte multi-empresa fue construido para resolver — ya no hay forma de
+  distinguir a simple vista qué contrato pertenece a qué compañía.
+  No confirmado como trade-off aceptado en la entrada de DECISIONS.md del
+  rediseño de tabs — parece un efecto colateral no buscado de compactar la
+  fila.
+
+## 3. Notificaciones de CI
+- Confirmado vía `gh api notifications`: SÍ existen 22 notificaciones
+  `ci_activity` sin leer en la bandeja de GitHub para este repo — GitHub ha
+  estado avisando desde el principio, no es un fallo de configuración del
+  workflow. El hueco real es que esas notificaciones no se están viendo
+  (bandeja de notificaciones de GitHub no revisada, o entrega por email de
+  "Actions" desactivada en la configuración de notificaciones del usuario).
+- Propuesta pendiente de discutir con el usuario: dado que el flujo es push
+  directo a `main` sin PRs (branch protection confirmado OFF — 404 en
+  `branches/main/protection`), una opción ligera es un paso final en
+  `.github/workflows/ci.yml` que notifique en fallo (mismo patrón ya usado
+  para Teams webhook en el motor de alertas 2.2) en vez de depender de que el
+  usuario revise la bandeja de GitHub.
+
+## Estado de gates
+- `pnpm lint && pnpm typecheck` — verde localmente tras los fixes de arriba.
+- `pnpm test`/e2e completos: no ejecutables en esta máquina (sin Docker/Supabase
+  local) — se verifican empujando y revisando el run de CI, como siempre en
+  este proyecto.
+- Nada pusheado todavía — esperando decisión del usuario sobre companies.spec.ts
+  antes de cerrar la sesión y actualizar DECISIONS.md.

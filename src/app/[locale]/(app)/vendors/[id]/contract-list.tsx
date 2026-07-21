@@ -216,9 +216,14 @@ export function ContractList({
           );
         }
 
+        const contractCompanyName = companies.find((c) => c.id === contract.company_id)?.name ?? null;
+        const contractDepartmentName =
+          departments.find((d) => d.id === contract.department_id)?.name ?? null;
+
         return (
           <div
             key={contract.id}
+            id={`contract-${contract.id}`}
             className={
               isHistorical
                 ? "flex items-center gap-3 rounded-lg border border-line px-4 py-3 opacity-70"
@@ -238,6 +243,18 @@ export function ContractList({
                 {" · "}
                 {billingCycleLabels[contract.billing_cycle]}
                 {contract.seats_purchased != null && ` · ${contract.seats_purchased}`}
+                {contractCompanyName && (
+                  <>
+                    {" · "}
+                    <span>{contractCompanyName}</span>
+                  </>
+                )}
+                {contractDepartmentName && (
+                  <>
+                    {" · "}
+                    <span>{contractDepartmentName}</span>
+                  </>
+                )}
               </p>
             </div>
 

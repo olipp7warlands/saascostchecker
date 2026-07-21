@@ -290,13 +290,14 @@ describe("Acciones sobre renovaciones (bloque 2.3b)", () => {
       .select("kind, previous_annual_cost, new_annual_cost, savings_amount, vendor_id")
       .eq("id", savingsId)
       .single();
-    expect(savingsRow).toMatchObject({
-      kind: "renegotiated",
-      previous_annual_cost: "1200.00",
-      new_annual_cost: "900.00",
-      savings_amount: "300.00",
-      vendor_id: vendorId,
-    });
+    // PostgREST devuelve columnas numeric como JSON number, no como string
+    // (mismo criterio que Number(contract!.cost_amount) más arriba) — comparar
+    // literales de texto ("1200.00") fallaba siempre, no era un bug de cálculo.
+    expect(savingsRow!.kind).toBe("renegotiated");
+    expect(savingsRow!.vendor_id).toBe(vendorId);
+    expect(Number(savingsRow!.previous_annual_cost)).toBe(1200);
+    expect(Number(savingsRow!.new_annual_cost)).toBe(900);
+    expect(Number(savingsRow!.savings_amount)).toBe(300);
   });
 
   it("cancel_contract cancela el contrato, limpia notifications pendientes y crea el savings_record", async () => {
@@ -330,7 +331,8 @@ describe("Acciones sobre renovaciones (bloque 2.3b)", () => {
       .select("kind, savings_amount")
       .eq("id", savingsId)
       .single();
-    expect(savingsRow).toMatchObject({ kind: "cancelled", savings_amount: "800.00" });
+    expect(savingsRow!.kind).toBe("cancelled");
+    expect(Number(savingsRow!.savings_amount)).toBe(800);
   });
 
   it("set_contract_snooze pospone y luego quita el snooze", async () => {

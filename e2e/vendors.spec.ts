@@ -83,6 +83,9 @@ test.describe("Alta de vendor + contrato (bloque 1.2)", () => {
     expect(elapsedMs).toBeLessThan(60_000);
 
     await expect(page.getByRole("heading", { name: "Figma" })).toBeVisible();
+    // El botón de PDF vive en la pestaña Documentos desde el rediseño de la
+    // ficha con tabs (2026-07-16), ya no en la vista por defecto (Detalles).
+    await page.getByRole("tab", { name: "Documentos" }).click();
     await expect(page.getByRole("button", { name: "Ver PDF" })).toBeVisible();
 
     await page.goto("/es/vendors");
