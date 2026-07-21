@@ -140,8 +140,10 @@ test.describe("Presupuestos por bolsa (bloque nuevo: tags + presupuestos)", () =
 
     const bucket = page.locator("li").filter({ hasText: `${departmentName} — todas las empresas` });
     await expect(bucket.getByText("Crítico")).toBeVisible();
-    await expect(bucket.getByText("150 €", { exact: false })).toBeVisible();
-    await expect(bucket.getByText("100 €", { exact: false })).toBeVisible();
+    // Texto exacto de la línea "consumido / presupuestado" — evita
+    // ambigüedad con el "150 €" del desglose de vendors (mismo bucket,
+    // colapsado mediante <details> pero presente en el DOM).
+    await expect(bucket.getByText("150 € / 100 €", { exact: true })).toBeVisible();
 
     // Resumen discreto del dashboard también refleja el peor semáforo.
     await page.goto("/es/dashboard");

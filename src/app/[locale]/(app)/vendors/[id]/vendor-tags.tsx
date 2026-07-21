@@ -67,7 +67,7 @@ export function VendorTags({
             key={tag}
             className="inline-flex items-center gap-1 rounded-btn border border-line bg-surface px-2.5 py-1 text-xs text-ink"
           >
-            {tag}
+            <span>{tag}</span>
             <button
               type="button"
               onClick={() => removeTag(tag)}
