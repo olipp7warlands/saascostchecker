@@ -89,6 +89,16 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 - [x] Registro de ahorro conseguido por renegociación (`savings_records`, bloque 2.3b)
 - ✅ Aceptación: KPI "ahorro conseguido" agrega los cierres del año — completo y verificado
 
+## Bloque adicional — Tags por vendor + Presupuestos por bolsa
+
+Fuera de la numeración de fases (ni SPECS.md ni este roadmap lo cubrían). Cierra la deuda dejada explícitamente en 1.5 ("vs. presupuesto" quedó fuera por falta de un concepto de presupuesto en el modelo — ver docs/DECISIONS.md). Diseño propuesto y aprobado por el usuario antes de implementar.
+
+- [x] Migración: `budgets` (bolsa departamento × empresa × año fiscal, con precedencia por especificidad al resolver), `vendor_tags`, `vendors.annual_cap`
+- [x] Cálculo de consumo/proyección/semáforo (`src/features/budgets/aggregate.ts`, `thresholds.ts`) — reutiliza el mismo dataset de `spend_records` reconciliados que `dashboard_monthly_spend()`, sin RPC nueva de agregación
+- [x] Tags: alta/baja desde la ficha del vendor con autocompletado, filtro por tag en `/vendors`
+- [x] UI de presupuestos en `/team/budgets` (lectura MANAGER_ROLES, escritura finance/org_admin), resumen discreto en el dashboard
+- ✅ Aceptación: tests unitarios del cálculo de consumo/proyección/semáforo (año parcial, sin presupuesto, reparto multi-departamento, conversión de moneda, overrun) en verde; RLS/permisos y e2e de tags y presupuestos verificados en CI
+
 ## FASE 3 — Procurement
 
 ### 3.1 Solicitudes

@@ -271,7 +271,8 @@
       "companies": "Companies",
       "departments": "Departments",
       "notificationSettings": "Notifications",
-      "comingSoon": "Soon"
+      "comingSoon": "Soon",
+      "budgets": "Budgets"
     },
     "userMenu": {
       "open": "User menu",
@@ -375,6 +376,15 @@
         "suggestion": "{name}?",
         "note": "{count} transactions without a vendor.",
         "viewAll": "Review the full queue →"
+      },
+      "budgetSummary": {
+        "label": "Budget",
+        "pct": "{pct}% consumed",
+        "tone": {
+          "stable": "Stable",
+          "upcoming": "Upcoming",
+          "critical": "Critical"
+        }
       }
     }
   },
@@ -572,7 +582,17 @@
       "activeBadge": "Active",
       "historicalBadge": "Historical",
       "close": "Close",
-      "notesPlaceholder": "Add negotiation context, agreed terms, or any other relevant notes about this vendor."
+      "notesPlaceholder": "Add negotiation context, agreed terms, or any other relevant notes about this vendor.",
+      "annualCapLabel": "Annual cap"
+    },
+    "tags": {
+      "label": "Tags",
+      "addPlaceholder": "Add tag…",
+      "remove": "Remove tag {tag}"
+    },
+    "tagFilter": {
+      "label": "Filter by tag",
+      "all": "All tags"
     }
   },
   "Renewals": {
@@ -673,5 +693,41 @@
     "cancel": "Cancel",
     "linkExistingPlaceholder": "Link to an existing vendor…",
     "linkExisting": "Link"
+  },
+  "Budgets": {
+    "crumb": "Budgets",
+    "title": "Budgets",
+    "forbidden": "You do not have access to this section",
+    "listTitle": "Budget buckets",
+    "empty": "No spend or budget recorded yet for this year",
+    "createTitle": "New budget bucket",
+    "createHint": "Company, department, or both — at least one is required.",
+    "companyLabel": "Company",
+    "allCompanies": "All companies",
+    "departmentLabel": "Department",
+    "allDepartments": "All departments",
+    "fiscalYearLabel": "Fiscal year",
+    "amountLabel": "Amount",
+    "currencyLabel": "Currency",
+    "create": "Create bucket",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "confirmDeleteTitle": "Delete budget bucket",
+    "confirmDelete": "Are you sure you want to delete this budget bucket?",
+    "noBudgetForScope": "No budget assigned",
+    "projected": "Year-end projection: {amount}",
+    "vendorBreakdown": "View {count} vendors consuming this bucket",
+    "scope": {
+      "both": "{company} · {department}",
+      "departmentAllCompanies": "{department} — all companies",
+      "companyAllDepartments": "{company} — all departments",
+      "unassigned": "No department or company assigned"
+    },
+    "tone": {
+      "stable": "Stable",
+      "upcoming": "Upcoming",
+      "critical": "Critical"
+    }
   }
 }

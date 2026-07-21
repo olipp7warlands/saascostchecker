@@ -2,6 +2,8 @@ import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { getCurrentUserProfile } from "@/features/auth/session";
+import { buildBudgetConsumption } from "@/features/budgets/aggregate";
+import type { Budget, BudgetActiveContract, BudgetSpendRecord } from "@/features/budgets/types";
 import {
   buildCompanySpend,
   buildDepartmentSpend,
@@ -20,6 +22,7 @@ import type {
 } from "@/features/dashboard/types";
 import { routing } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
+import { BudgetSummary } from "./budget-summary";
 import { KpiCards } from "./kpi-cards";
 import { MonthlySpendChart } from "./monthly-spend-chart";
 import { ReconciliationPreview } from "./reconciliation-preview";
@@ -60,6 +63,8 @@ export default async function DashboardPage({
     { data: org },
     { data: monthlySpendRows },
     { data: savingsRows },
+    { data: budgetRows },
+    { data: budgetSpendRows },
   ] = await Promise.all([
     fetchDashboardContracts(supabase),
     supabase.from("exchange_rates").select("base_currency, quote_currency, rate"),
@@ -79,6 +84,13 @@ export default async function DashboardPage({
       .select("savings_amount, closed_at")
       .gte("closed_at", `${currentYear}-01-01`)
       .lt("closed_at", `${currentYear + 1}-01-01`),
+    supabase.from("budgets").select("id, company_id, department_id, fiscal_year, amount, currency"),
+    supabase
+      .from("spend_records")
+      .select("vendor_id, amount, currency, date")
+      .not("vendor_id", "is", null)
+      .gte("date", `${currentYear}-01-01`)
+      .lte("date", `${currentYear}-12-31`),
   ]);
 
   const orgCurrency = org?.default_currency ?? "EUR";
@@ -108,6 +120,40 @@ export default async function DashboardPage({
   );
   const tickets = buildRenewalTrack(contracts);
   const stackStatus = buildStackStatus(vendors, contracts);
+
+  // Resumen discreto (§E del diseño, ver docs/DECISIONS.md) — reutiliza los
+  // mismos `contracts` ya cargados por fetchDashboardContracts en vez de una
+  // query nueva; solo se filtran a activos (mismo criterio que el resto de
+  // agregados de este archivo).
+  const budgetActiveContracts: BudgetActiveContract[] = contracts
+    .filter((contract) => contract.status === "active")
+    .map((contract) => ({
+      vendorId: contract.vendorId,
+      companyId: contract.companyId,
+      departmentId: contract.departmentId,
+    }));
+  const budgets: Budget[] = (budgetRows ?? []).map((row) => ({
+    id: row.id,
+    companyId: row.company_id,
+    departmentId: row.department_id,
+    fiscalYear: row.fiscal_year,
+    amount: Number(row.amount),
+    currency: row.currency,
+  }));
+  const budgetSpendRecords: BudgetSpendRecord[] = (budgetSpendRows ?? []).map((row) => ({
+    vendorId: row.vendor_id as string,
+    amount: Number(row.amount),
+    currency: row.currency,
+    date: row.date,
+  }));
+  const budgetBuckets = buildBudgetConsumption(
+    budgetSpendRecords,
+    budgetActiveContracts,
+    budgets,
+    orgCurrency,
+    rates,
+    currentYear,
+  );
 
   const departmentRows = buildDepartmentSpend(
     contracts,
@@ -169,12 +215,15 @@ export default async function DashboardPage({
       </div>
 
       <div className="mt-3.5 grid grid-cols-1 gap-3.5 lg:grid-cols-[1.4fr_1fr]">
-        <SpendByGroupChart
-          departmentRows={departmentGroupRows}
-          companyRows={companyGroupRows}
-          locale={locale}
-          orgCurrency={orgCurrency}
-        />
+        <div className="flex flex-col gap-3.5">
+          <SpendByGroupChart
+            departmentRows={departmentGroupRows}
+            companyRows={companyGroupRows}
+            locale={locale}
+            orgCurrency={orgCurrency}
+          />
+          <BudgetSummary buckets={budgetBuckets} locale={locale} />
+        </div>
         <ReconciliationPreview rows={queue} totalPending={pendingCount ?? 0} locale={locale} />
       </div>
     </div>

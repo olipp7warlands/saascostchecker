@@ -126,10 +126,42 @@ export const cancelContractSchema = z.object({
   notes: notesSchema,
 });
 
+export const addVendorTagSchema = z.object({
+  vendorId: z.string().uuid(),
+  tag: z.string().trim().min(1).max(50),
+});
+
+export const removeVendorTagSchema = z.object({
+  vendorId: z.string().uuid(),
+  tag: z.string().trim().min(1).max(50),
+});
+
+const annualCapAmountSchema = z.preprocess(
+  (value) => (value === "" || value === null || value === undefined ? null : value),
+  z.coerce.number().min(0).nullable(),
+);
+
+export const updateVendorAnnualCapSchema = z
+  .object({
+    vendorId: z.string().uuid(),
+    annualCap: annualCapAmountSchema,
+    annualCapCurrency: z.preprocess(
+      (value) => (value === "" || value === null || value === undefined ? null : value),
+      currencySchema.nullable(),
+    ),
+  })
+  .refine((data) => data.annualCap === null || data.annualCapCurrency !== null, {
+    message: "annualCapCurrency is required when annualCap is set",
+    path: ["annualCapCurrency"],
+  });
+
 export type CreateVendorWithContractInput = z.infer<typeof createVendorWithContractSchema>;
 export type UpdateVendorInput = z.infer<typeof updateVendorSchema>;
 export type CreateContractInput = z.infer<typeof createContractSchema>;
 export type UpdateContractInput = z.infer<typeof updateContractSchema>;
+export type AddVendorTagInput = z.infer<typeof addVendorTagSchema>;
+export type RemoveVendorTagInput = z.infer<typeof removeVendorTagSchema>;
+export type UpdateVendorAnnualCapInput = z.infer<typeof updateVendorAnnualCapSchema>;
 export type AssignSeatInput = z.infer<typeof assignSeatSchema>;
 export type UnassignSeatInput = z.infer<typeof unassignSeatSchema>;
 export type SetSeatActiveInput = z.infer<typeof setSeatActiveSchema>;

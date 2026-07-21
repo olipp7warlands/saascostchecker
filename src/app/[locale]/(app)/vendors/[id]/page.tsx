@@ -39,6 +39,7 @@ export default async function VendorDetailPage({
     { data: org },
     { data: rateRows },
     { data: savingsRows },
+    { data: orgTagRows },
   ] = await Promise.all([
     supabase.from("vendors").select("*").eq("id", id).single(),
     supabase
@@ -52,6 +53,9 @@ export default async function VendorDetailPage({
     supabase.from("organizations").select("default_currency").eq("id", profile.orgId).single(),
     supabase.from("exchange_rates").select("base_currency, quote_currency, rate"),
     supabase.from("savings_records").select("savings_amount").eq("vendor_id", id),
+    // Toda la org, no solo este vendor: alimenta el autocompletado de tags
+    // existentes (VendorTags) además de los tags propios de este vendor.
+    supabase.from("vendor_tags").select("vendor_id, tag").order("tag", { ascending: true }),
   ]);
 
   const canManageOrgDimensions = profile.role === "org_admin";
@@ -65,6 +69,8 @@ export default async function VendorDetailPage({
     (sum, row) => sum + Number(row.savings_amount),
     0,
   );
+  const vendorTags = (orgTagRows ?? []).filter((row) => row.vendor_id === id).map((row) => row.tag);
+  const orgTags = [...new Set((orgTagRows ?? []).map((row) => row.tag))].sort();
 
   if (!vendor) {
     notFound();
@@ -111,6 +117,8 @@ export default async function VendorDetailPage({
           orgCurrency={orgCurrency}
           rates={rates}
           vendorSavingsTotal={vendorSavingsTotal}
+          tags={vendorTags}
+          orgTags={orgTags}
         />
       </div>
     </div>

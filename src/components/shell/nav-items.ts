@@ -9,6 +9,7 @@ import {
   RefreshCw,
   Upload,
   Users,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 import type { Role } from "@/features/auth/session";
@@ -20,6 +21,7 @@ export type NavItemKey =
   | "requests"
   | "importSpend"
   | "reconciliation"
+  | "budgets"
   | "teamRules"
   | "companies"
   | "departments"
@@ -67,6 +69,16 @@ export const NAV_ITEMS: NavItem[] = [
     key: "reconciliation",
     href: "/reconciliation",
     icon: GitMerge,
+    roles: ["finance", "it_admin", "org_admin"],
+    section: "data",
+  },
+  {
+    key: "budgets",
+    href: "/team/budgets",
+    icon: Wallet,
+    // Lectura: MANAGER_ROLES estándar. La escritura (crear/editar/borrar
+    // bolsas) queda más restringida (finance/org_admin) dentro de la propia
+    // página y a nivel de RPC — ver docs/DECISIONS.md.
     roles: ["finance", "it_admin", "org_admin"],
     section: "data",
   },

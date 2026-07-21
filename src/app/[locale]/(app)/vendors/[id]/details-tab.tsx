@@ -5,6 +5,7 @@ import { FichaField } from "@/components/ui/ficha-field";
 import { annualizedCost } from "@/features/vendors/renewal";
 import type { BillingCycle } from "@/features/vendors/types";
 import { VendorEditForm } from "./vendor-edit-form";
+import { VendorTags } from "./vendor-tags";
 
 type Vendor = {
   id: string;
@@ -14,6 +15,8 @@ type Vendor = {
   owner_user_id: string | null;
   status: string;
   notes: string | null;
+  annual_cap: number | null;
+  annual_cap_currency: string | null;
 };
 type Member = { id: string; full_name: string | null; email: string };
 
@@ -37,6 +40,8 @@ export function DetailsTab({
   primaryContract,
   editMode,
   onToggleEdit,
+  tags,
+  orgTags,
 }: {
   locale: string;
   vendor: Vendor;
@@ -46,6 +51,8 @@ export function DetailsTab({
   primaryContract: PrimaryContract;
   editMode: boolean;
   onToggleEdit: () => void;
+  tags: string[];
+  orgTags: string[];
 }) {
   const t = useTranslations("Vendors.detail");
   const tNew = useTranslations("Vendors.new");
@@ -78,7 +85,20 @@ export function DetailsTab({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FichaField label={tNew("websiteLabel")} value={vendor.website} />
         <FichaField label={tNew("categoryLabel")} value={tCategory(vendor.category)} />
+        {vendor.annual_cap != null && (
+          <FichaField
+            label={t("annualCapLabel")}
+            mono
+            value={new Intl.NumberFormat(locale, {
+              style: "currency",
+              currency: vendor.annual_cap_currency ?? "EUR",
+              maximumFractionDigits: 0,
+            }).format(vendor.annual_cap)}
+          />
+        )}
       </div>
+
+      <VendorTags vendorId={vendor.id} tags={tags} orgTags={orgTags} />
 
       {vendor.notes && (
         <FichaField label={tNew("notesLabel")} value={<span className="whitespace-pre-wrap">{vendor.notes}</span>} />

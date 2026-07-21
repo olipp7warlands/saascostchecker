@@ -6,15 +6,19 @@ import { getCurrentUserProfile } from "@/features/auth/session";
 import { routing } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
 import { VendorRow, type VendorRowData } from "./vendor-row";
+import { VendorTagFilter } from "./vendor-tag-filter";
 
 const MANAGER_ROLES = ["finance", "it_admin", "org_admin"];
 
 export default async function VendorsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ tag?: string }>;
 }) {
   const { locale } = await params;
+  const { tag: activeTag } = await searchParams;
   if (!hasLocale(routing.locales, locale)) {
     notFound();
   }
@@ -28,7 +32,7 @@ export default async function VendorsPage({
   }
 
   const supabase = await createClient();
-  const [{ data: vendors }, { data: members }] = await Promise.all([
+  const [{ data: vendors }, { data: members }, { data: tagRows }] = await Promise.all([
     supabase
       .from("vendors")
       .select(
@@ -36,11 +40,18 @@ export default async function VendorsPage({
       )
       .order("name", { ascending: true }),
     supabase.from("users").select("id, full_name, email").order("full_name", { ascending: true }),
+    supabase.from("vendor_tags").select("vendor_id, tag").order("tag", { ascending: true }),
   ]);
 
   const membersById = new Map((members ?? []).map((member) => [member.id, member]));
+  const orgTags = [...new Set((tagRows ?? []).map((row) => row.tag))].sort();
+  const vendorIdsWithTag = activeTag
+    ? new Set((tagRows ?? []).filter((row) => row.tag === activeTag).map((row) => row.vendor_id))
+    : null;
 
-  const rows: VendorRowData[] = (vendors ?? []).map((vendor) => {
+  const rows: VendorRowData[] = (vendors ?? [])
+    .filter((vendor) => !vendorIdsWithTag || vendorIdsWithTag.has(vendor.id))
+    .map((vendor) => {
     const activeContracts = (vendor.contracts ?? [])
       .filter((contract) => contract.status === "active")
       .sort((a, b) => (a.start_date < b.start_date ? 1 : -1));
@@ -77,12 +88,15 @@ export default async function VendorsPage({
         <h1 className="font-disp text-2xl font-semibold tracking-tight text-ink sm:text-[26px]">
           {t("title")}
         </h1>
-        <a
-          href={`/${locale}/vendors/new`}
-          className="inline-flex h-9 items-center rounded-btn bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-[#2A2E30]"
-        >
-          {t("addButton")}
-        </a>
+        <div className="flex items-center gap-2">
+          <VendorTagFilter tags={orgTags} />
+          <a
+            href={`/${locale}/vendors/new`}
+            className="inline-flex h-9 items-center rounded-btn bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-[#2A2E30]"
+          >
+            {t("addButton")}
+          </a>
+        </div>
       </div>
 
       {rows.length === 0 ? (

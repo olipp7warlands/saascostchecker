@@ -4,15 +4,18 @@ import { redirect } from "next/navigation";
 import type { ActionResult } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import {
+  addVendorTagSchema,
   assignSeatSchema,
   cancelContractSchema,
   createContractSchema,
   createVendorWithContractSchema,
+  removeVendorTagSchema,
   renegotiateContractSchema,
   setContractSnoozeSchema,
   setSeatActiveSchema,
   unassignSeatSchema,
   updateContractSchema,
+  updateVendorAnnualCapSchema,
   updateVendorSchema,
 } from "./schemas";
 
@@ -413,6 +416,64 @@ export async function cancelContract(input: unknown): Promise<ActionResult> {
     p_org_currency: data.orgCurrency,
     p_closed_at: data.closedAt,
     p_notes: data.notes,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true };
+}
+
+export async function addVendorTag(input: unknown): Promise<ActionResult> {
+  const parsed = addVendorTagSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: firstIssueMessage(parsed.error) };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("add_vendor_tag", {
+    p_vendor_id: parsed.data.vendorId,
+    p_tag: parsed.data.tag,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true };
+}
+
+export async function removeVendorTag(input: unknown): Promise<ActionResult> {
+  const parsed = removeVendorTagSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: firstIssueMessage(parsed.error) };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("remove_vendor_tag", {
+    p_vendor_id: parsed.data.vendorId,
+    p_tag: parsed.data.tag,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true };
+}
+
+export async function updateVendorAnnualCap(input: unknown): Promise<ActionResult> {
+  const parsed = updateVendorAnnualCapSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: firstIssueMessage(parsed.error) };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("update_vendor_annual_cap", {
+    p_vendor_id: parsed.data.vendorId,
+    p_annual_cap: parsed.data.annualCap,
+    p_annual_cap_currency: parsed.data.annualCapCurrency,
   });
 
   if (error) {

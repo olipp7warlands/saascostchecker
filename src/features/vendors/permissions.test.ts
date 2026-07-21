@@ -613,3 +613,112 @@ describe("Permisos de seat_assignments (bloque 1.4)", () => {
     }
   });
 });
+
+describe("Permisos de vendor_tags (bloque nuevo: tags + presupuestos)", () => {
+  let admin: TestTenant;
+  let manager: TestTenant;
+  let finance: TestTenant;
+  let itAdmin: TestTenant;
+  let employee: TestTenant;
+  let otherOrgAdmin: TestTenant;
+
+  beforeAll(async () => {
+    admin = await signUpOrg("tag-admin");
+
+    [manager, finance, itAdmin, employee] = await Promise.all([
+      inviteAndAccept(admin, "manager", "tag-manager"),
+      inviteAndAccept(admin, "finance", "tag-finance"),
+      inviteAndAccept(admin, "it_admin", "tag-itadmin"),
+      inviteAndAccept(admin, "employee", "tag-employee"),
+    ]);
+
+    otherOrgAdmin = await signUpOrg("tag-other");
+  });
+
+  it.each([
+    ["finance", () => finance],
+    ["it_admin", () => itAdmin],
+    ["org_admin", () => admin],
+  ])("%s puede añadir y quitar un tag de un vendor", async (_role, getTenant) => {
+    const { vendorId } = await createVendor(admin, `Tagged ${randomSuffix()}`);
+
+    const { error: addError } = await getTenant().client.rpc("add_vendor_tag", {
+      p_vendor_id: vendorId,
+      p_tag: "crm",
+    });
+    expect(addError).toBeNull();
+
+    const { data: tags } = await admin.client
+      .from("vendor_tags")
+      .select("tag")
+      .eq("vendor_id", vendorId);
+    expect(tags).toEqual([{ tag: "crm" }]);
+
+    const { error: removeError } = await getTenant().client.rpc("remove_vendor_tag", {
+      p_vendor_id: vendorId,
+      p_tag: "crm",
+    });
+    expect(removeError).toBeNull();
+
+    const { data: tagsAfter } = await admin.client
+      .from("vendor_tags")
+      .select("tag")
+      .eq("vendor_id", vendorId);
+    expect(tagsAfter).toEqual([]);
+  });
+
+  it.each([
+    ["manager", () => manager],
+    ["employee", () => employee],
+  ])("%s NO puede añadir un tag a un vendor", async (_role, getTenant) => {
+    const { vendorId } = await createVendor(admin, `Blocked tag ${randomSuffix()}`);
+
+    const { error } = await getTenant().client.rpc("add_vendor_tag", {
+      p_vendor_id: vendorId,
+      p_tag: "blocked",
+    });
+    expect(error).not.toBeNull();
+    expect(error?.message).toMatch(/insufficient privileges/i);
+  });
+
+  it("normaliza el tag a minúsculas/sin espacios y es idempotente (no duplica)", async () => {
+    const { vendorId } = await createVendor(admin, `Normalize ${randomSuffix()}`);
+
+    await finance.client.rpc("add_vendor_tag", { p_vendor_id: vendorId, p_tag: "  Marketing  " });
+    await finance.client.rpc("add_vendor_tag", { p_vendor_id: vendorId, p_tag: "marketing" });
+
+    const { data: tags } = await admin.client
+      .from("vendor_tags")
+      .select("tag")
+      .eq("vendor_id", vendorId);
+    expect(tags).toEqual([{ tag: "marketing" }]);
+  });
+
+  it("finance/it_admin/org_admin leen los tags de su org; manager/employee no ven ninguna fila", async () => {
+    const { vendorId } = await createVendor(admin, `Read ${randomSuffix()}`);
+    await admin.client.rpc("add_vendor_tag", { p_vendor_id: vendorId, p_tag: "design" });
+
+    for (const tenant of [finance, itAdmin, admin]) {
+      const { data, error } = await tenant.client.from("vendor_tags").select("tag").eq("vendor_id", vendorId);
+      expect(error).toBeNull();
+      expect(data).toHaveLength(1);
+    }
+
+    for (const tenant of [manager, employee]) {
+      const { data, error } = await tenant.client.from("vendor_tags").select("tag").eq("vendor_id", vendorId);
+      expect(error).toBeNull();
+      expect(data).toHaveLength(0);
+    }
+  });
+
+  it("un org_admin no puede etiquetar un vendor de otra org", async () => {
+    const { vendorId: otherVendorId } = await createVendor(otherOrgAdmin, `OrgB ${randomSuffix()}`);
+
+    const { error } = await admin.client.rpc("add_vendor_tag", {
+      p_vendor_id: otherVendorId,
+      p_tag: "hijack",
+    });
+    expect(error).not.toBeNull();
+    expect(error?.message).toMatch(/vendor not found/i);
+  });
+});

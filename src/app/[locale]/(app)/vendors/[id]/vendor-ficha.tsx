@@ -23,6 +23,8 @@ type Vendor = {
   owner_user_id: string | null;
   status: string;
   notes: string | null;
+  annual_cap: number | null;
+  annual_cap_currency: string | null;
 };
 type Contract = {
   id: string;
@@ -58,6 +60,8 @@ export function VendorFicha({
   orgCurrency,
   rates,
   vendorSavingsTotal,
+  tags,
+  orgTags,
 }: {
   locale: string;
   vendor: Vendor;
@@ -70,6 +74,8 @@ export function VendorFicha({
   orgCurrency: string;
   rates: ExchangeRate[];
   vendorSavingsTotal: number;
+  tags: string[];
+  orgTags: string[];
 }) {
   const t = useTranslations("Vendors.detail");
   const [activeTab, setActiveTab] = useState("details");
@@ -191,6 +197,8 @@ export function VendorFicha({
               }
               editMode={vendorEditMode}
               onToggleEdit={() => setVendorEditMode((mode) => !mode)}
+              tags={tags}
+              orgTags={orgTags}
             />
           </TabsPanel>
 

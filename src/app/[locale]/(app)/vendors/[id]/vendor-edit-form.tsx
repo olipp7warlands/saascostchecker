@@ -8,7 +8,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CATALOG_CATEGORIES } from "@/features/catalog/types";
-import { deleteVendor, updateVendor } from "@/features/vendors/actions";
+import { deleteVendor, updateVendor, updateVendorAnnualCap } from "@/features/vendors/actions";
 
 type Vendor = {
   id: string;
@@ -18,6 +18,8 @@ type Vendor = {
   owner_user_id: string | null;
   status: string;
   notes: string | null;
+  annual_cap: number | null;
+  annual_cap_currency: string | null;
 };
 type Member = { id: string; full_name: string | null; email: string };
 
@@ -45,17 +47,26 @@ export function VendorEditForm({
   function handleSave(formData: FormData) {
     setError(null);
     startTransition(async () => {
-      const result = await updateVendor({
-        vendorId: vendor.id,
-        name: formData.get("name"),
-        website: formData.get("website"),
-        category: formData.get("category"),
-        ownerUserId: formData.get("ownerUserId"),
-        status: formData.get("status"),
-        notes: formData.get("notes"),
-      });
+      const [result, capResult] = await Promise.all([
+        updateVendor({
+          vendorId: vendor.id,
+          name: formData.get("name"),
+          website: formData.get("website"),
+          category: formData.get("category"),
+          ownerUserId: formData.get("ownerUserId"),
+          status: formData.get("status"),
+          notes: formData.get("notes"),
+        }),
+        updateVendorAnnualCap({
+          vendorId: vendor.id,
+          annualCap: formData.get("annualCap"),
+          annualCapCurrency: formData.get("annualCapCurrency"),
+        }),
+      ]);
       if (result && "error" in result) {
         setError(result.error || tGeneric("errorGeneric"));
+      } else if (capResult && "error" in capResult) {
+        setError(capResult.error || tGeneric("errorGeneric"));
       } else {
         router.refresh();
       }
@@ -125,6 +136,29 @@ export function VendorEditForm({
           <option value="inactive">{t("status.inactive")}</option>
           <option value="trial">{t("status.trial")}</option>
         </select>
+      </div>
+
+      <div className="flex gap-2">
+        <div className="flex flex-1 flex-col gap-1.5">
+          <Label htmlFor="annualCap">{t("annualCapLabel")}</Label>
+          <Input
+            id="annualCap"
+            name="annualCap"
+            type="number"
+            min={0}
+            step="0.01"
+            defaultValue={vendor.annual_cap ?? ""}
+          />
+        </div>
+        <div className="flex w-24 flex-col gap-1.5">
+          <Label htmlFor="annualCapCurrency">{tNew("currencyLabel")}</Label>
+          <Input
+            id="annualCapCurrency"
+            name="annualCapCurrency"
+            maxLength={3}
+            defaultValue={vendor.annual_cap_currency ?? ""}
+          />
+        </div>
       </div>
 
       <div className="flex flex-col gap-1.5">

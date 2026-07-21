@@ -271,7 +271,8 @@
       "companies": "Empresas",
       "departments": "Departamentos",
       "notificationSettings": "Notificaciones",
-      "comingSoon": "Pronto"
+      "comingSoon": "Pronto",
+      "budgets": "Presupuestos"
     },
     "userMenu": {
       "open": "Menú de usuario",
@@ -375,6 +376,15 @@
         "suggestion": "¿{name}?",
         "note": "{count} movimientos sin vendor asignado.",
         "viewAll": "Revisar la cola completa →"
+      },
+      "budgetSummary": {
+        "label": "Presupuesto",
+        "pct": "{pct}% consumido",
+        "tone": {
+          "stable": "Estable",
+          "upcoming": "Próximo",
+          "critical": "Crítico"
+        }
       }
     }
   },
@@ -572,7 +582,17 @@
       "activeBadge": "Activo",
       "historicalBadge": "Histórico",
       "close": "Cerrar",
-      "notesPlaceholder": "Añade contexto de negociación, condiciones acordadas o cualquier nota relevante sobre este vendor."
+      "notesPlaceholder": "Añade contexto de negociación, condiciones acordadas o cualquier nota relevante sobre este vendor.",
+      "annualCapLabel": "Cap anual"
+    },
+    "tags": {
+      "label": "Tags",
+      "addPlaceholder": "Añadir tag…",
+      "remove": "Quitar tag {tag}"
+    },
+    "tagFilter": {
+      "label": "Filtrar por tag",
+      "all": "Todos los tags"
     }
   },
   "Renewals": {
@@ -673,5 +693,41 @@
     "cancel": "Cancelar",
     "linkExistingPlaceholder": "Vincular a un vendor existente…",
     "linkExisting": "Vincular"
+  },
+  "Budgets": {
+    "crumb": "Presupuestos",
+    "title": "Presupuestos",
+    "forbidden": "No tienes acceso a esta sección",
+    "listTitle": "Bolsas de presupuesto",
+    "empty": "Todavía no hay gasto ni presupuesto registrado para este año",
+    "createTitle": "Nueva bolsa de presupuesto",
+    "createHint": "Empresa, departamento o ambos — al menos uno es obligatorio.",
+    "companyLabel": "Empresa",
+    "allCompanies": "Todas las empresas",
+    "departmentLabel": "Departamento",
+    "allDepartments": "Todos los departamentos",
+    "fiscalYearLabel": "Año fiscal",
+    "amountLabel": "Importe",
+    "currencyLabel": "Moneda",
+    "create": "Crear bolsa",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "save": "Guardar",
+    "confirmDeleteTitle": "Eliminar bolsa de presupuesto",
+    "confirmDelete": "¿Seguro que quieres eliminar esta bolsa de presupuesto?",
+    "noBudgetForScope": "Sin presupuesto asignado",
+    "projected": "Proyección fin de año: {amount}",
+    "vendorBreakdown": "Ver {count} vendors que consumen esta bolsa",
+    "scope": {
+      "both": "{company} · {department}",
+      "departmentAllCompanies": "{department} — todas las empresas",
+      "companyAllDepartments": "{company} — todos los departamentos",
+      "unassigned": "Sin departamento ni empresa asignados"
+    },
+    "tone": {
+      "stable": "Estable",
+      "upcoming": "Próximo",
+      "critical": "Crítico"
+    }
   }
 }
