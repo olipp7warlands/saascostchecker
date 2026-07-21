@@ -1,6 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { AppLogo } from "@/components/catalog/app-logo";
 import type { RenewalTicket } from "@/features/dashboard/types";
+import { buildContractPath } from "@/features/renewals/send-notifications";
+import { TONE_CLASSES, TONE_TEXT_CLASSES } from "@/features/vendors/renewal-tone-classes";
 import { cn } from "@/lib/utils";
 
 const WINDOW_DAYS = 120;
@@ -11,18 +13,6 @@ const TICKS = [
   { days: 90, label: "90d" },
   { days: 120, label: "120d" },
 ];
-
-const TONE_CLASSES = {
-  red: "border-destructive bg-danger-soft",
-  amber: "border-warning bg-warning-soft",
-  neutral: "border-line bg-surface",
-} as const;
-
-const TONE_TEXT_CLASSES = {
-  red: "text-destructive",
-  amber: "text-warning",
-  neutral: "text-ink-soft",
-} as const;
 
 export async function RenewalTrack({
   tickets,
@@ -70,7 +60,7 @@ export async function RenewalTrack({
               return (
                 <a
                   key={ticket.contractId}
-                  href={`/${locale}/vendors/${ticket.vendorId}#contract-${ticket.contractId}`}
+                  href={buildContractPath(locale, ticket.vendorId, ticket.contractId)}
                   className={cn(
                     "absolute min-w-[118px] -translate-x-1/2 rounded-[7px] border px-2.5 py-1.5 shadow-sm",
                     TONE_CLASSES[ticket.tone],

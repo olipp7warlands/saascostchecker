@@ -547,6 +547,34 @@
       "notesPlaceholder": "Add negotiation context, agreed terms, or any other relevant notes about this vendor."
     }
   },
+  "Renewals": {
+    "crumb": "Renewals",
+    "title": "Renewals calendar",
+    "forbidden": "You don't have permission to view this page.",
+    "filters": {
+      "companyAll": "All companies",
+      "departmentAll": "All departments",
+      "hideNoAutoRenew": "Hide non auto-renewing"
+    },
+    "nav": {
+      "today": "Today",
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month"
+    },
+    "calendar": {
+      "moreCount": "+{count} more",
+      "empty": "No renewals this month"
+    },
+    "agenda": {
+      "title": "Monthly renewals agenda",
+      "empty": "No renewals this month"
+    },
+    "marker": {
+      "daysRemaining": "{vendor} — {days} days",
+      "overdue": "{vendor} — overdue by {days} days",
+      "informational": "{vendor} — renews on {date}"
+    }
+  },
   "SpendImport": {
     "crumb": "Data",
     "title": "Spend import",

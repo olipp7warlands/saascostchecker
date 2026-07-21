@@ -547,6 +547,34 @@
       "notesPlaceholder": "Añade contexto de negociación, condiciones acordadas o cualquier nota relevante sobre este vendor."
     }
   },
+  "Renewals": {
+    "crumb": "Renovaciones",
+    "title": "Calendario de renovaciones",
+    "forbidden": "No tienes permisos para ver esta página.",
+    "filters": {
+      "companyAll": "Todas las empresas",
+      "departmentAll": "Todos los departamentos",
+      "hideNoAutoRenew": "Ocultar sin auto-renovación"
+    },
+    "nav": {
+      "today": "Hoy",
+      "prevMonth": "Mes anterior",
+      "nextMonth": "Mes siguiente"
+    },
+    "calendar": {
+      "moreCount": "+{count} más",
+      "empty": "No hay renovaciones este mes"
+    },
+    "agenda": {
+      "title": "Agenda de renovaciones del mes",
+      "empty": "No hay renovaciones este mes"
+    },
+    "marker": {
+      "daysRemaining": "{vendor} — {days} días",
+      "overdue": "{vendor} — vencido hace {days} días",
+      "informational": "{vendor} — renovación el {date}"
+    }
+  },
   "SpendImport": {
     "crumb": "Datos",
     "title": "Import de gasto",

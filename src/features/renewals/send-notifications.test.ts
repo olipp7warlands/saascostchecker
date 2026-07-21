@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildContractDeepLink,
+  buildContractPath,
   buildTeamsAdaptiveCard,
   escapeHtml,
   renderRenewalAlertEmail,
@@ -26,6 +27,14 @@ describe("escapeHtml", () => {
   it("escapa < > & \" ' para evitar inyección de HTML desde datos de negocio", () => {
     expect(escapeHtml(`<script>&"'</script>`)).toBe(
       "&lt;script&gt;&amp;&quot;&#39;&lt;/script&gt;",
+    );
+  });
+});
+
+describe("buildContractPath", () => {
+  it("devuelve el path relativo con el ancla #contract-{id}, sin origen", () => {
+    expect(buildContractPath("es", "vendor-1", "contract-1")).toBe(
+      "/es/vendors/vendor-1#contract-contract-1",
     );
   });
 });

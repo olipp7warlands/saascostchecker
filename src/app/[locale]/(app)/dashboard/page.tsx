@@ -9,10 +9,9 @@ import {
   buildRenewalTrack,
   buildStackStatus,
 } from "@/features/dashboard/aggregate";
+import { fetchDashboardContracts } from "@/features/dashboard/fetch-contracts";
 import { buildMonthlySpendSeries } from "@/features/dashboard/monthly-spend";
 import type {
-  DashboardContract,
-  DashboardVendor,
   ExchangeRate,
   MonthlySpendRow,
   ReconciliationPreviewRow,
@@ -52,17 +51,13 @@ export default async function DashboardPage({
 
   const supabase = await createClient();
   const [
-    { data: vendorRows },
+    { vendors, contracts },
     { data: rateRows },
     { data: queueRows, count: pendingCount },
     { data: org },
     { data: monthlySpendRows },
   ] = await Promise.all([
-    supabase
-      .from("vendors")
-      .select(
-        "id, name, website, status, owner_user_id, contracts(id, cost_amount, currency, billing_cycle, seats_purchased, renewal_date, auto_renews, cancellation_notice_days, status, department_id, departments(name), company_id, companies(name), seat_assignments(id, last_seen_active_at))",
-      ),
+    fetchDashboardContracts(supabase),
     supabase.from("exchange_rates").select("base_currency, quote_currency, rate"),
     supabase
       .from("reconciliation_queue")
@@ -83,42 +78,6 @@ export default async function DashboardPage({
     quoteCurrency: row.quote_currency,
     rate: Number(row.rate),
   }));
-
-  const vendors: DashboardVendor[] = (vendorRows ?? []).map((vendor) => ({
-    id: vendor.id,
-    status: vendor.status,
-    ownerUserId: vendor.owner_user_id,
-  }));
-
-  const contracts: DashboardContract[] = (vendorRows ?? []).flatMap((vendor) =>
-    (vendor.contracts ?? []).map((contract) => {
-      const department = Array.isArray(contract.departments)
-        ? contract.departments[0]
-        : contract.departments;
-      const company = Array.isArray(contract.companies) ? contract.companies[0] : contract.companies;
-      return {
-        id: contract.id,
-        vendorId: vendor.id,
-        vendorName: vendor.name,
-        vendorWebsite: vendor.website,
-        costAmount: Number(contract.cost_amount),
-        currency: contract.currency,
-        billingCycle: contract.billing_cycle,
-        seatsPurchased: contract.seats_purchased,
-        activeSeats: (contract.seat_assignments ?? []).filter(
-          (seat) => seat.last_seen_active_at !== null,
-        ).length,
-        renewalDate: contract.renewal_date,
-        autoRenews: contract.auto_renews,
-        cancellationNoticeDays: contract.cancellation_notice_days,
-        status: contract.status,
-        departmentId: contract.department_id,
-        departmentName: department?.name ?? null,
-        companyId: contract.company_id,
-        companyName: company?.name ?? null,
-      };
-    }),
-  );
 
   const queue: ReconciliationPreviewRow[] = (queueRows ?? []).map((item) => {
     const spendRecord = Array.isArray(item.spend_records) ? item.spend_records[0] : item.spend_records;

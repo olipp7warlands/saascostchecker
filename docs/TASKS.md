@@ -84,9 +84,10 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 - ✅ Aceptación: alerta de prueba llega a email y Teams con deep-link al contrato — verificado con datos reales: secretos de Vault y env vars de Railway creados, pasada real del cron con 200 en logs de Railway, alerta de prueba entregada a email y Teams con deep-link aterrizando en la pestaña Contratos (ver docs/DECISIONS.md)
 
 ### 2.3 Calendario de renovaciones
-- [ ] Vista lista/calendario (mockup pantalla 3), snooze, estados renegociado/cancelado
+- [x] Vista calendario (mockup pantalla 3, alcance acotado con el usuario — ver `docs/DECISIONS.md`)
+- [ ] Snooze, estados renegociado/cancelado
 - [ ] Registro de ahorro conseguido por renegociación
-- ✅ Aceptación: KPI "ahorro conseguido" agrega los cierres del año
+- ✅ Aceptación: KPI "ahorro conseguido" agrega los cierres del año (pendiente — falta snooze/renegociado/ahorro)
 
 ## FASE 3 — Procurement
 

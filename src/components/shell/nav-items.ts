@@ -50,7 +50,7 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     key: "renewals",
-    href: null,
+    href: "/renewals",
     icon: RefreshCw,
     roles: ["finance", "it_admin", "org_admin"],
     bottomNav: true,
