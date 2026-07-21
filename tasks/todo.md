@@ -252,4 +252,8 @@ Plan: aprobado tras exploración con 3 agentes en paralelo + 2 preguntas explíc
 - [x] `docs/TASKS.md` §2.3: checkbox de aceptación marcado completo (calendario + snooze/renegociado/
   cancelado + registro de ahorro, las 3 piezas pendientes cerradas). `docs/DECISIONS.md` con la entrada
   completa.
-- [ ] Commit(s) + push a `main`, verificar producción con `curl`.
+- [x] Commit `25f1431` pusheado a `main`. Producción verificada tras el rollout de Railway: `/es`, `/en`,
+  `/es/login`, `/es/signup` → 200; `/es/renewals`, `/es/dashboard`, `/es/vendors` → 307 (redirección a
+  login para no autenticados, confirma que las rutas están vivas y no dan 500).
+- [x] **Bloque 2.3 CERRADO por completo** (calendario + 2.3b) — checkbox de aceptación en
+  `docs/TASKS.md` §2.3 marcado, sin pendientes.
