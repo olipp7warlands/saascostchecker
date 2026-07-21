@@ -37,8 +37,11 @@ test.describe("Tags por vendor (bloque nuevo: tags + presupuestos)", () => {
     });
     expect(signUpError).toBeNull();
 
-    const taggedVendorName = `Tagged Vendor ${suffix}`;
-    const untaggedVendorName = `Untagged Vendor ${suffix}`;
+    // Nombres sin solapamiento de substring entre sí (a diferencia de
+    // "Tagged"/"Untagged": getByRole({name}) hace match por substring
+    // case-insensitive por defecto, y "tagged" ES substring de "untagged").
+    const taggedVendorName = `Vendor With Tag ${suffix}`;
+    const untaggedVendorName = `Vendor No Tag ${suffix}`;
     const tag = `procurement-${suffix}`;
 
     const { data: taggedVendorId, error: taggedVendorError } = await setupClient.rpc(

@@ -146,7 +146,9 @@ test.describe("Presupuestos por bolsa (bloque nuevo: tags + presupuestos)", () =
     await expect(bucket.getByText("150 € / 100 €", { exact: true })).toBeVisible();
 
     // Resumen discreto del dashboard también refleja el peor semáforo.
+    // Regex más específica que "Presupuesto" a secas: el nav lateral tiene
+    // un link "Presupuestos" (plural) que también matchearía por substring.
     await page.goto("/es/dashboard");
-    await expect(page.getByRole("link", { name: /Presupuesto/ })).toContainText("Crítico");
+    await expect(page.getByRole("link", { name: /% consumido/ })).toContainText("Crítico");
   });
 });
