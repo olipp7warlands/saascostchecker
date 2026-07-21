@@ -208,3 +208,48 @@ además extraer `getResendClient()`, en `docs/DECISIONS.md` (2026-07-21).
 - [x] Commit `b2796fa` pusheado a `main`. Producción verificada tras el rollout de Railway (~6 polls):
   `/es`, `/en`, `/es/login`, `/es/signup` → 200; `/es/renewals` y `/es/dashboard` → 307 (mismo
   comportamiento de redirección a login para no autenticados, confirma que la ruta está viva y no da 500).
+
+# Bloque 2.3b — Snooze, renegociado/cancelado, registro de ahorro — todo
+
+Plan: aprobado tras exploración con 3 agentes en paralelo + 2 preguntas explícitas al usuario (bug de
+`notifications`/`update_contract`, ambas respondidas "sí, la recomendada"). Detalle completo en
+`docs/DECISIONS.md` (2026-07-21, dos entradas: deuda de deep-link.ts + bloque 2.3b completo).
+
+## Checklist
+- [x] Deuda previa de 2.3 cerrada primero: `buildContractPath` extraído a
+  `src/features/renewals/deep-link.ts` (sin dependencias), `send-notifications.ts`/`renewal-track.tsx`/
+  calendario migrados. Commit `7ba48bd` propio, pusheado y verificado en producción antes de empezar el
+  diseño de 2.3b.
+- [x] Migración `0018_renewal_actions.sql`: `contracts.snoozed_until`, tabla `savings_records` + RLS,
+  `update_contract()` (limpia `notifications` al cambiar `renewal_date`, rechaza `p_status='cancelled'`),
+  `evaluate_renewal_alerts()` (respeta `snoozed_until`), RPCs nuevos `set_contract_snooze()`/
+  `renegotiate_contract()`/`cancel_contract()` — `supabase db push` aplicado al remoto.
+- [x] `src/features/vendors/savings.ts` (`computeSavings`, puro) + `savings.test.ts` (5 tests)
+- [x] `src/features/dashboard/aggregate.ts`: `buildSavingsYtd()` + tests en `aggregate.test.ts`
+- [x] Server actions `setContractSnooze`/`renegotiateContract`/`cancelContract` + schemas Zod en
+  `src/features/vendors/actions.ts`/`schemas.ts`
+- [x] UI: `contract-list.tsx` (kebab con posponer 7/14/30 días o quitar snooze, marcar renegociado,
+  marcar cancelado, badge de snooze), `renegotiate-dialog.tsx`/`cancel-contract-dialog.tsx` (nuevos,
+  ahorro sugerido en vivo y editable), `vendor-rail.tsx` (tarjeta de ahorro histórico), `kpi-cards.tsx`
+  (5º KPI "Ahorro conseguido"), `contract-fields.tsx` (status "Cancelado" ya no seleccionable, solo
+  lectura si ya está cancelado)
+- [x] i18n es/en completo (kebab, ambos diálogos, badge, KPI, tarjeta de la ficha)
+- [x] Tests: `src/features/renewals/renewal-actions.test.ts` (nuevo, 9 casos: snooze suprime/permite
+  alertas, regresión del bug de `notifications` vía `update_contract` Y `renegotiate_contract`,
+  `update_contract` rechaza cancelación directa, savings_records correcto tras renegociar/cancelar,
+  snooze/unsnooze, rol `employee` rechazado en los 3 RPCs nuevos); `e2e/renewals.spec.ts` actualizado
+  (`cancelContract()` usa el RPC nuevo); `e2e/contract-actions.spec.ts` nuevo (renegociar vía UI real,
+  KPI + tarjeta de ahorro reflejando el cambio)
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` en verde (mismos suites de Supabase local
+  fallando como siempre, incluida la nueva `renewal-actions.test.ts` — se verificará vía CI)
+- [x] Verificación visual autenticada completa (seed vía service-role con `email_confirm:true`,
+  autorización explícita del usuario, borrado completo — 0 filas huérfanas en las 8 tablas): posponer
+  14 días + quitar snooze confirmados (badge, kebab cambia de opciones); renegociar 1200€→900€
+  confirmado con recomputo en vivo del ahorro (300€), reflejado en la tarjeta de la ficha y en el KPI
+  del dashboard; cancelar confirmado (histórico, excluido de `/renewals`, tarjeta de ahorro 800€,
+  primario contextual cambia a "+ Añadir contrato"); formulario genérico confirmado mostrando
+  "Cancelado" de solo lectura para un contrato ya cancelado, sin romper el guardado de otros campos.
+- [x] `docs/TASKS.md` §2.3: checkbox de aceptación marcado completo (calendario + snooze/renegociado/
+  cancelado + registro de ahorro, las 3 piezas pendientes cerradas). `docs/DECISIONS.md` con la entrada
+  completa.
+- [ ] Commit(s) + push a `main`, verificar producción con `curl`.

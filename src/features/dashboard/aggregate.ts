@@ -16,6 +16,7 @@ import type {
   DepartmentSpendRow,
   ExchangeRate,
   RenewalTicket,
+  SavingsRecord,
   StackStatusSummary,
 } from "./types";
 
@@ -262,4 +263,17 @@ export function buildStackStatus(
   }
 
   return summary;
+}
+
+// Suma de savings_records.savings_amount cerrados dentro de `year` — ya están
+// en la moneda de la org (guardados así en el momento de capturar, ver
+// docs/DECISIONS.md), así que no hace falta convertAmount aquí, a diferencia
+// del resto de agregados de este archivo.
+export function buildSavingsYtd(
+  records: Pick<SavingsRecord, "savingsAmount" | "closedAt">[],
+  year: number,
+): number {
+  return records
+    .filter((record) => Number(record.closedAt.slice(0, 4)) === year)
+    .reduce((sum, record) => sum + record.savingsAmount, 0);
 }

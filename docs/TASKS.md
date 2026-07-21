@@ -85,9 +85,9 @@ Regla: un bloque por sesión. No empezar un bloque si el anterior no pasa lint +
 
 ### 2.3 Calendario de renovaciones
 - [x] Vista calendario (mockup pantalla 3, alcance acotado con el usuario — ver `docs/DECISIONS.md`)
-- [ ] Snooze, estados renegociado/cancelado
-- [ ] Registro de ahorro conseguido por renegociación
-- ✅ Aceptación: KPI "ahorro conseguido" agrega los cierres del año (pendiente — falta snooze/renegociado/ahorro)
+- [x] Snooze, estados renegociado/cancelado (bloque 2.3b — ver `docs/DECISIONS.md`)
+- [x] Registro de ahorro conseguido por renegociación (`savings_records`, bloque 2.3b)
+- ✅ Aceptación: KPI "ahorro conseguido" agrega los cierres del año — completo y verificado
 
 ## FASE 3 — Procurement
 

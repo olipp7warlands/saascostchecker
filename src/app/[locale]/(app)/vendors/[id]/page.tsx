@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/shell/breadcrumbs";
 import { getCurrentUserProfile } from "@/features/auth/session";
+import type { ExchangeRate } from "@/features/dashboard/types";
 import { routing } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
 import type { SeatRow } from "./contract-seats";
@@ -35,6 +36,9 @@ export default async function VendorDetailPage({
     { data: members },
     { data: departments },
     { data: companies },
+    { data: org },
+    { data: rateRows },
+    { data: savingsRows },
   ] = await Promise.all([
     supabase.from("vendors").select("*").eq("id", id).single(),
     supabase
@@ -45,9 +49,22 @@ export default async function VendorDetailPage({
     supabase.from("users").select("id, full_name, email").order("full_name", { ascending: true }),
     supabase.from("departments").select("id, name").order("name", { ascending: true }),
     supabase.from("companies").select("id, name").order("name", { ascending: true }),
+    supabase.from("organizations").select("default_currency").eq("id", profile.orgId).single(),
+    supabase.from("exchange_rates").select("base_currency, quote_currency, rate"),
+    supabase.from("savings_records").select("savings_amount").eq("vendor_id", id),
   ]);
 
   const canManageOrgDimensions = profile.role === "org_admin";
+  const orgCurrency = org?.default_currency ?? "EUR";
+  const rates: ExchangeRate[] = (rateRows ?? []).map((row) => ({
+    baseCurrency: row.base_currency,
+    quoteCurrency: row.quote_currency,
+    rate: Number(row.rate),
+  }));
+  const vendorSavingsTotal = (savingsRows ?? []).reduce(
+    (sum, row) => sum + Number(row.savings_amount),
+    0,
+  );
 
   if (!vendor) {
     notFound();
@@ -91,6 +108,9 @@ export default async function VendorDetailPage({
           companies={companies ?? []}
           seatsByContract={seatsByContract}
           canManageOrgDimensions={canManageOrgDimensions}
+          orgCurrency={orgCurrency}
+          rates={rates}
+          vendorSavingsTotal={vendorSavingsTotal}
         />
       </div>
     </div>

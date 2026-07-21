@@ -121,3 +121,14 @@ export type ReconciliationPreviewRow = {
   rawDescription: string;
   suggestedName: string | null;
 };
+
+// Fila de savings_records ya en la moneda de la org (guardada así en el
+// momento de capturar el ahorro, no reconvertida al leer — ver docs/DECISIONS.md).
+export type SavingsRecord = {
+  id: string;
+  vendorId: string | null;
+  vendorName: string;
+  kind: "renegotiated" | "cancelled";
+  savingsAmount: number;
+  closedAt: string; // "YYYY-MM-DD"
+};

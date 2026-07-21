@@ -4,9 +4,10 @@ import {
   buildDepartmentSpend,
   buildKpis,
   buildRenewalTrack,
+  buildSavingsYtd,
   buildStackStatus,
 } from "./aggregate";
-import type { DashboardContract, DashboardVendor } from "./types";
+import type { DashboardContract, DashboardVendor, SavingsRecord } from "./types";
 
 const TODAY = new Date(2026, 6, 10); // 10 jul 2026
 
@@ -286,5 +287,41 @@ describe("buildStackStatus", () => {
 
   it("clasifica cada vendor activo por la urgencia de su contrato más próximo", () => {
     expect(summary).toEqual({ critical: 1, upcoming: 1, stable: 1, noContract: 2, total: 5 });
+  });
+});
+
+describe("buildSavingsYtd", () => {
+  function savingsRecord(overrides: Partial<SavingsRecord>): SavingsRecord {
+    return {
+      id: "s1",
+      vendorId: "v1",
+      vendorName: "Vendor",
+      kind: "renegotiated",
+      savingsAmount: 100,
+      closedAt: "2026-03-01",
+      ...overrides,
+    };
+  }
+
+  it("suma solo los registros cerrados dentro del año pedido", () => {
+    const records = [
+      savingsRecord({ id: "s1", savingsAmount: 100, closedAt: "2026-01-15" }),
+      savingsRecord({ id: "s2", savingsAmount: 50, closedAt: "2026-12-31" }),
+      savingsRecord({ id: "s3", savingsAmount: 9999, closedAt: "2025-12-31" }),
+      savingsRecord({ id: "s4", savingsAmount: 9999, closedAt: "2027-01-01" }),
+    ];
+    expect(buildSavingsYtd(records, 2026)).toBe(150);
+  });
+
+  it("incluye ahorros negativos (renegociaciones que salieron peor) en la suma", () => {
+    const records = [
+      savingsRecord({ savingsAmount: 300, closedAt: "2026-02-01" }),
+      savingsRecord({ savingsAmount: -50, closedAt: "2026-06-01" }),
+    ];
+    expect(buildSavingsYtd(records, 2026)).toBe(250);
+  });
+
+  it("devuelve 0 sin registros", () => {
+    expect(buildSavingsYtd([], 2026)).toBe(0);
   });
 });

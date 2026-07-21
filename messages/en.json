@@ -309,6 +309,10 @@
         "renewals90": {
           "label": "Renewals · 90 days",
           "sub": "{count} in the next 30 days"
+        },
+        "savingsYtd": {
+          "label": "Savings achieved",
+          "sub": "{year} closings"
         }
       },
       "runway": {
@@ -521,6 +525,29 @@
       "edit": "Edit",
       "renegotiate": "Renegotiate",
       "actions": "Actions",
+      "snoozeFor": "Snooze {days} days",
+      "unsnooze": "Remove snooze",
+      "snoozedBadge": "Snoozed until {date}",
+      "markRenegotiated": "Mark renegotiated",
+      "markCancelled": "Mark cancelled",
+      "renegotiateDialog": {
+        "title": "Mark renegotiated",
+        "description": "Record the new contract terms and the savings achieved.",
+        "savingsAmountLabel": "Annual savings achieved",
+        "suggestedSavingsHint": "Suggested from the previous annual cost vs. the new one — editable.",
+        "closedAtLabel": "Closing date",
+        "notesLabel": "Notes (optional)",
+        "submit": "Save renegotiation"
+      },
+      "cancelDialog": {
+        "title": "Mark cancelled",
+        "description": "The contract becomes cancelled and stops generating renewal alerts.",
+        "savingsAmountLabel": "Annual savings achieved",
+        "suggestedSavingsHint": "Defaults to the full annual cost of the contract — editable.",
+        "closedAtLabel": "Effective date",
+        "notesLabel": "Notes (optional)",
+        "submit": "Confirm cancellation"
+      },
       "tabs": {
         "details": "Details",
         "contracts": "Contracts",
@@ -531,6 +558,7 @@
       "rail": {
         "renewalTitle": "Renewal",
         "annualSpendTitle": "Annual spend",
+        "savingsTitle": "Savings achieved",
         "autoRenews": "Auto-renews",
         "noAutoRenew": "Doesn't auto-renew",
         "noticeDays": "{days} days' notice",

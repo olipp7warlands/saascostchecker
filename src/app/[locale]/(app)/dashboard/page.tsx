@@ -7,6 +7,7 @@ import {
   buildDepartmentSpend,
   buildKpis,
   buildRenewalTrack,
+  buildSavingsYtd,
   buildStackStatus,
 } from "@/features/dashboard/aggregate";
 import { fetchDashboardContracts } from "@/features/dashboard/fetch-contracts";
@@ -49,6 +50,8 @@ export default async function DashboardPage({
     return <p className="text-sm text-ink-soft">{t("forbidden")}</p>;
   }
 
+  const currentYear = new Date().getFullYear();
+
   const supabase = await createClient();
   const [
     { vendors, contracts },
@@ -56,6 +59,7 @@ export default async function DashboardPage({
     { data: queueRows, count: pendingCount },
     { data: org },
     { data: monthlySpendRows },
+    { data: savingsRows },
   ] = await Promise.all([
     fetchDashboardContracts(supabase),
     supabase.from("exchange_rates").select("base_currency, quote_currency, rate"),
@@ -70,6 +74,11 @@ export default async function DashboardPage({
       .limit(RECONCILIATION_PREVIEW_LIMIT),
     supabase.from("organizations").select("default_currency").eq("id", profile.orgId).single(),
     supabase.rpc("dashboard_monthly_spend", { p_months: MONTHLY_SPEND_WINDOW }),
+    supabase
+      .from("savings_records")
+      .select("savings_amount, closed_at")
+      .gte("closed_at", `${currentYear}-01-01`)
+      .lt("closed_at", `${currentYear + 1}-01-01`),
   ]);
 
   const orgCurrency = org?.default_currency ?? "EUR";
@@ -93,6 +102,10 @@ export default async function DashboardPage({
   });
 
   const kpis = buildKpis(contracts, vendors, orgCurrency, rates);
+  const savingsYtd = buildSavingsYtd(
+    (savingsRows ?? []).map((row) => ({ savingsAmount: Number(row.savings_amount), closedAt: row.closed_at })),
+    currentYear,
+  );
   const tickets = buildRenewalTrack(contracts);
   const stackStatus = buildStackStatus(vendors, contracts);
 
@@ -142,7 +155,7 @@ export default async function DashboardPage({
         {t("greeting", { name: profile.fullName ?? profile.orgName })}
       </p>
 
-      <KpiCards kpis={kpis} locale={locale} orgCurrency={orgCurrency} />
+      <KpiCards kpis={kpis} locale={locale} orgCurrency={orgCurrency} savingsYtd={savingsYtd} />
       <RenewalTrack tickets={tickets} locale={locale} />
 
       <div className="mt-6 grid grid-cols-1 gap-3.5 lg:grid-cols-[1fr_1.6fr]">

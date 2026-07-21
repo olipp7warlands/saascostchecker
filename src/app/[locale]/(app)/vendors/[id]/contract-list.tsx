@@ -7,12 +7,20 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { KebabMenu } from "@/components/ui/kebab-menu";
 import { Pill, type PillTone } from "@/components/ui/pill";
-import { createContract, deleteContract, getContractDocumentUrl } from "@/features/vendors/actions";
+import type { ExchangeRate } from "@/features/dashboard/types";
+import {
+  createContract,
+  deleteContract,
+  getContractDocumentUrl,
+  setContractSnooze,
+} from "@/features/vendors/actions";
 import { annualizedCost, daysUntil, renewalTone } from "@/features/vendors/renewal";
 import type { BillingCycle } from "@/features/vendors/types";
 import { ContractFields } from "../contract-fields";
+import { CancelContractDialog } from "./cancel-contract-dialog";
 import { ContractRow } from "./contract-row";
 import type { SeatRow } from "./contract-seats";
+import { RenegotiateDialog } from "./renegotiate-dialog";
 
 type Contract = {
   id: string;
@@ -29,9 +37,24 @@ type Contract = {
   status: string;
   department_id: string | null;
   company_id: string | null;
+  snoozed_until: string | null;
 };
 type Member = { id: string; full_name: string | null; email: string };
 type Department = { id: string; name: string };
+
+const SNOOZE_DURATIONS = [7, 14, 30] as const;
+
+function addDaysIso(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function isSnoozed(contract: Contract, today: Date = new Date()): boolean {
+  if (!contract.snoozed_until) return false;
+  const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  return contract.snoozed_until >= todayIso;
+}
 
 const RENEWAL_TONE_MAP: Record<string, PillTone> = { red: "red", amber: "amber", neutral: "neutral" };
 const STATUS_TONE_MAP: Record<string, PillTone> = { active: "green", cancelled: "neutral" };
@@ -47,6 +70,8 @@ export function ContractList({
   companies,
   canManageOrgDimensions,
   locale,
+  orgCurrency,
+  rates,
   initialOpenPanel = null,
 }: {
   vendorId: string;
@@ -57,6 +82,8 @@ export function ContractList({
   companies: Department[];
   canManageOrgDimensions: boolean;
   locale: string;
+  orgCurrency: string;
+  rates: ExchangeRate[];
   initialOpenPanel?: OpenPanel;
 }) {
   const t = useTranslations("Vendors.detail");
@@ -70,7 +97,18 @@ export function ContractList({
   const [pendingPanel, setPendingPanel] = useState<OpenPanel>(null);
   const [contractPendingDelete, setContractPendingDelete] = useState<Contract | null>(null);
   const [documentError, setDocumentError] = useState<string | null>(null);
+  const [contractPendingRenegotiate, setContractPendingRenegotiate] = useState<Contract | null>(null);
+  const [contractPendingCancel, setContractPendingCancel] = useState<Contract | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  function handleSnooze(contractId: string, snoozedUntil: string | null) {
+    startTransition(async () => {
+      const result = await setContractSnooze({ contractId, snoozedUntil });
+      if (!result || !("error" in result)) {
+        router.refresh();
+      }
+    });
+  }
 
   function requestOpen(next: OpenPanel) {
     if (openPanel !== null && dirty) {
@@ -209,6 +247,13 @@ export function ContractList({
                 {daysUntil(contract.renewal_date)}d
               </Pill>
             )}
+            {contract.status === "active" && isSnoozed(contract) && (
+              <Pill tone="neutral">
+                {t("snoozedBadge", {
+                  date: dateFormatter.format(new Date(`${contract.snoozed_until}T00:00:00`)),
+                })}
+              </Pill>
+            )}
             <Pill tone={STATUS_TONE_MAP[contract.status] ?? "neutral"}>
               {contract.status === "active" ? t("activeBadge") : t("historicalBadge")}
             </Pill>
@@ -222,6 +267,27 @@ export function ContractList({
                   onClick: () => handleViewDocument(contract.id),
                   disabled: !contract.document_url,
                 },
+                ...(contract.status === "active"
+                  ? isSnoozed(contract)
+                    ? [{ label: t("unsnooze"), onClick: () => handleSnooze(contract.id, null) }]
+                    : SNOOZE_DURATIONS.map((days) => ({
+                        label: t("snoozeFor", { days }),
+                        onClick: () => handleSnooze(contract.id, addDaysIso(days)),
+                      }))
+                  : []),
+                ...(contract.status === "active"
+                  ? [
+                      {
+                        label: t("markRenegotiated"),
+                        onClick: () => setContractPendingRenegotiate(contract),
+                      },
+                      {
+                        label: t("markCancelled"),
+                        onClick: () => setContractPendingCancel(contract),
+                        destructive: true,
+                      },
+                    ]
+                  : []),
                 {
                   label: t("deleteContract"),
                   onClick: () => setContractPendingDelete(contract),
@@ -287,6 +353,49 @@ export function ContractList({
         cancelLabel={tGeneric("cancel")}
         onConfirm={confirmDiscard}
       />
+
+      {contractPendingRenegotiate && (
+        <RenegotiateDialog
+          open={contractPendingRenegotiate != null}
+          onOpenChange={(open) => {
+            if (!open) setContractPendingRenegotiate(null);
+          }}
+          contract={{
+            id: contractPendingRenegotiate.id,
+            costAmount: contractPendingRenegotiate.cost_amount,
+            currency: contractPendingRenegotiate.currency,
+            billingCycle: contractPendingRenegotiate.billing_cycle,
+            renewalDate: contractPendingRenegotiate.renewal_date,
+          }}
+          orgCurrency={orgCurrency}
+          rates={rates}
+          onSuccess={() => {
+            setContractPendingRenegotiate(null);
+            router.refresh();
+          }}
+        />
+      )}
+
+      {contractPendingCancel && (
+        <CancelContractDialog
+          open={contractPendingCancel != null}
+          onOpenChange={(open) => {
+            if (!open) setContractPendingCancel(null);
+          }}
+          contract={{
+            id: contractPendingCancel.id,
+            costAmount: contractPendingCancel.cost_amount,
+            currency: contractPendingCancel.currency,
+            billingCycle: contractPendingCancel.billing_cycle,
+          }}
+          orgCurrency={orgCurrency}
+          rates={rates}
+          onSuccess={() => {
+            setContractPendingCancel(null);
+            router.refresh();
+          }}
+        />
+      )}
     </div>
   );
 }

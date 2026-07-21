@@ -86,6 +86,46 @@ export const setSeatActiveSchema = z.object({
   active: z.boolean(),
 });
 
+const notesSchema = z.preprocess(
+  (value) => (value === "" || value === null || value === undefined ? null : value),
+  z.string().trim().max(2000).nullable(),
+);
+
+export const setContractSnoozeSchema = z.object({
+  contractId: z.string().uuid(),
+  snoozedUntil: z.preprocess(
+    (value) => (value === "" || value === null || value === undefined ? null : value),
+    z.string().trim().min(1).nullable(),
+  ),
+});
+
+// previousAnnualCost/newAnnualCost/savingsAmount ya calculados en TypeScript
+// (computeSavings()) y editables por el usuario antes de enviar — savings
+// puede ser negativo (renegociación que sale peor), los costes anuales no.
+export const renegotiateContractSchema = z.object({
+  contractId: z.string().uuid(),
+  newCostAmount: z.coerce.number().min(0),
+  newCurrency: currencySchema,
+  newBillingCycle: billingCycleSchema,
+  newRenewalDate: z.string().trim().min(1),
+  previousAnnualCost: z.coerce.number().min(0),
+  newAnnualCost: z.coerce.number().min(0),
+  savingsAmount: z.coerce.number(),
+  orgCurrency: currencySchema,
+  closedAt: z.string().trim().min(1),
+  notes: notesSchema,
+});
+
+export const cancelContractSchema = z.object({
+  contractId: z.string().uuid(),
+  previousAnnualCost: z.coerce.number().min(0),
+  newAnnualCost: z.coerce.number().min(0),
+  savingsAmount: z.coerce.number(),
+  orgCurrency: currencySchema,
+  closedAt: z.string().trim().min(1),
+  notes: notesSchema,
+});
+
 export type CreateVendorWithContractInput = z.infer<typeof createVendorWithContractSchema>;
 export type UpdateVendorInput = z.infer<typeof updateVendorSchema>;
 export type CreateContractInput = z.infer<typeof createContractSchema>;
@@ -93,3 +133,6 @@ export type UpdateContractInput = z.infer<typeof updateContractSchema>;
 export type AssignSeatInput = z.infer<typeof assignSeatSchema>;
 export type UnassignSeatInput = z.infer<typeof unassignSeatSchema>;
 export type SetSeatActiveInput = z.infer<typeof setSeatActiveSchema>;
+export type SetContractSnoozeInput = z.infer<typeof setContractSnoozeSchema>;
+export type RenegotiateContractInput = z.infer<typeof renegotiateContractSchema>;
+export type CancelContractInput = z.infer<typeof cancelContractSchema>;

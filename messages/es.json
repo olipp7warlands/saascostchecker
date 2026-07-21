@@ -309,6 +309,10 @@
         "renewals90": {
           "label": "Renovaciones · 90 días",
           "sub": "{count} en los próximos 30 días"
+        },
+        "savingsYtd": {
+          "label": "Ahorro conseguido",
+          "sub": "Cierres de {year}"
         }
       },
       "runway": {
@@ -521,6 +525,29 @@
       "edit": "Editar",
       "renegotiate": "Renegociar",
       "actions": "Acciones",
+      "snoozeFor": "Posponer {days} días",
+      "unsnooze": "Quitar snooze",
+      "snoozedBadge": "Pospuesto hasta {date}",
+      "markRenegotiated": "Marcar renegociado",
+      "markCancelled": "Marcar cancelado",
+      "renegotiateDialog": {
+        "title": "Marcar renegociado",
+        "description": "Registra los nuevos términos del contrato y el ahorro conseguido.",
+        "savingsAmountLabel": "Ahorro anual conseguido",
+        "suggestedSavingsHint": "Sugerido a partir del coste anual anterior vs. el nuevo — editable.",
+        "closedAtLabel": "Fecha de cierre",
+        "notesLabel": "Notas (opcional)",
+        "submit": "Guardar renegociación"
+      },
+      "cancelDialog": {
+        "title": "Marcar cancelado",
+        "description": "El contrato pasa a cancelado y deja de generar alertas de renovación.",
+        "savingsAmountLabel": "Ahorro anual conseguido",
+        "suggestedSavingsHint": "Por defecto, el coste anual completo del contrato — editable.",
+        "closedAtLabel": "Fecha efectiva",
+        "notesLabel": "Notas (opcional)",
+        "submit": "Confirmar cancelación"
+      },
       "tabs": {
         "details": "Detalles",
         "contracts": "Contratos",
@@ -531,6 +558,7 @@
       "rail": {
         "renewalTitle": "Renovación",
         "annualSpendTitle": "Gasto anual",
+        "savingsTitle": "Ahorro conseguido",
         "autoRenews": "Auto-renueva",
         "noAutoRenew": "No auto-renueva",
         "noticeDays": "{days} días de preaviso",

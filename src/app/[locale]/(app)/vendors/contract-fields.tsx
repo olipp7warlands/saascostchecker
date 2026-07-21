@@ -187,15 +187,32 @@ export function ContractFields({
         {includeStatus && (
           <div className="flex flex-col gap-1.5">
             <Label htmlFor={`${idPrefix}-status`}>{tDetail("statusLabel")}</Label>
-            <Select name="status" defaultValue={d.status ?? "active"}>
-              <SelectTrigger id={`${idPrefix}-status`}>
-                <SelectValue>{(current: string) => contractStatusLabels[current] ?? current}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">{tDetail("contractStatus.active")}</SelectItem>
-                <SelectItem value="cancelled">{tDetail("contractStatus.cancelled")}</SelectItem>
-              </SelectContent>
-            </Select>
+            {d.status === "cancelled" ? (
+              // "cancelled" no es seleccionable desde este formulario genérico
+              // — toda cancelación pasa por "Marcar cancelado" (kebab de
+              // ContractList), que captura el ahorro conseguido.
+              // update_contract() además rechaza p_status='cancelled'
+              // server-side. Un contrato ya cancelado se muestra de solo
+              // lectura aquí (con hidden input para no romper el envío del
+              // resto del formulario), en vez de un Select deshabilitado cuyo
+              // comportamiento de FormData con un componente base-ui no está
+              // garantizado.
+              <>
+                <input type="hidden" name="status" value="cancelled" />
+                <p className="flex h-8 items-center text-sm text-ink-soft">
+                  {tDetail("contractStatus.cancelled")}
+                </p>
+              </>
+            ) : (
+              <Select name="status" defaultValue="active">
+                <SelectTrigger id={`${idPrefix}-status`}>
+                  <SelectValue>{(current: string) => contractStatusLabels[current] ?? current}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">{tDetail("contractStatus.active")}</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
         )}
       </fieldset>

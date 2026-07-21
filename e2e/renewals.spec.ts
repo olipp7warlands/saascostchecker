@@ -90,22 +90,19 @@ async function createVendorWithContract(admin: Tenant, params: ContractParams) {
   return { vendorId: vendorId as string, contractId: contractId as string };
 }
 
-async function cancelContract(admin: Tenant, contractId: string, params: ContractParams) {
-  const { error } = await admin.client.rpc("update_contract", {
+// Bloque 2.3b bloqueó update_contract(p_status='cancelled') — toda
+// cancelación pasa por cancel_contract(), que además captura ahorro. Aquí
+// solo se siembran datos de prueba para el calendario, así que el ahorro es
+// sintético (no es lo que se está probando en este archivo).
+async function cancelContract(admin: Tenant, contractId: string) {
+  const { error } = await admin.client.rpc("cancel_contract", {
     p_contract_id: contractId,
-    p_name: `${params.vendorName} contract`,
-    p_cost_amount: 100,
-    p_currency: "EUR",
-    p_billing_cycle: "annual",
-    p_seats_purchased: null,
-    p_start_date: isoInNextMonth(1),
-    p_renewal_date: params.renewalDate,
-    p_auto_renews: params.autoRenews,
-    p_cancellation_notice_days: params.cancellationNoticeDays,
-    p_document_url: null,
-    p_status: "cancelled",
-    p_department_id: null,
-    p_company_id: params.companyId,
+    p_previous_annual_cost: 100,
+    p_new_annual_cost: 0,
+    p_savings_amount: 100,
+    p_org_currency: "EUR",
+    p_closed_at: isoInNextMonth(1),
+    p_notes: null,
   });
   if (error) throw error;
 }
@@ -167,7 +164,7 @@ test.describe("Calendario de renovaciones (bloque 2.3)", () => {
       companyId: null,
     };
     const { contractId: cancelledContractId } = await createVendorWithContract(admin, cancelled);
-    await cancelContract(admin, cancelledContractId, cancelled);
+    await cancelContract(admin, cancelledContractId);
 
     // --- Login real y navegación a /renewals ---
     await page.goto("/es/login");

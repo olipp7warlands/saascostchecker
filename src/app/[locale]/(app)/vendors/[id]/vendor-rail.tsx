@@ -15,12 +15,32 @@ type PrimaryContract = {
 export function VendorRail({
   contract,
   locale,
+  orgCurrency,
+  savingsTotal,
 }: {
   contract: PrimaryContract;
   locale: string;
+  orgCurrency: string;
+  savingsTotal: number;
 }) {
   const t = useTranslations("Vendors.detail");
   const tBilling = useTranslations("Vendors.new");
+
+  const savingsFormatter = new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: orgCurrency,
+    maximumFractionDigits: 0,
+  });
+
+  const savingsCard =
+    savingsTotal !== 0 ? (
+      <div className="rounded-lg border border-line bg-surface p-4">
+        <h3 className="mb-3 text-sm font-semibold text-ink">{t("rail.savingsTitle")}</h3>
+        <p className={`num text-2xl font-semibold ${savingsTotal < 0 ? "text-destructive" : "text-ink"}`}>
+          {savingsFormatter.format(savingsTotal)}
+        </p>
+      </div>
+    ) : null;
 
   if (!contract) {
     return (
@@ -29,6 +49,7 @@ export function VendorRail({
           <h3 className="mb-3 text-sm font-semibold text-ink">{t("rail.renewalTitle")}</h3>
           <p className="text-sm text-ink-soft">{t("rail.noActiveContract")}</p>
         </div>
+        {savingsCard}
       </div>
     );
   }
@@ -84,6 +105,8 @@ export function VendorRail({
           {currencyFormatter.format(annualizedCost(contract.costAmount, contract.billingCycle))}
         </p>
       </div>
+
+      {savingsCard}
     </div>
   );
 }

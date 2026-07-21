@@ -26,10 +26,12 @@ export async function KpiCards({
   kpis,
   locale,
   orgCurrency,
+  savingsYtd,
 }: {
   kpis: DashboardKpis;
   locale: string;
   orgCurrency: string;
+  savingsYtd: number;
 }) {
   const t = await getTranslations("Shell.dashboard.kpis");
   const currencyFormatter = new Intl.NumberFormat(locale, {
@@ -39,7 +41,7 @@ export async function KpiCards({
   });
 
   return (
-    <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-5">
       <Kpi
         label={t("annualizedSpend.label")}
         value={currencyFormatter.format(kpis.annualizedSpend)}
@@ -66,6 +68,12 @@ export async function KpiCards({
         value={String(kpis.renewalsNext90)}
         sub={t("renewals90.sub", { count: kpis.renewalsNext30 })}
         warn={kpis.renewalsNext30 > 0}
+      />
+      <Kpi
+        label={t("savingsYtd.label")}
+        value={currencyFormatter.format(savingsYtd)}
+        sub={t("savingsYtd.sub", { year: new Date().getFullYear() })}
+        warn={false}
       />
     </div>
   );

@@ -5,8 +5,11 @@ import type { ActionResult } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import {
   assignSeatSchema,
+  cancelContractSchema,
   createContractSchema,
   createVendorWithContractSchema,
+  renegotiateContractSchema,
+  setContractSnoozeSchema,
   setSeatActiveSchema,
   unassignSeatSchema,
   updateContractSchema,
@@ -337,6 +340,79 @@ export async function setSeatActive(input: unknown): Promise<ActionResult> {
   const { error } = await supabase.rpc("set_seat_active", {
     p_seat_id: parsed.data.seatId,
     p_active: parsed.data.active,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true };
+}
+
+export async function setContractSnooze(input: unknown): Promise<ActionResult> {
+  const parsed = setContractSnoozeSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: firstIssueMessage(parsed.error) };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_contract_snooze", {
+    p_contract_id: parsed.data.contractId,
+    p_snoozed_until: parsed.data.snoozedUntil,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true };
+}
+
+export async function renegotiateContract(input: unknown): Promise<ActionResult> {
+  const parsed = renegotiateContractSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: firstIssueMessage(parsed.error) };
+  }
+  const data = parsed.data;
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("renegotiate_contract", {
+    p_contract_id: data.contractId,
+    p_new_cost_amount: data.newCostAmount,
+    p_new_currency: data.newCurrency,
+    p_new_billing_cycle: data.newBillingCycle,
+    p_new_renewal_date: data.newRenewalDate,
+    p_previous_annual_cost: data.previousAnnualCost,
+    p_new_annual_cost: data.newAnnualCost,
+    p_savings_amount: data.savingsAmount,
+    p_org_currency: data.orgCurrency,
+    p_closed_at: data.closedAt,
+    p_notes: data.notes,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true };
+}
+
+export async function cancelContract(input: unknown): Promise<ActionResult> {
+  const parsed = cancelContractSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: firstIssueMessage(parsed.error) };
+  }
+  const data = parsed.data;
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("cancel_contract", {
+    p_contract_id: data.contractId,
+    p_previous_annual_cost: data.previousAnnualCost,
+    p_new_annual_cost: data.newAnnualCost,
+    p_savings_amount: data.savingsAmount,
+    p_org_currency: data.orgCurrency,
+    p_closed_at: data.closedAt,
+    p_notes: data.notes,
   });
 
   if (error) {

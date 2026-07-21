@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Tabs, TabsList, TabsPanel, TabsTrigger } from "@/components/ui/tabs";
+import type { ExchangeRate } from "@/features/dashboard/types";
 import { pickPrimaryAction } from "@/features/vendors/primary-action";
 import type { BillingCycle, VendorStatus } from "@/features/vendors/types";
 import { ContractList } from "./contract-list";
@@ -38,6 +39,7 @@ type Contract = {
   status: string;
   department_id: string | null;
   company_id: string | null;
+  snoozed_until: string | null;
 };
 type Member = { id: string; full_name: string | null; email: string };
 type Department = { id: string; name: string };
@@ -53,6 +55,9 @@ export function VendorFicha({
   companies,
   seatsByContract,
   canManageOrgDimensions,
+  orgCurrency,
+  rates,
+  vendorSavingsTotal,
 }: {
   locale: string;
   vendor: Vendor;
@@ -62,6 +67,9 @@ export function VendorFicha({
   companies: Department[];
   seatsByContract: Record<string, SeatRow[]>;
   canManageOrgDimensions: boolean;
+  orgCurrency: string;
+  rates: ExchangeRate[];
+  vendorSavingsTotal: number;
 }) {
   const t = useTranslations("Vendors.detail");
   const [activeTab, setActiveTab] = useState("details");
@@ -197,6 +205,8 @@ export function VendorFicha({
               companies={companies}
               canManageOrgDimensions={canManageOrgDimensions}
               locale={locale}
+              orgCurrency={orgCurrency}
+              rates={rates}
               initialOpenPanel={contractsInitialPanel}
             />
           </TabsPanel>
@@ -230,6 +240,8 @@ export function VendorFicha({
                 }
               : null
           }
+          orgCurrency={orgCurrency}
+          savingsTotal={vendorSavingsTotal}
         />
       </div>
     </div>
