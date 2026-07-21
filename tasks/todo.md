@@ -292,22 +292,18 @@ failure hasta hoy. Objetivo: CI completamente verde, sin features nuevas.
   tanto la subfila del contrato ("900 € · Anual") como el número grande de
   VendorRail en la barra lateral (siempre visible, no depende de la pestaña
   activa). Fix: texto completo `"900 € · Anual"`.
-- [ ] `e2e/companies.spec.ts` — **REGRESIÓN REAL, pendiente de decisión del
-  usuario antes de tocar código de producción.** Ver mensaje al usuario en
-  esta conversación para el diagnóstico completo. Resumen: el rediseño de
-  tabs (`2460ace`) sustituyó la fila de contrato siempre-expandida (con
-  `<li id="contract-{id}">` y el formulario completo visible) por una fila
-  compacta en `ContractList` que NO muestra compañía/departamento del
-  contrato en ningún sitio, y que solo tiene `id="contract-{id}"` cuando el
-  contrato está en modo edición. Company/department ahora solo se ve en (a)
-  la cabecera de la ficha, para el contrato "primario" (el de renovación más
-  próxima), o (b) dentro del formulario de edición de cada contrato. Para un
-  vendor con 2+ contratos activos en compañías distintas — el caso que el
-  soporte multi-empresa fue construido para resolver — ya no hay forma de
-  distinguir a simple vista qué contrato pertenece a qué compañía.
-  No confirmado como trade-off aceptado en la entrada de DECISIONS.md del
-  rediseño de tabs — parece un efecto colateral no buscado de compactar la
-  fila.
+- [x] `e2e/companies.spec.ts` — **REGRESIÓN REAL, confirmada con el usuario y
+  arreglada en producción.** El rediseño de tabs (`2460ace`) sustituyó la fila
+  de contrato siempre-expandida (con `<li id="contract-{id}">` y el
+  formulario completo visible) por una fila compacta en `ContractList` que no
+  mostraba compañía/departamento del contrato en ningún sitio, y que solo
+  tenía `id="contract-{id}"` cuando el contrato estaba en modo edición.
+  Usuario eligió restaurar el dato (no solo ajustar el test). Fix en
+  `contract-list.tsx`: la fila compacta añade `· {compañía}` / `·
+  {departamento}` (cada uno en su propio `<span>`), y recupera
+  `id="contract-{id}"` también en modo vista — efecto colateral positivo: el
+  deep-link `#contract-{id}` ya no depende de que el contrato esté en edición
+  para hacer scroll. Test actualizado a `[id^="contract-"]` (ya no `li`).
 
 ## 3. Notificaciones de CI
 - Confirmado vía `gh api notifications`: SÍ existen 22 notificaciones
@@ -324,9 +320,12 @@ failure hasta hoy. Objetivo: CI completamente verde, sin features nuevas.
   usuario revise la bandeja de GitHub.
 
 ## Estado de gates
-- `pnpm lint && pnpm typecheck` — verde localmente tras los fixes de arriba.
-- `pnpm test`/e2e completos: no ejecutables en esta máquina (sin Docker/Supabase
-  local) — se verifican empujando y revisando el run de CI, como siempre en
-  este proyecto.
-- Nada pusheado todavía — esperando decisión del usuario sobre companies.spec.ts
-  antes de cerrar la sesión y actualizar DECISIONS.md.
+- `pnpm lint && pnpm typecheck && pnpm build` — verde localmente.
+- `pnpm test` local: mismos 9 suites de siempre fallando por `ECONNREFUSED`
+  (sin Supabase local en esta máquina), 0 fallos nuevos.
+- Commit `966e116` pusheado a `main`. **CI run 29842286530: verde en ambos
+  jobs (Lint/typecheck/unit tests + Playwright e2e)** — primera vez desde
+  `2460ace` (2026-07-16). Producción verificada tras el rollout de Railway:
+  `/es`, `/es/login` → 200; `/es/dashboard`, `/es/vendors` → 307 (redirección
+  a login, confirma rutas vivas sin 500).
+- **Sesión CERRADA: CI completamente verde en `main`.**
