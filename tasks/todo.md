@@ -205,4 +205,6 @@ además extraer `getResendClient()`, en `docs/DECISIONS.md` (2026-07-21).
     igual en `/dashboard` sin ningún cambio de esta sesión, así que no lo introduje; no se toca aquí.
   - Limpieza verificada: script de borrado por `org_id` (vendors/contracts/companies/departments/users/
     organizations + `auth.admin.deleteUser`) con recuento posterior a 0 en las 6 tablas.
-- [ ] Commit + push a `main`, verificar producción con `curl` en `/es/renewals`
+- [x] Commit `b2796fa` pusheado a `main`. Producción verificada tras el rollout de Railway (~6 polls):
+  `/es`, `/en`, `/es/login`, `/es/signup` → 200; `/es/renewals` y `/es/dashboard` → 307 (mismo
+  comportamiento de redirección a login para no autenticados, confirma que la ruta está viva y no da 500).
