@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { DashboardContract } from "@/features/dashboard/types";
 import { buildCalendarMonth, type CalendarDay, type CalendarMarker } from "@/features/renewals/calendar";
-import { buildContractPath } from "@/features/renewals/send-notifications";
+import { buildContractPath } from "@/features/renewals/deep-link";
 import { daysUntil } from "@/features/vendors/renewal";
 import { TONE_CLASSES } from "@/features/vendors/renewal-tone-classes";
 import { cn } from "@/lib/utils";

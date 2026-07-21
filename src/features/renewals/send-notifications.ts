@@ -1,13 +1,14 @@
 import { Resend } from "resend";
+import { buildContractPath } from "./deep-link";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://saascostchecker-production.up.railway.app";
 
 // Instanciado bajo demanda dentro de sendRenewalAlertEmail (no a nivel de
-// módulo): buildContractPath, usado por este archivo, ahora también se
-// importa desde el calendario de renovaciones, un Client Component — un
-// `new Resend(...)` a nivel de módulo se ejecutaría igualmente en el bundle
-// de cliente aunque solo se use esa función, y `process.env.RESEND_API_KEY`
-// (sin prefijo NEXT_PUBLIC_) no existe en el navegador.
+// módulo): este archivo es server-only (SDK de Resend, plantillas de
+// email/Teams), pero mantener el cliente fuera del top-level evita repetir
+// el error que forzó a extraer deep-link.ts — cualquier import futuro desde
+// un Client Component arrastraría `process.env.RESEND_API_KEY` (sin prefijo
+// NEXT_PUBLIC_, inexistente en el navegador) si viviera a nivel de módulo.
 function getResendClient(): Resend | null {
   const apiKey = process.env.RESEND_API_KEY;
   return apiKey ? new Resend(apiKey) : null;
@@ -29,13 +30,6 @@ export function escapeHtml(value: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
-}
-
-// Único sitio que define el formato del path de un contrato — reusado por
-// buildContractDeepLink (emails/Teams, absoluto), renewal-track.tsx (pista
-// del dashboard) y el calendario de renovaciones (bloque 2.3).
-export function buildContractPath(locale: string, vendorId: string, contractId: string): string {
-  return `/${locale}/vendors/${vendorId}#contract-${contractId}`;
 }
 
 export function buildContractDeepLink(locale: "es" | "en", vendorId: string, contractId: string): string {

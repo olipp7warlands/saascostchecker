@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { AppLogo } from "@/components/catalog/app-logo";
 import type { RenewalTicket } from "@/features/dashboard/types";
-import { buildContractPath } from "@/features/renewals/send-notifications";
+import { buildContractPath } from "@/features/renewals/deep-link";
 import { TONE_CLASSES, TONE_TEXT_CLASSES } from "@/features/vendors/renewal-tone-classes";
 import { cn } from "@/lib/utils";
 
