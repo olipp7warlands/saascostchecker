@@ -52,7 +52,11 @@ export default async function ImportPage({
         <p className="mt-6 text-sm text-ink-soft">{t("empty")}</p>
       ) : (
         <div className="mt-6 rounded-xl border border-line bg-surface">
-          <div className="overflow-x-auto">
+          {/* contain-layout: evita que el layout automático de esta tabla
+              (min-w fija, columnas dimensionadas por contenido) ensanche el
+              viewport móvil entero — ver vendors/page.tsx para el
+              diagnóstico completo. */}
+          <div className="overflow-x-auto contain-layout">
             <table className="w-full min-w-[720px] border-collapse">
               <thead>
                 <tr>

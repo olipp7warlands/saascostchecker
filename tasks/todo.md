@@ -328,4 +328,71 @@ failure hasta hoy. Objetivo: CI completamente verde, sin features nuevas.
   `2460ace` (2026-07-16). Producción verificada tras el rollout de Railway:
   `/es`, `/es/login` → 200; `/es/dashboard`, `/es/vendors` → 307 (redirección
   a login, confirma rutas vivas sin 500).
+
+# Sesión de fixes de móvil — 2026-07-22
+
+Bugs reales en Android físico (ficha de vendor). Ver `docs/DECISIONS.md`
+(entrada del mismo día) para el diagnóstico completo. Resumen:
+
+## 1. Overflow horizontal — causa raíz real distinta de la hipótesis inicial
+- [x] Faltaba `<meta name="viewport">` en toda la app — añadido
+  (`src/app/[locale]/layout.tsx`, `export const viewport`). Necesario pero
+  NO suficiente por sí solo para el bug de `/vendors`.
+- [x] Causa real de `/vendors`: tabla auto-layout + `min-w-[720px]` +
+  `overflow-x-auto` SIN `contain-layout` — Chromium móvil ensancha el
+  viewport de toda la página aunque el `overflow-x-auto` ya contenga la
+  tabla visualmente. Confirmado en vivo con Playwright + `devices["Galaxy
+  S8"]` antes de tocar código (`window.innerWidth` 859→360 solo con
+  `contain-layout`). Aplicado a `vendors/page.tsx` (bug real confirmado) +
+  preventivamente a `reconciliation-table.tsx`/`import/page.tsx`/
+  `import-wizard.tsx` (mismo patrón exacto). `renewals-calendar.tsx` ya usa
+  `table-fixed` y se confirmó limpio, sin tocar (impacto mínimo).
+- [x] Causa real del bug reportado (ficha de vendor): `TabsList`
+  (`src/components/ui/tabs.tsx`) sin `overflow-x-auto` — 5 tabs en español
+  desbordaban los ~328px disponibles a 360px. Fix: tabs scrollables
+  horizontalmente, scrollbar oculta.
+- [x] Segundo bug real encontrado en la misma auditoría: `contract-list.tsx`
+  con contrato activo+pospuesto+compañía (3 pills+kebab) comprimía el
+  nombre/coste a casi 0px de ancho. Fix: fila apila en móvil
+  (`flex-col sm:flex-row`, mismo patrón que `vendor-header.tsx`),
+  pills+kebab en su propio grupo `flex-wrap`.
+- [x] Auditadas dashboard/vendors/ficha de vendor (Detalles+Contratos)/
+  renovaciones/team-budgets a 360px con Playwright + emulación de
+  dispositivo real (Galaxy S8) — las 5 confirmadas sin overflow tras los
+  fixes.
+
+## 2. Bottom nav completo — diseño aprobado antes de implementar
+- [x] Propuesta presentada al usuario (2 opciones: mantener las 4 fijas
+  actuales incluida "Solicitudes" deshabilitada, vs. promocionar
+  Presupuestos). Usuario eligió mantener las 4 actuales sin cambios.
+- [x] `more-nav-sheet.tsx` (nuevo): panel inferior (Base UI Dialog anclado a
+  `fixed inset-x-0 bottom-0`, no el dialog.tsx centrado compartido) que
+  reusa `NAV_ITEMS`/`isNavItemVisible` de `nav-items.ts` sin duplicar
+  ninguna lista — mismo agrupado "Datos"/"Ajustes" que el sidebar.
+- [x] Bug real cometido y corregido durante la implementación: pasar
+  `NavItem[]` crudo (con `icon: LucideIcon`) de `BottomNav` (Server
+  Component) a `MoreNavSheet` (`"use client"`) rompía el render — mismo bug
+  de serialización RSC ya documentado en DECISIONS.md (rediseño de tabs,
+  2026-07-16). Corregido resolviendo cada item a `{icon: ReactNode, label:
+  string, ...}` server-side antes de cruzar al cliente.
+- [x] i18n es/en: `Shell.nav.more`/`moreTitle`/`moreClose`.
+
+## 3. Tests
+- [x] `e2e/mobile.spec.ts` (nuevo, 3 tests): sin overflow en las 5 páginas +
+  pestaña Contratos (caso pill cluster); bottom nav completo con "Más" para
+  `org_admin` (7 items, 2 grupos); permisos de rol — `finance` no ve la
+  sección "Ajustes" en absoluto. Los 3 flujos (RPCs + selectors exactos)
+  replicados y confirmados contra el remoto antes de confiar en el archivo,
+  ya que no es ejecutable en CI desde esta máquina.
+
+## Cierre
+- [x] Verificación visual autenticada con capturas (viewport móvil, Galaxy
+  S8): dashboard/vendors/ficha de vendor (Detalles+Contratos)/renovaciones/
+  presupuestos sin overflow; fila de contrato con compañía+pospuesto
+  legible; panel "Más" abierto con los 7 items agrupados, coherente con la
+  piel Lima quirúrgica. Datos efímeros borrados al terminar (0 filas
+  huérfanas).
+- [x] `pnpm lint && pnpm typecheck && pnpm build` verde local; `pnpm test`
+  con los mismos 9 suites de siempre fallando por `ECONNREFUSED`, 0 fallos
+  nuevos.
 - **Sesión CERRADA: CI completamente verde en `main`.**

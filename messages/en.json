@@ -272,7 +272,10 @@
       "departments": "Departments",
       "notificationSettings": "Notifications",
       "comingSoon": "Soon",
-      "budgets": "Budgets"
+      "budgets": "Budgets",
+      "more": "More",
+      "moreTitle": "More options",
+      "moreClose": "Close"
     },
     "userMenu": {
       "open": "User menu",

@@ -126,7 +126,11 @@ export function ImportWizard({ locale }: { locale: string }) {
           {t("hasHeaderLabel")}
         </label>
 
-        <div className="overflow-x-auto rounded-lg border border-line">
+        {/* contain-layout: evita que el layout automático de esta tabla
+            (min-w fija, columnas dimensionadas por contenido) ensanche el
+            viewport móvil entero — ver vendors/page.tsx para el diagnóstico
+            completo. */}
+        <div className="overflow-x-auto contain-layout rounded-lg border border-line">
           <table className="w-full min-w-[480px] border-collapse text-sm">
             <thead>
               <tr>

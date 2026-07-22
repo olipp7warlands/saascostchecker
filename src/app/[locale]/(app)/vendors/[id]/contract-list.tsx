@@ -226,8 +226,8 @@ export function ContractList({
             id={`contract-${contract.id}`}
             className={
               isHistorical
-                ? "flex items-center gap-3 rounded-lg border border-line px-4 py-3 opacity-70"
-                : "flex items-center gap-3 rounded-lg border border-line bg-surface px-4 py-3"
+                ? "flex flex-col gap-3 rounded-lg border border-line px-4 py-3 opacity-70 sm:flex-row sm:items-center"
+                : "flex flex-col gap-3 rounded-lg border border-line bg-surface px-4 py-3 sm:flex-row sm:items-center"
             }
           >
             <div className="min-w-0 flex-1">
@@ -258,60 +258,62 @@ export function ContractList({
               </p>
             </div>
 
-            {contract.status === "active" && (
-              <Pill tone={RENEWAL_TONE_MAP[renewalTone(daysUntil(contract.renewal_date))]}>
-                {dateFormatter.format(new Date(`${contract.renewal_date}T00:00:00`))} ·{" "}
-                {daysUntil(contract.renewal_date)}d
+            <div className="flex flex-wrap items-center gap-2">
+              {contract.status === "active" && (
+                <Pill tone={RENEWAL_TONE_MAP[renewalTone(daysUntil(contract.renewal_date))]}>
+                  {dateFormatter.format(new Date(`${contract.renewal_date}T00:00:00`))} ·{" "}
+                  {daysUntil(contract.renewal_date)}d
+                </Pill>
+              )}
+              {contract.status === "active" && isSnoozed(contract) && (
+                <Pill tone="neutral">
+                  {t("snoozedBadge", {
+                    date: dateFormatter.format(new Date(`${contract.snoozed_until}T00:00:00`)),
+                  })}
+                </Pill>
+              )}
+              <Pill tone={STATUS_TONE_MAP[contract.status] ?? "neutral"}>
+                {contract.status === "active" ? t("activeBadge") : t("historicalBadge")}
               </Pill>
-            )}
-            {contract.status === "active" && isSnoozed(contract) && (
-              <Pill tone="neutral">
-                {t("snoozedBadge", {
-                  date: dateFormatter.format(new Date(`${contract.snoozed_until}T00:00:00`)),
-                })}
-              </Pill>
-            )}
-            <Pill tone={STATUS_TONE_MAP[contract.status] ?? "neutral"}>
-              {contract.status === "active" ? t("activeBadge") : t("historicalBadge")}
-            </Pill>
 
-            <KebabMenu
-              label={t("actions")}
-              items={[
-                { label: t("edit"), onClick: () => requestOpen({ type: "edit", id: contract.id }) },
-                {
-                  label: t("viewDocument"),
-                  onClick: () => handleViewDocument(contract.id),
-                  disabled: !contract.document_url,
-                },
-                ...(contract.status === "active"
-                  ? isSnoozed(contract)
-                    ? [{ label: t("unsnooze"), onClick: () => handleSnooze(contract.id, null) }]
-                    : SNOOZE_DURATIONS.map((days) => ({
-                        label: t("snoozeFor", { days }),
-                        onClick: () => handleSnooze(contract.id, addDaysIso(days)),
-                      }))
-                  : []),
-                ...(contract.status === "active"
-                  ? [
-                      {
-                        label: t("markRenegotiated"),
-                        onClick: () => setContractPendingRenegotiate(contract),
-                      },
-                      {
-                        label: t("markCancelled"),
-                        onClick: () => setContractPendingCancel(contract),
-                        destructive: true,
-                      },
-                    ]
-                  : []),
-                {
-                  label: t("deleteContract"),
-                  onClick: () => setContractPendingDelete(contract),
-                  destructive: true,
-                },
-              ]}
-            />
+              <KebabMenu
+                label={t("actions")}
+                items={[
+                  { label: t("edit"), onClick: () => requestOpen({ type: "edit", id: contract.id }) },
+                  {
+                    label: t("viewDocument"),
+                    onClick: () => handleViewDocument(contract.id),
+                    disabled: !contract.document_url,
+                  },
+                  ...(contract.status === "active"
+                    ? isSnoozed(contract)
+                      ? [{ label: t("unsnooze"), onClick: () => handleSnooze(contract.id, null) }]
+                      : SNOOZE_DURATIONS.map((days) => ({
+                          label: t("snoozeFor", { days }),
+                          onClick: () => handleSnooze(contract.id, addDaysIso(days)),
+                        }))
+                    : []),
+                  ...(contract.status === "active"
+                    ? [
+                        {
+                          label: t("markRenegotiated"),
+                          onClick: () => setContractPendingRenegotiate(contract),
+                        },
+                        {
+                          label: t("markCancelled"),
+                          onClick: () => setContractPendingCancel(contract),
+                          destructive: true,
+                        },
+                      ]
+                    : []),
+                  {
+                    label: t("deleteContract"),
+                    onClick: () => setContractPendingDelete(contract),
+                    destructive: true,
+                  },
+                ]}
+              />
+            </div>
           </div>
         );
       })}

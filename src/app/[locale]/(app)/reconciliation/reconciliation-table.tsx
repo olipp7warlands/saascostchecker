@@ -165,7 +165,10 @@ export function ReconciliationTable({
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <div className="overflow-x-auto rounded-xl border border-line bg-surface">
+      {/* contain-layout: evita que el layout automático de esta tabla (min-w
+          fija, columnas dimensionadas por contenido) ensanche el viewport
+          móvil entero — ver vendors/page.tsx para el diagnóstico completo. */}
+      <div className="overflow-x-auto contain-layout rounded-xl border border-line bg-surface">
         <table className="w-full min-w-[900px] border-collapse">
           <thead>
             <tr>

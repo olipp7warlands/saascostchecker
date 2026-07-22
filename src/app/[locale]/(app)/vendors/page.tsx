@@ -103,7 +103,16 @@ export default async function VendorsPage({
         <p className="mt-6 text-sm text-ink-soft">{t("empty")}</p>
       ) : (
         <div className="mt-6 rounded-xl border border-line bg-surface">
-          <div className="overflow-x-auto">
+          {/* contain-layout: sin esto, una tabla con layout automático
+              (columnas dimensionadas por contenido) y min-width fija hace que
+              Chromium móvil ensanche el "layout viewport" de TODA la página
+              para encajarla, aunque overflow-x-auto ya la contenga
+              visualmente — confirmado con Playwright + device emulation
+              (Galaxy S8): sin contain-layout, window.innerWidth pasaba de
+              360 a 859 solo por esta tabla. contain-layout aísla el cálculo
+              de layout interno de la tabla para que no se propague al
+              tamaño del viewport. */}
+          <div className="overflow-x-auto contain-layout">
             <table className="w-full min-w-[720px] border-collapse">
               <thead>
                 <tr>
