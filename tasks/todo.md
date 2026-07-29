@@ -435,6 +435,16 @@ propio solicitante). Detalle completo de cada decisión en `docs/DECISIONS.md`
 - [x] `pnpm lint && pnpm typecheck && pnpm build` verde local; `pnpm test`
   con 10 suites requiriendo Supabase local (las 9 de siempre + el nuevo
   `permissions.test.ts` de requests), 0 fallos inesperados.
+- [x] Commit `f20d982` pusheado — CI run 30484918545 falló en Playwright
+  (`e2e/requests.spec.ts`: colisión real de texto "Pendiente" entre el
+  estado de la solicitud y el estado "upcoming" del timeline, no detectada
+  antes por usar `.isVisible()` en la réplica manual en vez del modo
+  estricto real de Playwright Test — lección guardada en memoria). Fix en
+  el commit `7d30a44` (`upcoming` → "Próximo"/"Upcoming", coherente con
+  `renewalTone()`/`budgetTone()`). **CI run 30485815528 en verde en ambos
+  jobs**, confirmado con `gh run view` directo. Producción verificada:
+  `/es`, `/es/login` → 200; `/es/dashboard`, `/es/requests` → 307.
 - [x] `docs/TASKS.md` §3.1: ambos checkboxes + aceptación marcados completos.
   `docs/DECISIONS.md` con la entrada completa (2026-07-29).
+- [x] **Bloque 3.1 cerrado en verde.**
 - **Sesión CERRADA: CI completamente verde en `main`.**
