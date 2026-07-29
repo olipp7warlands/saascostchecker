@@ -162,10 +162,16 @@ test.describe("Ciclo de aprobación de solicitudes (bloque 3.1b)", () => {
       await adminPage.getByRole("button", { name: "Rechazar" }).click();
       await adminPage.getByLabel("Motivo del rechazo").fill("Ya tenemos Confluence para esto.");
       await adminPage.getByRole("button", { name: "Rechazar solicitud" }).click();
-      await expect(adminPage.getByText("Rechazada", { exact: true })).toBeVisible();
+      // "Rechazada" aparece dos veces a propósito: el pill de estado de la
+      // solicitud y el estado del paso "Resultado" del timeline dicen
+      // literalmente lo mismo (a diferencia de la colisión pending/upcoming
+      // del bloque 3.1, aquí ambos SON el mismo concepto) — se toma el
+      // primero (pill de estado, antes en el DOM que el timeline) en vez de
+      // renombrar ninguno de los dos.
+      await expect(adminPage.getByText("Rechazada", { exact: true }).first()).toBeVisible();
 
       await employeePage.reload();
-      await expect(employeePage.getByText("Rechazada", { exact: true })).toBeVisible();
+      await expect(employeePage.getByText("Rechazada", { exact: true }).first()).toBeVisible();
       await expect(employeePage.getByText("Ya tenemos Confluence para esto.")).toBeVisible();
     } finally {
       await employeeContext.close();
