@@ -102,9 +102,9 @@ Fuera de la numeración de fases (ni SPECS.md ni este roadmap lo cubrían). Cier
 ## FASE 3 — Procurement
 
 ### 3.1 Solicitudes
-- [ ] Migración: `purchase_requests`
-- [ ] Formulario self-service con autocompletado del catálogo y timeline de estados
-- ✅ Aceptación: empleado crea y consulta sus solicitudes; nunca las de otros (RLS test)
+- [x] Migración: `purchase_requests`
+- [x] Formulario self-service con autocompletado del catálogo y timeline de estados
+- ✅ Aceptación: empleado crea y consulta sus solicitudes; nunca las de otros (RLS test) — verificado en `src/features/requests/permissions.test.ts` y replicado contra el remoto (ver docs/DECISIONS.md)
 
 ### 3.2 Motor de aprobaciones (SPECS §6 completo)
 - [ ] Migraciones: `approval_rules`, `approval_actions`, `approval_delegations`

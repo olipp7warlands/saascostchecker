@@ -598,6 +598,63 @@
       "all": "All tags"
     }
   },
+  "Requests": {
+    "crumb": "Procurement",
+    "title": "Requests",
+    "addButton": "+ New request",
+    "empty": "You haven't created any requests yet",
+    "table": {
+      "vendor": "Tool",
+      "cost": "Estimated annual cost",
+      "department": "Department",
+      "status": "Status",
+      "created": "Created"
+    },
+    "status": {
+      "draft": "Draft",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "purchased": "Purchased"
+    },
+    "new": {
+      "title": "New request",
+      "vendorSection": "Tool",
+      "selectedFrom": "From the catalog",
+      "customBadge": "Not in the catalog",
+      "changeSelection": "Change",
+      "costLabel": "Estimated annual cost",
+      "currencyLabel": "Currency",
+      "departmentLabel": "Department",
+      "noDepartmentOption": "No department",
+      "justificationLabel": "Justification",
+      "alternativesLabel": "Alternatives considered (optional)",
+      "submit": "Submit request"
+    },
+    "detail": {
+      "back": "← Back to requests",
+      "costLabel": "Estimated annual cost",
+      "departmentLabel": "Department",
+      "noDepartment": "No department",
+      "justificationLabel": "Justification",
+      "alternativesLabel": "Alternatives considered",
+      "requestedOn": "Requested on {date}",
+      "timeline": {
+        "step": {
+          "submitted": "Submitted",
+          "review": "In review",
+          "decision": "Outcome",
+          "purchased": "Purchased"
+        },
+        "state": {
+          "done": "Done",
+          "active": "In progress",
+          "upcoming": "Pending",
+          "rejected": "Rejected"
+        }
+      }
+    }
+  },
   "Renewals": {
     "crumb": "Renewals",
     "title": "Renewals calendar",

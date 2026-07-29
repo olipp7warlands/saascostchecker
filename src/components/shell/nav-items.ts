@@ -36,11 +36,8 @@ export type NavItem = {
   bottomNav?: boolean;
 };
 
-// "teamRules" (0.2/0.3), "dashboard" (0.4), "vendors" (1.2) e
-// "importSpend"/"reconciliation" (1.3) tienen página real. El resto
-// pertenece a fases 2-3 sin implementar todavía: se muestran como
-// placeholders deshabilitados para mantener paridad estructural con el
-// mockup (ver docs/DECISIONS.md).
+// Todos los items tienen ya página real — "requests" (bloque 3.1) fue el
+// último placeholder deshabilitado (href: null) del archivo.
 export const NAV_ITEMS: NavItem[] = [
   { key: "dashboard", href: "/dashboard", icon: LayoutDashboard, roles: "all", bottomNav: true },
   {
@@ -57,7 +54,7 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ["finance", "it_admin", "org_admin"],
     bottomNav: true,
   },
-  { key: "requests", href: null, icon: ClipboardCheck, roles: "all", bottomNav: true },
+  { key: "requests", href: "/requests", icon: ClipboardCheck, roles: "all", bottomNav: true },
   {
     key: "importSpend",
     href: "/import",

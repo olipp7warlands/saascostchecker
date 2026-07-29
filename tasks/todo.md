@@ -395,4 +395,46 @@ Bugs reales en Android físico (ficha de vendor). Ver `docs/DECISIONS.md`
 - [x] `pnpm lint && pnpm typecheck && pnpm build` verde local; `pnpm test`
   con los mismos 9 suites de siempre fallando por `ECONNREFUSED`, 0 fallos
   nuevos.
+
+# Bloque 3.1 — Solicitudes (self-service purchase requests) — 2026-07-29
+
+Plan aprobado tras exploración (Explore + Plan agents) y 2 preguntas explícitas
+resueltas por el usuario antes de implementar (sin borrador; RLS solo del
+propio solicitante). Detalle completo de cada decisión en `docs/DECISIONS.md`
+(2026-07-29).
+
+## Checklist
+- [x] Migración `0021_purchase_requests.sql`: tabla + 4 políticas RLS
+  (ownership por fila, modelada sobre `notifications_select`) + RPC
+  `create_purchase_request()` (fallback de `department_id` al del caller) —
+  aplicada al remoto con `supabase db push`, confirmada con
+  `supabase migration list` (Local/Remote).
+- [x] `src/features/requests/actions.ts` + `schemas.ts` (Zod, reusa el
+  `currencySchema` de vendors) — `createPurchaseRequest()` redirige a
+  `/requests/[id]` en éxito.
+- [x] Páginas `src/app/[locale]/(app)/requests/{page.tsx,new/,[id]/}` — mismo
+  esqueleto que `vendors/new/` (combobox del catálogo real, sin cambios),
+  mismo patrón de tabla/`Pill` que `vendors/page.tsx`.
+- [x] `src/features/requests/timeline.ts` (`getTimelineSteps`, puro) +
+  `src/components/requests/status-timeline.tsx` (stepper visual) +
+  `src/features/requests/status-tone.ts` (mapa de tono del pill de estado).
+- [x] i18n `Requests.*` completo en `es.json`/`en.json`.
+- [x] Nav: `nav-items.ts` `requests.href` → `/requests` (era el último
+  `href: null` del archivo, comentario desactualizado corregido).
+- [x] Tests: `src/features/requests/permissions.test.ts` (aislamiento entre
+  empleados del mismo org, entre orgs, mutaciones directas bloqueadas,
+  fallback de departamento, cualquier rol puede crear), `timeline.test.ts`
+  (5 estados, en verde local), `e2e/requests.spec.ts` (flujo feliz completo
+  con el combobox real) — los 2 primeros y el e2e replicados contra el
+  proyecto remoto con un script ad-hoc antes de confiar en los archivos
+  (mismo procedimiento que la sesión de fixes de móvil), todos exactos.
+- [x] Verificación visual autenticada: lista con el nav "Solicitudes" ya
+  resaltado y sin badge "Pronto"; detalle con justificación multilínea
+  (wrap correcto) y timeline de 4 pasos coloreados según estado. Datos
+  efímeros borrados al terminar (0 filas huérfanas).
+- [x] `pnpm lint && pnpm typecheck && pnpm build` verde local; `pnpm test`
+  con 10 suites requiriendo Supabase local (las 9 de siempre + el nuevo
+  `permissions.test.ts` de requests), 0 fallos inesperados.
+- [x] `docs/TASKS.md` §3.1: ambos checkboxes + aceptación marcados completos.
+  `docs/DECISIONS.md` con la entrada completa (2026-07-29).
 - **Sesión CERRADA: CI completamente verde en `main`.**

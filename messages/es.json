@@ -598,6 +598,63 @@
       "all": "Todos los tags"
     }
   },
+  "Requests": {
+    "crumb": "Procurement",
+    "title": "Solicitudes",
+    "addButton": "+ Nueva solicitud",
+    "empty": "Todavía no has creado ninguna solicitud",
+    "table": {
+      "vendor": "Herramienta",
+      "cost": "Coste anual estimado",
+      "department": "Departamento",
+      "status": "Estado",
+      "created": "Creada"
+    },
+    "status": {
+      "draft": "Borrador",
+      "pending": "Pendiente",
+      "approved": "Aprobada",
+      "rejected": "Rechazada",
+      "purchased": "Comprada"
+    },
+    "new": {
+      "title": "Nueva solicitud",
+      "vendorSection": "Herramienta",
+      "selectedFrom": "Del catálogo",
+      "customBadge": "No está en el catálogo",
+      "changeSelection": "Cambiar",
+      "costLabel": "Coste anual estimado",
+      "currencyLabel": "Moneda",
+      "departmentLabel": "Departamento",
+      "noDepartmentOption": "Sin departamento",
+      "justificationLabel": "Justificación",
+      "alternativesLabel": "Alternativas consideradas (opcional)",
+      "submit": "Enviar solicitud"
+    },
+    "detail": {
+      "back": "← Volver a solicitudes",
+      "costLabel": "Coste anual estimado",
+      "departmentLabel": "Departamento",
+      "noDepartment": "Sin departamento",
+      "justificationLabel": "Justificación",
+      "alternativesLabel": "Alternativas consideradas",
+      "requestedOn": "Solicitada el {date}",
+      "timeline": {
+        "step": {
+          "submitted": "Enviada",
+          "review": "En revisión",
+          "decision": "Resultado",
+          "purchased": "Comprada"
+        },
+        "state": {
+          "done": "Completado",
+          "active": "En curso",
+          "upcoming": "Pendiente",
+          "rejected": "Rechazada"
+        }
+      }
+    }
+  },
   "Renewals": {
     "crumb": "Renovaciones",
     "title": "Calendario de renovaciones",
