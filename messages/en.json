@@ -275,7 +275,11 @@
       "budgets": "Budgets",
       "more": "More",
       "moreTitle": "More options",
-      "moreClose": "Close"
+      "moreClose": "Close",
+      "futureSection": "Coming soon",
+      "ownSoftware": "Internal software",
+      "marketplace": "Marketplace",
+      "inventory": "Inventory"
     },
     "userMenu": {
       "open": "User menu",

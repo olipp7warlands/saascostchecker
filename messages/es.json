@@ -73,7 +73,7 @@
       "variable": {
         "stat": "Variable",
         "title": "el coste por uso también cuenta",
-        "body": "Los cargos de API (OpenAI, Anthropic, ElevenLabs) no son suscripciones fijas: StackX los reconcilia igual y los suma a tu gasto real por proveedor."
+        "body": "Los cargos de API (OpenAI, Anthropic, ElevenLabs) no son suscripciones fijas: StackX los concilia igual y los suma a tu gasto real por proveedor."
       }
     },
     "how": {
@@ -84,7 +84,7 @@
         "label": "PASO 1",
         "title": "Importa tu gasto",
         "body": "Sube el CSV de tu banco o contabilidad. StackX reconoce automáticamente los cargos de SaaS — «PDDLE.NET* LOOM» incluido — y monta tu inventario.",
-        "chip": "≥70% reconciliado automático"
+        "chip": "≥70% conciliado automático"
       },
       "step2": {
         "label": "PASO 2",
@@ -119,7 +119,7 @@
         "body": "Asientos comprados vs. usados, y el coste exacto de los que están vacíos."
       },
       "reconciliation": {
-        "title": "Reconciliación bancaria",
+        "title": "Pagos conciliados",
         "body": "Cada movimiento del extracto vinculado a su proveedor, con sugerencias automáticas."
       },
       "approvals": {
@@ -265,7 +265,7 @@
       "requests": "Solicitudes",
       "dataSection": "Datos",
       "importSpend": "Importar gasto",
-      "reconciliation": "Reconciliación",
+      "reconciliation": "Pagos conciliados",
       "settingsSection": "Ajustes",
       "teamRules": "Equipo y reglas",
       "companies": "Empresas",
@@ -275,7 +275,11 @@
       "budgets": "Presupuestos",
       "more": "Más",
       "moreTitle": "Más opciones",
-      "moreClose": "Cerrar"
+      "moreClose": "Cerrar",
+      "futureSection": "Próximamente",
+      "ownSoftware": "Software propio",
+      "marketplace": "Marketplace",
+      "inventory": "Inventario"
     },
     "userMenu": {
       "open": "Menú de usuario",
@@ -366,7 +370,7 @@
       },
       "monthlySpend": {
         "title": "Evolución de gasto",
-        "empty": "Todavía no hay suficiente histórico de gasto reconciliado.",
+        "empty": "Todavía no hay suficiente histórico de gasto conciliado.",
         "emptyCta": "Importa tu histórico para ver la evolución →",
         "table": {
           "month": "Mes",
@@ -374,8 +378,8 @@
         }
       },
       "reconciliation": {
-        "title": "Pendiente de reconciliar",
-        "empty": "No hay movimientos pendientes de reconciliar",
+        "title": "Pendiente de conciliar",
+        "empty": "No hay movimientos pendientes de conciliar",
         "suggestion": "¿{name}?",
         "note": "{count} movimientos sin vendor asignado.",
         "viewAll": "Revisar la cola completa →"
@@ -723,14 +727,14 @@
       "summaryImported": "{count} filas importadas",
       "summaryDuplicates": "{count} filas duplicadas (ya existían)",
       "summaryErrors": "{count} filas con errores de formato",
-      "viewQueueButton": "Ver cola de reconciliación"
+      "viewQueueButton": "Ver cola de pagos conciliados"
     }
   },
   "Reconciliation": {
     "crumb": "Datos",
-    "title": "Cola de reconciliación",
-    "empty": "No hay movimientos pendientes de reconciliar",
-    "forbidden": "Solo finance, IT o un administrador pueden reconciliar gasto",
+    "title": "Cola de pagos conciliados",
+    "empty": "No hay movimientos pendientes de conciliar",
+    "forbidden": "Solo finance, IT o un administrador pueden conciliar gasto",
     "table": {
       "date": "Fecha",
       "amount": "Importe",

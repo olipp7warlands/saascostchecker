@@ -1,12 +1,15 @@
 import {
   Bell,
+  Boxes,
   Building2,
   ClipboardCheck,
+  Code2,
   GitMerge,
   Landmark,
   LayoutDashboard,
   Network,
   RefreshCw,
+  Store,
   Upload,
   Users,
   Wallet,
@@ -25,14 +28,17 @@ export type NavItemKey =
   | "teamRules"
   | "companies"
   | "departments"
-  | "notificationSettings";
+  | "notificationSettings"
+  | "ownSoftware"
+  | "marketplace"
+  | "inventory";
 
 export type NavItem = {
   key: NavItemKey;
   href: string | null;
   icon: LucideIcon;
   roles: Role[] | "all";
-  section?: "data" | "settings";
+  section?: "data" | "settings" | "future";
   bottomNav?: boolean;
 };
 
@@ -106,6 +112,31 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Bell,
     roles: ["org_admin"],
     section: "settings",
+  },
+  // Fase 6 (backlog futuro, ver docs/TASKS.md) — sin página propia todavía,
+  // solo org_admin las ve (mismo mecanismo de rol que el resto del nav), y
+  // `href: null` reutiliza el patrón "placeholder deshabilitado" (badge
+  // "Pronto") ya existente en NavLink/MoreNavSheet desde el bloque 0.4.
+  {
+    key: "ownSoftware",
+    href: null,
+    icon: Code2,
+    roles: ["org_admin"],
+    section: "future",
+  },
+  {
+    key: "marketplace",
+    href: null,
+    icon: Store,
+    roles: ["org_admin"],
+    section: "future",
+  },
+  {
+    key: "inventory",
+    href: null,
+    icon: Boxes,
+    roles: ["org_admin"],
+    section: "future",
   },
 ];
 

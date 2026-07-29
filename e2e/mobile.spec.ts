@@ -182,7 +182,7 @@ test.describe("Móvil: sin scroll horizontal + nav completo (bloque de fixes de 
     await expect(sheet.getByText("Ajustes", { exact: true })).toBeVisible();
     for (const label of [
       "Importar gasto",
-      "Reconciliación",
+      "Pagos conciliados",
       "Presupuestos",
       "Equipo y reglas",
       "Empresas",

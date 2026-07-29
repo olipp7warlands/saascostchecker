@@ -30,6 +30,9 @@ export async function Sidebar({
   const settingsItems = NAV_ITEMS.filter(
     (item) => item.section === "settings" && isNavItemVisible(item, role),
   );
+  const futureItems = NAV_ITEMS.filter(
+    (item) => item.section === "future" && isNavItemVisible(item, role),
+  );
 
   return (
     <aside className="hidden w-[216px] shrink-0 flex-col border-r border-line bg-surface py-5 text-ink md:flex">
@@ -76,6 +79,25 @@ export async function Sidebar({
               {t("nav.settingsSection")}
             </p>
             {settingsItems.map((item) => (
+              <NavLink
+                key={item.key}
+                href={item.href}
+                locale={locale}
+                icon={<item.icon className="size-4 shrink-0" aria-hidden="true" />}
+                label={t(`nav.${item.key}`)}
+                comingSoonLabel={comingSoonLabel}
+                variant="sidebar"
+              />
+            ))}
+          </>
+        )}
+
+        {futureItems.length > 0 && (
+          <>
+            <p className="px-5 pt-[18px] pb-1.5 text-[10.5px] font-semibold tracking-[.1em] text-ink-soft uppercase">
+              {t("nav.futureSection")}
+            </p>
+            {futureItems.map((item) => (
               <NavLink
                 key={item.key}
                 href={item.href}

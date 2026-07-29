@@ -31,6 +31,9 @@ export async function BottomNav({ locale, role }: { locale: string; role: Role }
   const settingsItems = NAV_ITEMS.filter(
     (item) => item.section === "settings" && isNavItemVisible(item, role),
   ).map(toSheetItem);
+  const futureItems = NAV_ITEMS.filter(
+    (item) => item.section === "future" && isNavItemVisible(item, role),
+  ).map(toSheetItem);
 
   return (
     <nav
@@ -55,8 +58,10 @@ export async function BottomNav({ locale, role }: { locale: string; role: Role }
         moreCloseLabel={t("nav.moreClose")}
         dataSectionLabel={t("nav.dataSection")}
         settingsSectionLabel={t("nav.settingsSection")}
+        futureSectionLabel={t("nav.futureSection")}
         dataItems={dataItems}
         settingsItems={settingsItems}
+        futureItems={futureItems}
       />
     </nav>
   );

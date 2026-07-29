@@ -140,10 +140,19 @@ Fuera de la numeración de fases (ni SPECS.md ni este roadmap lo cubrían). Cier
 ### 5.2 Sync de licencias vía SSO (`last_seen_active_at`, inactivos 30/60/90)
 ### 5.3 APIs de gasto (ERP/contabilidad, agregadores bancarios)
 
-## FASE 6 — Backlog futuro (sin fase asignada, no comprometido)
+## FASE 6 — Fases futuras (sin fase asignada, no comprometido)
 
-### 6.1 Inventario de herramientas internas (vibe-coded / no-code)
+Backlog sin planificar todavía. Cada entrada tiene ya un hueco reservado (gris, solo visible para `org_admin`) al final del nav — ver `src/components/shell/nav-items.ts` — para que el usuario sepa que están en el radar sin prometer fecha. Orden de prioridad: Software propio > Marketplace > Inventario.
+
+### 6.1 Software propio (inventario de herramientas internas, vibe-coded / no-code)
+Visión: inventario de herramientas internas construidas con IA/vibe-coding — owner, departamento y qué SaaS podría sustituir cada una (insumo futuro del motor de ahorros).
 - [ ] `vendors.source` (`'saas' | 'internal'`) — herramientas construidas in-house (vibe-coded, low-code/no-code) en vez de contratadas a un tercero
 - [ ] Campos específicos de `source = 'internal'`: owner técnico, repo/URL, hosting, APIs externas que consume (vinculables a los `spend_records` existentes de esos proveedores — p.ej. una herramienta interna que gasta en OpenAI/Vercel/Supabase aparece con su propio gasto de API), criticidad, estado de riesgo
 - [ ] Estado de riesgo: **huérfana** si el owner técnico deja la organización (sin owner técnico asignado tras la baja); reutiliza el motor de alertas de 2.1 (cron diario, tabla `notifications`, mismo patrón de idempotencia) en vez de construir uno nuevo
 - ✅ Aceptación (borrador, a refinar cuando se planifique el bloque): una herramienta interna sin owner técnico tras la baja de su responsable se marca huérfana y genera una alerta; el gasto de API que consume aparece correlacionado en su ficha
+
+### 6.2 Marketplace
+Visión: listado de ofertas de herramientas vía acuerdos con partners. **Nota legal**: el origen de datos serán partners o fuentes licenciadas/APIs públicas — scraping de webs de pricing queda descartado por riesgo legal (el producto está pensado para venderse y debe pasar due diligence).
+
+### 6.3 Inventario (activos hardware)
+Visión: activos hardware del grupo (equipos, monitores...), su ciclo de vida y asignación a personas/departamentos. Última prioridad de las tres.

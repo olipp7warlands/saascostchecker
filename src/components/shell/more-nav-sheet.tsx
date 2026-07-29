@@ -20,8 +20,10 @@ export function MoreNavSheet({
   moreCloseLabel,
   dataSectionLabel,
   settingsSectionLabel,
+  futureSectionLabel,
   dataItems,
   settingsItems,
+  futureItems,
 }: {
   locale: string;
   moreLabel: string;
@@ -29,8 +31,10 @@ export function MoreNavSheet({
   moreCloseLabel: string;
   dataSectionLabel: string;
   settingsSectionLabel: string;
+  futureSectionLabel: string;
   dataItems: SheetNavItem[];
   settingsItems: SheetNavItem[];
+  futureItems: SheetNavItem[];
 }) {
   const [open, setOpen] = useState(false);
 
@@ -66,6 +70,12 @@ export function MoreNavSheet({
             <NavGroup
               title={settingsSectionLabel}
               items={settingsItems}
+              locale={locale}
+              onNavigate={() => setOpen(false)}
+            />
+            <NavGroup
+              title={futureSectionLabel}
+              items={futureItems}
               locale={locale}
               onNavigate={() => setOpen(false)}
             />
