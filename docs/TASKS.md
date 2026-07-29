@@ -106,6 +106,17 @@ Fuera de la numeración de fases (ni SPECS.md ni este roadmap lo cubrían). Cier
 - [x] Formulario self-service con autocompletado del catálogo y timeline de estados
 - ✅ Aceptación: empleado crea y consulta sus solicitudes; nunca las de otros (RLS test) — verificado en `src/features/requests/permissions.test.ts` y replicado contra el remoto (ver docs/DECISIONS.md)
 
+### 3.1b Ciclo de aprobación (single-level)
+Interino entre 3.1 y el motor completo de 3.2 (ver docs/DECISIONS.md) — un
+único nivel de aprobación (finance + org_admin, sin matriz por depto/monto),
+pedido explícitamente por el usuario antes de construir el motor completo de
+SPECS §6.
+- [x] Migración: estado `cancelled`, columna `rejection_reason`, RLS de lectura ampliada a finance/org_admin
+- [x] RPCs: `resolve_purchase_request` (approve/reject), `cancel_purchase_request` (solo solicitante), `mark_purchase_request_purchased` (botón manual, sin automatismo de conversión)
+- [x] Notificaciones reutilizando 2.1/2.2: `purchase_request_submitted` (a aprobadores), `purchase_request_resolved` (al solicitante) — nueva columna `request_id` + índice de idempotencia propio
+- [x] Enlace "Crear vendor/contrato" precargado desde una solicitud aprobada (`/vendors/new` con prefill vía query params)
+- ✅ Aceptación: tests de la máquina de estados y permisos por rol en CI; RLS ampliada verificada; idempotencia de notificaciones verificada; e2e solicitar→aprobar→notificar y solicitar→rechazar con motivo
+
 ### 3.2 Motor de aprobaciones (SPECS §6 completo)
 - [ ] Migraciones: `approval_rules`, `approval_actions`, `approval_delegations`
 - [ ] Materialización de pasos (snapshot), precedencia depto > global, conversión de moneda antes de evaluar

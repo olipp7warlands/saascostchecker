@@ -2,7 +2,7 @@
 
 import { Menu } from "@base-ui/react/menu";
 import { Bell } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -12,17 +12,42 @@ type NotificationPayload = {
   contract_name?: string;
   days_until?: number;
   notice_expired?: boolean;
+  requester_name?: string;
+  status?: "approved" | "rejected";
 };
 
 type NotificationRow = {
   id: string;
+  type: "renewal_alert" | "purchase_request_submitted" | "purchase_request_resolved";
+  request_id: string | null;
   threshold_days: number | null;
   payload: NotificationPayload;
   read_at: string | null;
 };
 
+function messageFor(t: (key: string, values?: Record<string, string | number>) => string, item: NotificationRow): string {
+  if (item.type === "purchase_request_submitted") {
+    return t("purchaseRequestSubmitted", {
+      vendorName: item.payload.vendor_name ?? "",
+      requesterName: item.payload.requester_name ?? "",
+    });
+  }
+  if (item.type === "purchase_request_resolved") {
+    return item.payload.status === "rejected"
+      ? t("purchaseRequestRejected", { vendorName: item.payload.vendor_name ?? "" })
+      : t("purchaseRequestApproved", { vendorName: item.payload.vendor_name ?? "" });
+  }
+  return item.payload.notice_expired
+    ? t("noticeExpired", { vendorName: item.payload.vendor_name ?? "" })
+    : t("renewalAlert", {
+        vendorName: item.payload.vendor_name ?? "",
+        days: item.payload.days_until ?? item.threshold_days ?? 0,
+      });
+}
+
 export function NotificationBell({ dark = false }: { dark?: boolean }) {
   const t = useTranslations("Shell.notifications");
+  const locale = useLocale();
   const [items, setItems] = useState<NotificationRow[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -31,7 +56,7 @@ export function NotificationBell({ dark = false }: { dark?: boolean }) {
     const supabase = createClient();
     const { data } = await supabase
       .from("notifications")
-      .select("id, threshold_days, payload, read_at")
+      .select("id, type, request_id, threshold_days, payload, read_at")
       .order("created_at", { ascending: false })
       .limit(20);
     setItems((data as NotificationRow[] | null) ?? []);
@@ -113,17 +138,14 @@ export function NotificationBell({ dark = false }: { dark?: boolean }) {
 
             {items.map((item) => {
               const unread = !item.read_at;
-              const message = item.payload.notice_expired
-                ? t("noticeExpired", { vendorName: item.payload.vendor_name ?? "" })
-                : t("renewalAlert", {
-                    vendorName: item.payload.vendor_name ?? "",
-                    days: item.payload.days_until ?? item.threshold_days ?? 0,
-                  });
+              const message = messageFor(t, item);
+              const href = item.request_id ? `/${locale}/requests/${item.request_id}` : null;
 
               return (
                 <Menu.Item
                   key={item.id}
                   closeOnClick={false}
+                  render={href ? <a href={href} /> : undefined}
                   onClick={() => unread && markRead(item.id)}
                   className={cn(
                     "flex cursor-pointer flex-col gap-0.5 rounded-md px-2.5 py-2 text-sm outline-none data-[highlighted]:bg-muted",

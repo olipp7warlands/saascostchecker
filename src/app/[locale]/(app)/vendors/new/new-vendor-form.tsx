@@ -24,23 +24,33 @@ type VendorSelection = {
 
 type Department = { id: string; name: string };
 
+type InitialContract = {
+  costAmount?: number;
+  currency?: string;
+  departmentId?: string | null;
+};
+
 export function NewVendorForm({
   locale,
   members,
   departments,
   companies,
   canManageOrgDimensions,
+  initialSelection = null,
+  initialContract = null,
 }: {
   locale: string;
   members: Member[];
   departments: Department[];
   companies: Department[];
   canManageOrgDimensions: boolean;
+  initialSelection?: VendorSelection | null;
+  initialContract?: InitialContract | null;
 }) {
   const t = useTranslations("Vendors.new");
   const tGeneric = useTranslations("Auth");
   const tCategory = useTranslations("Catalog.category");
-  const [selection, setSelection] = useState<VendorSelection | null>(null);
+  const [selection, setSelection] = useState<VendorSelection | null>(initialSelection);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -204,7 +214,12 @@ export function NewVendorForm({
         <legend className="px-1 text-sm font-semibold text-ink">{t("contractSection")}</legend>
         <ContractFields
           idPrefix="new"
-          defaultValues={{ contractName: selection.name }}
+          defaultValues={{
+            contractName: selection.name,
+            costAmount: initialContract?.costAmount,
+            currency: initialContract?.currency,
+            departmentId: initialContract?.departmentId,
+          }}
           departments={departments}
           companies={companies}
           canManageOrgDimensions={canManageOrgDimensions}

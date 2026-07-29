@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import {
   buildContractDeepLink,
@@ -8,6 +9,16 @@ import {
   sendRenewalAlertTeams,
   type RenewalAlertPayload,
 } from "@/features/renewals/send-notifications";
+import {
+  buildPurchaseRequestResolvedTeamsCard,
+  buildPurchaseRequestSubmittedTeamsCard,
+  buildRequestDeepLink,
+  sendPurchaseRequestResolvedEmail,
+  sendPurchaseRequestSubmittedEmail,
+  sendPurchaseRequestTeams,
+  type PurchaseRequestResolvedPayload,
+  type PurchaseRequestSubmittedPayload,
+} from "@/features/requests/send-notifications";
 
 // Disparada cada 15 min por trigger_send_pending_notifications() (pg_cron +
 // pg_net, ver 0016_notification_channels.sql) — nunca por un cliente. El
@@ -35,16 +46,70 @@ function single<T>(relation: OneOrMany<T>): T | null {
   return relation;
 }
 
+type NotificationType = "renewal_alert" | "purchase_request_submitted" | "purchase_request_resolved";
+
 type PendingNotificationRow = {
   id: string;
   org_id: string;
+  type: NotificationType;
   contract_id: string | null;
+  request_id: string | null;
   threshold_days: number | null;
-  payload: RenewalAlertPayload;
+  payload: RenewalAlertPayload | PurchaseRequestSubmittedPayload | PurchaseRequestResolvedPayload;
   organizations: OneOrMany<{ locale: "es" | "en" }>;
   users: OneOrMany<{ email: string }>;
   contracts: OneOrMany<{ vendor_id: string }>;
 };
+
+// Intenta los canales aplicables y marca sent_at si al menos uno tuvo éxito
+// (o si ninguno aplica). Compartido por los 3 tipos de notificación: el
+// único branching por `type` vive en el bucle de POST(), al resolver
+// emailFn/teamsFn — este helper no sabe nada del tipo concreto.
+async function attemptAndMark(
+  supabase: SupabaseClient,
+  rowId: string,
+  emailEnabled: boolean,
+  teamsEnabled: boolean,
+  emailFn: () => Promise<boolean>,
+  teamsFn: (() => Promise<boolean>) | null,
+): Promise<"processed" | "failed"> {
+  const channels: string[] = [];
+  let anyAttempted = false;
+  let anySuccess = false;
+
+  if (emailEnabled) {
+    anyAttempted = true;
+    if (await emailFn()) {
+      channels.push("email");
+      anySuccess = true;
+    }
+  }
+
+  if (teamsEnabled && teamsFn) {
+    anyAttempted = true;
+    if (await teamsFn()) {
+      channels.push("teams");
+      anySuccess = true;
+    }
+  }
+
+  // Fallo parcial: se marca sent_at en cuanto al menos un canal aplicable
+  // tuvo éxito, o si ningún canal aplica (fila "no aplica", no se reintenta
+  // indefinidamente). Si TODOS los canales aplicables fallan, sent_at queda
+  // null y la siguiente pasada de 15 min reintenta — ver docs/DECISIONS.md
+  // para la justificación (in-app es la garantía dura, email/Teams es una
+  // capa de conveniencia sin retry por canal).
+  const shouldMarkSent = !anyAttempted || anySuccess;
+
+  if (shouldMarkSent) {
+    await supabase
+      .from("notifications")
+      .update({ channels, sent_at: new Date().toISOString() })
+      .eq("id", rowId);
+    return "processed";
+  }
+  return "failed";
+}
 
 export async function POST(request: NextRequest) {
   if (!isAuthorized(request)) {
@@ -56,10 +121,10 @@ export async function POST(request: NextRequest) {
   const { data: pending, error } = await supabase
     .from("notifications")
     .select(
-      "id, org_id, contract_id, threshold_days, payload, organizations(locale), users(email), contracts(vendor_id)",
+      "id, org_id, type, contract_id, request_id, threshold_days, payload, organizations(locale), users(email), contracts(vendor_id)",
     )
     .is("sent_at", null)
-    .eq("type", "renewal_alert")
+    .in("type", ["renewal_alert", "purchase_request_submitted", "purchase_request_resolved"])
     .limit(200);
 
   if (error) {
@@ -72,10 +137,9 @@ export async function POST(request: NextRequest) {
     try {
       const org = single(row.organizations);
       const user = single(row.users);
-      const contract = single(row.contracts);
       const locale = org?.locale ?? "es";
 
-      if (!user?.email || !contract?.vendor_id || !row.contract_id) {
+      if (!user?.email) {
         results.skipped++;
         continue;
       }
@@ -90,47 +154,69 @@ export async function POST(request: NextRequest) {
       const teamsEnabled = settings?.teams_alerts_enabled ?? false;
       const teamsWebhookUrl = settings?.teams_webhook_url ?? null;
 
-      const deepLinkUrl = buildContractDeepLink(locale, contract.vendor_id, row.contract_id);
+      let outcome: "processed" | "failed";
 
-      const channels: string[] = [];
-      let anyAttempted = false;
-      let anySuccess = false;
-
-      if (emailEnabled) {
-        anyAttempted = true;
-        const ok = await sendRenewalAlertEmail(user.email, row.payload, locale, deepLinkUrl);
-        if (ok) {
-          channels.push("email");
-          anySuccess = true;
+      if (row.type === "renewal_alert") {
+        const contract = single(row.contracts);
+        if (!contract?.vendor_id || !row.contract_id) {
+          results.skipped++;
+          continue;
         }
-      }
-
-      if (teamsEnabled && teamsWebhookUrl) {
-        anyAttempted = true;
-        const ok = await sendRenewalAlertTeams(teamsWebhookUrl, row.payload, locale, deepLinkUrl);
-        if (ok) {
-          channels.push("teams");
-          anySuccess = true;
+        const payload = row.payload as RenewalAlertPayload;
+        const deepLinkUrl = buildContractDeepLink(locale, contract.vendor_id, row.contract_id);
+        outcome = await attemptAndMark(
+          supabase,
+          row.id,
+          emailEnabled,
+          teamsEnabled,
+          () => sendRenewalAlertEmail(user.email, payload, locale, deepLinkUrl),
+          teamsWebhookUrl ? () => sendRenewalAlertTeams(teamsWebhookUrl, payload, locale, deepLinkUrl) : null,
+        );
+      } else if (row.type === "purchase_request_submitted") {
+        if (!row.request_id) {
+          results.skipped++;
+          continue;
         }
-      }
-
-      // Fallo parcial: se marca sent_at en cuanto al menos un canal aplicable
-      // tuvo éxito, o si ningún canal aplica (fila "no aplica", no se
-      // reintenta indefinidamente). Si TODOS los canales aplicables fallan,
-      // sent_at queda null y la siguiente pasada de 15 min reintenta —
-      // ver docs/DECISIONS.md para la justificación (in-app es la garantía
-      // dura, email/Teams es una capa de conveniencia sin retry por canal).
-      const shouldMarkSent = !anyAttempted || anySuccess;
-
-      if (shouldMarkSent) {
-        await supabase
-          .from("notifications")
-          .update({ channels, sent_at: new Date().toISOString() })
-          .eq("id", row.id);
-        results.processed++;
+        const payload = row.payload as PurchaseRequestSubmittedPayload;
+        const deepLinkUrl = buildRequestDeepLink(locale, row.request_id);
+        outcome = await attemptAndMark(
+          supabase,
+          row.id,
+          emailEnabled,
+          teamsEnabled,
+          () => sendPurchaseRequestSubmittedEmail(user.email, payload, locale, deepLinkUrl),
+          teamsWebhookUrl
+            ? () =>
+                sendPurchaseRequestTeams(
+                  teamsWebhookUrl,
+                  buildPurchaseRequestSubmittedTeamsCard(payload, locale, deepLinkUrl),
+                )
+            : null,
+        );
       } else {
-        results.failed++;
+        if (!row.request_id) {
+          results.skipped++;
+          continue;
+        }
+        const payload = row.payload as PurchaseRequestResolvedPayload;
+        const deepLinkUrl = buildRequestDeepLink(locale, row.request_id);
+        outcome = await attemptAndMark(
+          supabase,
+          row.id,
+          emailEnabled,
+          teamsEnabled,
+          () => sendPurchaseRequestResolvedEmail(user.email, payload, locale, deepLinkUrl),
+          teamsWebhookUrl
+            ? () =>
+                sendPurchaseRequestTeams(
+                  teamsWebhookUrl,
+                  buildPurchaseRequestResolvedTeamsCard(payload, locale, deepLinkUrl),
+                )
+            : null,
+        );
       }
+
+      results[outcome]++;
     } catch (err) {
       console.error(`[send-notifications] notification ${row.id} failed`, err);
       results.failed++;

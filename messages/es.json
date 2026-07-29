@@ -294,7 +294,10 @@
       "empty": "No tienes notificaciones",
       "markAllRead": "Marcar todo como leído",
       "renewalAlert": "{vendorName} renueva en {days} días",
-      "noticeExpired": "{vendorName}: el preaviso de cancelación vence hoy"
+      "noticeExpired": "{vendorName}: el preaviso de cancelación vence hoy",
+      "purchaseRequestSubmitted": "Nueva solicitud de {requesterName}: {vendorName}",
+      "purchaseRequestApproved": "Tu solicitud de {vendorName} fue aprobada",
+      "purchaseRequestRejected": "Tu solicitud de {vendorName} fue rechazada"
     },
     "dashboard": {
       "crumb": "Dashboard",
@@ -607,8 +610,10 @@
     "title": "Solicitudes",
     "addButton": "+ Nueva solicitud",
     "empty": "Todavía no has creado ninguna solicitud",
+    "emptyApprover": "Todavía no hay solicitudes en la organización",
     "table": {
       "vendor": "Herramienta",
+      "requester": "Solicitante",
       "cost": "Coste anual estimado",
       "department": "Departamento",
       "status": "Estado",
@@ -619,7 +624,8 @@
       "pending": "Pendiente",
       "approved": "Aprobada",
       "rejected": "Rechazada",
-      "purchased": "Comprada"
+      "purchased": "Comprada",
+      "cancelled": "Cancelada"
     },
     "new": {
       "title": "Nueva solicitud",
@@ -640,8 +646,10 @@
       "costLabel": "Coste anual estimado",
       "departmentLabel": "Departamento",
       "noDepartment": "Sin departamento",
+      "requesterLabel": "Solicitante",
       "justificationLabel": "Justificación",
       "alternativesLabel": "Alternativas consideradas",
+      "rejectionReasonLabel": "Motivo del rechazo",
       "requestedOn": "Solicitada el {date}",
       "timeline": {
         "step": {
@@ -654,8 +662,25 @@
           "done": "Completado",
           "active": "En curso",
           "upcoming": "Próximo",
-          "rejected": "Rechazada"
+          "rejected": "Rechazada",
+          "cancelled": "Cancelada"
         }
+      },
+      "actions": {
+        "approve": "Aprobar",
+        "reject": "Rechazar",
+        "cancel": "Cancelar solicitud",
+        "markPurchased": "Marcar como comprada",
+        "createVendorLink": "Crear vendor/contrato",
+        "rejectDialogTitle": "Rechazar solicitud",
+        "rejectDialogDescription": "Indica el motivo del rechazo. El solicitante lo verá.",
+        "rejectionReasonPlaceholder": "Motivo del rechazo",
+        "rejectDialogCancel": "Cancelar",
+        "rejectDialogConfirm": "Rechazar solicitud",
+        "cancelDialogTitle": "Cancelar solicitud",
+        "cancelDialogDescription": "¿Seguro que quieres cancelar esta solicitud? No podrás deshacerlo.",
+        "cancelDialogCancel": "Volver",
+        "cancelDialogConfirm": "Cancelar solicitud"
       }
     }
   },

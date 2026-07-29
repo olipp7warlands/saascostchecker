@@ -10,10 +10,19 @@ const MANAGER_ROLES = ["finance", "it_admin", "org_admin"];
 
 export default async function NewVendorPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{
+    catalog_id?: string;
+    vendor_name?: string;
+    department_id?: string;
+    cost?: string;
+    currency?: string;
+  }>;
 }) {
   const { locale } = await params;
+  const search = await searchParams;
   if (!hasLocale(routing.locales, locale)) {
     notFound();
   }
@@ -33,6 +42,39 @@ export default async function NewVendorPage({
     supabase.from("companies").select("id, name").order("name", { ascending: true }),
   ]);
 
+  // Prefill desde "Crear vendor/contrato" en una solicitud aprobada (bloque
+  // 3.1b) — sin automatismo, solo precarga: el humano confirma/edita y guarda.
+  const catalogId = search.catalog_id ?? null;
+  const prefillVendorName = search.vendor_name ?? null;
+  const prefillDepartmentId = search.department_id ?? null;
+  const prefillCost = search.cost ?? null;
+  const prefillCurrency = search.currency ?? null;
+
+  const catalogEntry = catalogId
+    ? (await supabase.from("saas_catalog").select("id, name, website, category").eq("id", catalogId).single())
+        .data
+    : null;
+
+  const initialSelection = catalogEntry
+    ? {
+        catalogId: catalogEntry.id,
+        name: catalogEntry.name,
+        website: catalogEntry.website,
+        category: catalogEntry.category,
+        isCustom: false,
+      }
+    : prefillVendorName
+      ? { catalogId: null, name: prefillVendorName, website: "", category: "other", isCustom: true }
+      : null;
+
+  const initialContract = prefillCost
+    ? {
+        costAmount: Number(prefillCost),
+        currency: prefillCurrency ?? undefined,
+        departmentId: prefillDepartmentId,
+      }
+    : null;
+
   return (
     <div className="mx-auto max-w-2xl">
       <p className="text-xs tracking-[.08em] text-ink-soft uppercase">{t("crumb")}</p>
@@ -46,6 +88,8 @@ export default async function NewVendorPage({
           departments={departments ?? []}
           companies={companies ?? []}
           canManageOrgDimensions={profile.role === "org_admin"}
+          initialSelection={initialSelection}
+          initialContract={initialContract}
         />
       </div>
     </div>

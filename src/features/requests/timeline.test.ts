@@ -39,14 +39,23 @@ describe("getTimelineSteps (bloque 3.1)", () => {
         { key: "purchased", state: "done" },
       ],
     ],
-    // "rejected" es el único caso con 3 pasos, no 4: una vez rechazada, el
-    // paso "purchased" es genuinamente inalcanzable, no solo "todavía no".
+    // "rejected"/"cancelled" son los únicos casos con 3 pasos, no 4: una vez
+    // resueltos así, el paso "purchased" es genuinamente inalcanzable, no
+    // solo "todavía no".
     [
       "rejected",
       [
         { key: "submitted", state: "done" },
         { key: "review", state: "done" },
         { key: "decision", state: "rejected" },
+      ],
+    ],
+    [
+      "cancelled",
+      [
+        { key: "submitted", state: "done" },
+        { key: "review", state: "done" },
+        { key: "decision", state: "cancelled" },
       ],
     ],
   ];

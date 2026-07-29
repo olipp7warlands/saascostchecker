@@ -294,7 +294,10 @@
       "empty": "You have no notifications",
       "markAllRead": "Mark all as read",
       "renewalAlert": "{vendorName} renews in {days} days",
-      "noticeExpired": "{vendorName}: the cancellation notice deadline is today"
+      "noticeExpired": "{vendorName}: the cancellation notice deadline is today",
+      "purchaseRequestSubmitted": "New request from {requesterName}: {vendorName}",
+      "purchaseRequestApproved": "Your request for {vendorName} was approved",
+      "purchaseRequestRejected": "Your request for {vendorName} was rejected"
     },
     "dashboard": {
       "crumb": "Dashboard",
@@ -607,8 +610,10 @@
     "title": "Requests",
     "addButton": "+ New request",
     "empty": "You haven't created any requests yet",
+    "emptyApprover": "There are no requests in the organization yet",
     "table": {
       "vendor": "Tool",
+      "requester": "Requester",
       "cost": "Estimated annual cost",
       "department": "Department",
       "status": "Status",
@@ -619,7 +624,8 @@
       "pending": "Pending",
       "approved": "Approved",
       "rejected": "Rejected",
-      "purchased": "Purchased"
+      "purchased": "Purchased",
+      "cancelled": "Cancelled"
     },
     "new": {
       "title": "New request",
@@ -640,8 +646,10 @@
       "costLabel": "Estimated annual cost",
       "departmentLabel": "Department",
       "noDepartment": "No department",
+      "requesterLabel": "Requester",
       "justificationLabel": "Justification",
       "alternativesLabel": "Alternatives considered",
+      "rejectionReasonLabel": "Rejection reason",
       "requestedOn": "Requested on {date}",
       "timeline": {
         "step": {
@@ -654,8 +662,25 @@
           "done": "Done",
           "active": "In progress",
           "upcoming": "Upcoming",
-          "rejected": "Rejected"
+          "rejected": "Rejected",
+          "cancelled": "Cancelled"
         }
+      },
+      "actions": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "cancel": "Cancel request",
+        "markPurchased": "Mark as purchased",
+        "createVendorLink": "Create vendor/contract",
+        "rejectDialogTitle": "Reject request",
+        "rejectDialogDescription": "Enter the rejection reason. The requester will see it.",
+        "rejectionReasonPlaceholder": "Rejection reason",
+        "rejectDialogCancel": "Cancel",
+        "rejectDialogConfirm": "Reject request",
+        "cancelDialogTitle": "Cancel request",
+        "cancelDialogDescription": "Are you sure you want to cancel this request? This can't be undone.",
+        "cancelDialogCancel": "Go back",
+        "cancelDialogConfirm": "Cancel request"
       }
     }
   },

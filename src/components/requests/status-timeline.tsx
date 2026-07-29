@@ -7,6 +7,7 @@ const DOT_CLASS: Record<TimelineStepState, string> = {
   done: "bg-success",
   active: "bg-warning",
   rejected: "bg-destructive",
+  cancelled: "bg-ink-soft",
   upcoming: "bg-muted",
 };
 
@@ -14,6 +15,7 @@ const PILL_TONE: Record<TimelineStepState, PillTone> = {
   done: "green",
   active: "amber",
   rejected: "red",
+  cancelled: "neutral",
   upcoming: "neutral",
 };
 

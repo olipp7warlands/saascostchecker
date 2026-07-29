@@ -27,11 +27,18 @@ export default async function RequestsPage({
     notFound();
   }
 
+  const canApprove = ["finance", "org_admin"].includes(profile.role);
+
   const supabase = await createClient();
+  // RLS ya resuelve el alcance: employee/manager solo ven las suyas,
+  // finance/org_admin ven todas las de la org (bloque 3.1b) — sin filtro
+  // adicional en la query.
   const [{ data: requests }, { data: departments }] = await Promise.all([
     supabase
       .from("purchase_requests")
-      .select("id, vendor_name, estimated_annual_cost, currency, department_id, status, created_at")
+      .select(
+        "id, vendor_name, estimated_annual_cost, currency, department_id, status, created_at, users(full_name, email)",
+      )
       .order("created_at", { ascending: false }),
     supabase.from("departments").select("id, name"),
   ]);
@@ -55,7 +62,7 @@ export default async function RequestsPage({
       </div>
 
       {!requests || requests.length === 0 ? (
-        <p className="mt-6 text-sm text-ink-soft">{t("empty")}</p>
+        <p className="mt-6 text-sm text-ink-soft">{canApprove ? t("emptyApprover") : t("empty")}</p>
       ) : (
         <div className="mt-6 rounded-xl border border-line bg-surface">
           <div className="overflow-x-auto contain-layout">
@@ -65,6 +72,11 @@ export default async function RequestsPage({
                   <th className="border-b border-line px-4 py-2.5 text-left text-[11px] font-semibold tracking-wider text-ink-soft uppercase">
                     {t("table.vendor")}
                   </th>
+                  {canApprove && (
+                    <th className="border-b border-line px-4 py-2.5 text-left text-[11px] font-semibold tracking-wider text-ink-soft uppercase">
+                      {t("table.requester")}
+                    </th>
+                  )}
                   <th className="border-b border-line px-4 py-2.5 text-left text-[11px] font-semibold tracking-wider text-ink-soft uppercase">
                     {t("table.cost")}
                   </th>
@@ -85,6 +97,7 @@ export default async function RequestsPage({
                   const departmentName = request.department_id
                     ? (departmentsById.get(request.department_id) ?? null)
                     : null;
+                  const requester = Array.isArray(request.users) ? request.users[0] : request.users;
                   const costFormatter = new Intl.NumberFormat(locale, {
                     style: "currency",
                     currency: request.currency,
@@ -102,6 +115,11 @@ export default async function RequestsPage({
                           {request.vendor_name}
                         </a>
                       </td>
+                      {canApprove && (
+                        <td className="border-b border-line px-4 py-3 text-sm text-ink">
+                          {requester?.full_name ?? requester?.email ?? "—"}
+                        </td>
+                      )}
                       <td className="num border-b border-line px-4 py-3 text-sm text-ink">
                         {costFormatter.format(Number(request.estimated_annual_cost))}
                       </td>

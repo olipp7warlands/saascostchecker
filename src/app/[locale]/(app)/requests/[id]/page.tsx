@@ -9,6 +9,10 @@ import { REQUEST_STATUS_TONE } from "@/features/requests/status-tone";
 import type { PurchaseRequestStatus } from "@/features/requests/timeline";
 import { routing } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
+import { RequestActions } from "./request-actions";
+
+const APPROVER_ROLES = ["finance", "org_admin"];
+const VENDOR_MANAGER_ROLES = ["finance", "it_admin", "org_admin"];
 
 export default async function RequestDetailPage({
   params,
@@ -29,16 +33,19 @@ export default async function RequestDetailPage({
   }
 
   const supabase = await createClient();
-  // RLS ya acota purchase_requests a requester_id = current_user_id(): la
-  // solicitud de otro usuario simplemente no existe para esta consulta,
-  // sin necesidad de comprobarlo aparte en código de aplicación.
-  const { data: request, error } = await supabase
-    .from("purchase_requests")
-    .select(
-      "id, vendor_name, estimated_annual_cost, currency, department_id, justification, alternatives_considered, status, created_at, catalog_id, saas_catalog(website)",
-    )
-    .eq("id", id)
-    .single();
+  // RLS acota purchase_requests a requester_id = current_user_id() o a
+  // finance/org_admin de la org (bloque 3.1b) — una solicitud fuera de esas
+  // dos condiciones simplemente no existe para esta consulta.
+  const [{ data: request, error }, { data: me }] = await Promise.all([
+    supabase
+      .from("purchase_requests")
+      .select(
+        "id, requester_id, vendor_name, estimated_annual_cost, currency, department_id, justification, alternatives_considered, status, rejection_reason, created_at, catalog_id, saas_catalog(website), users(full_name, email)",
+      )
+      .eq("id", id)
+      .single(),
+    supabase.from("users").select("id").eq("auth_id", profile.authId).single(),
+  ]);
 
   if (error || !request) {
     notFound();
@@ -52,6 +59,11 @@ export default async function RequestDetailPage({
   const catalogEntry = Array.isArray(request.saas_catalog)
     ? request.saas_catalog[0]
     : request.saas_catalog;
+  const requester = Array.isArray(request.users) ? request.users[0] : request.users;
+
+  const canApprove = APPROVER_ROLES.includes(profile.role);
+  const isRequester = me?.id === request.requester_id;
+  const canCreateVendor = VENDOR_MANAGER_ROLES.includes(profile.role);
 
   const status = request.status as PurchaseRequestStatus;
   const costFormatter = new Intl.NumberFormat(locale, {
@@ -60,6 +72,13 @@ export default async function RequestDetailPage({
     maximumFractionDigits: 0,
   });
   const dateFormatter = new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" });
+
+  const vendorPrefillParams = new URLSearchParams();
+  if (request.catalog_id) vendorPrefillParams.set("catalog_id", request.catalog_id);
+  vendorPrefillParams.set("vendor_name", request.vendor_name);
+  if (request.department_id) vendorPrefillParams.set("department_id", request.department_id);
+  vendorPrefillParams.set("cost", String(request.estimated_annual_cost));
+  vendorPrefillParams.set("currency", request.currency);
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -95,6 +114,14 @@ export default async function RequestDetailPage({
               {costFormatter.format(Number(request.estimated_annual_cost))}
             </p>
           </div>
+          {canApprove && !isRequester && (
+            <div>
+              <p className="text-xs font-semibold tracking-wider text-ink-soft uppercase">
+                {tDetail("requesterLabel")}
+              </p>
+              <p className="mt-0.5 text-sm text-ink">{requester?.full_name ?? requester?.email ?? "—"}</p>
+            </div>
+          )}
           <div>
             <p className="text-xs font-semibold tracking-wider text-ink-soft uppercase">
               {tDetail("departmentLabel")}
@@ -117,10 +144,37 @@ export default async function RequestDetailPage({
               </p>
             </div>
           )}
+          {status === "rejected" && request.rejection_reason && (
+            <div>
+              <p className="text-xs font-semibold tracking-wider text-ink-soft uppercase">
+                {tDetail("rejectionReasonLabel")}
+              </p>
+              <p className="mt-0.5 text-sm whitespace-pre-wrap text-ink">{request.rejection_reason}</p>
+            </div>
+          )}
         </div>
 
-        <div className="rounded-lg border border-line bg-surface p-4">
-          <StatusTimeline status={status} />
+        <div className="flex flex-col gap-4">
+          <div className="rounded-lg border border-line bg-surface p-4">
+            <StatusTimeline status={status} />
+          </div>
+
+          <RequestActions
+            locale={locale}
+            requestId={request.id}
+            status={status}
+            canApprove={canApprove}
+            isRequester={isRequester}
+          />
+
+          {status === "approved" && canCreateVendor && (
+            <a
+              href={`/${locale}/vendors/new?${vendorPrefillParams.toString()}`}
+              className="inline-flex h-9 items-center justify-center rounded-btn bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-[#2A2E30]"
+            >
+              {tDetail("actions.createVendorLink")}
+            </a>
+          )}
         </div>
       </div>
     </div>

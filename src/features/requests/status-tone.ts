@@ -7,4 +7,5 @@ export const REQUEST_STATUS_TONE: Record<PurchaseRequestStatus, PillTone> = {
   approved: "green",
   rejected: "red",
   purchased: "green",
+  cancelled: "neutral",
 };

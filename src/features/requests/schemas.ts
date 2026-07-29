@@ -19,3 +19,17 @@ export const createPurchaseRequestSchema = z.object({
     z.string().trim().max(2000).nullable(),
   ),
 });
+
+export const resolvePurchaseRequestSchema = z
+  .object({
+    requestId: z.string().uuid(),
+    decision: z.enum(["approved", "rejected"]),
+    rejectionReason: z.preprocess(
+      (value) => (value === "" || value === null || value === undefined ? null : value),
+      z.string().trim().max(2000).nullable(),
+    ),
+  })
+  .refine((data) => data.decision !== "rejected" || (data.rejectionReason && data.rejectionReason.length > 0), {
+    message: "rejectionReason is required when rejecting",
+    path: ["rejectionReason"],
+  });

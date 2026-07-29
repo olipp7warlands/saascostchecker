@@ -1,9 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
-import { createPurchaseRequestSchema } from "./schemas";
+import { createPurchaseRequestSchema, resolvePurchaseRequestSchema } from "./schemas";
 
 function firstIssueMessage(error: { issues: { message: string }[] }) {
   return error.issues[0]?.message ?? "Invalid input";
@@ -32,4 +33,50 @@ export async function createPurchaseRequest(locale: string, input: unknown): Pro
   }
 
   redirect(`/${locale}/requests/${requestId}`);
+}
+
+export async function resolvePurchaseRequest(locale: string, input: unknown): Promise<ActionResult> {
+  const parsed = resolvePurchaseRequestSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: firstIssueMessage(parsed.error) };
+  }
+  const data = parsed.data;
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("resolve_purchase_request", {
+    p_request_id: data.requestId,
+    p_decision: data.decision,
+    p_rejection_reason: data.rejectionReason,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/${locale}/requests/${data.requestId}`);
+  return { success: true };
+}
+
+export async function cancelPurchaseRequest(locale: string, requestId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("cancel_purchase_request", { p_request_id: requestId });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/${locale}/requests/${requestId}`);
+  return { success: true };
+}
+
+export async function markPurchaseRequestPurchased(locale: string, requestId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("mark_purchase_request_purchased", { p_request_id: requestId });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/${locale}/requests/${requestId}`);
+  return { success: true };
 }
