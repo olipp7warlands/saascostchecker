@@ -649,7 +649,7 @@
         "state": {
           "done": "Completado",
           "active": "En curso",
-          "upcoming": "Pendiente",
+          "upcoming": "Próximo",
           "rejected": "Rechazada"
         }
       }
