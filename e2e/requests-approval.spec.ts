@@ -255,8 +255,10 @@ test.describe("Motor de aprobaciones multi-paso y links firmados (bloque 3.2a)",
 
       await employeePage.goto("/es/requests/new");
       const combobox = employeePage.getByRole("combobox");
-      await combobox.fill("salesforce");
-      await employeePage.getByRole("option").filter({ hasText: "Salesforce" }).click();
+      // "Salesforce" a secas matchea "Salesforce CRM" y "Salesforce Service
+      // Cloud" (violación de modo estricto) — nombre exacto para desambiguar.
+      await combobox.fill("salesforce crm");
+      await employeePage.getByRole("option").filter({ hasText: "Salesforce CRM" }).click();
       await employeePage.getByLabel("Coste anual estimado").fill("12000");
       await employeePage.getByLabel("Moneda").fill("EUR");
       await employeePage.getByLabel("Departamento").selectOption({ label: departmentName });

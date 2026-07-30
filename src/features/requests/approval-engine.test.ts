@@ -142,7 +142,11 @@ describe("Materialización de pasos y seed por org (bloque 3.2a)", () => {
       .order("step_order");
 
     expect(rules).toHaveLength(4);
-    expect(rules?.[0]).toMatchObject({ min_amount: "0.00", max_amount: "500.00", approver_type: "auto" });
+    // PostgREST devuelve numeric como JSON number, no string (mismo patrón
+    // que renewal-actions.test.ts) — comparar con Number(...), no literales.
+    expect(Number(rules?.[0]?.min_amount)).toBe(0);
+    expect(Number(rules?.[0]?.max_amount)).toBe(500);
+    expect(rules?.[0]).toMatchObject({ approver_type: "auto" });
     expect(rules?.[3]).toMatchObject({ approver_type: "role", approver_role: "finance", step_order: 2 });
   });
 

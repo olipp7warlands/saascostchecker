@@ -672,7 +672,7 @@
         "unknownApprover": "No approver",
         "status": {
           "queued": "Queued",
-          "pending": "Pending",
+          "pending": "In progress",
           "approved": "Approved",
           "rejected": "Rejected",
           "skipped": "Skipped",
