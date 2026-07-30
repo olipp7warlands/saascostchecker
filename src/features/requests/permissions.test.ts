@@ -238,12 +238,17 @@ describe("Permisos de purchase_requests (bloque 3.1)", () => {
   });
 });
 
-describe("Ciclo de aprobación de purchase_requests (bloque 3.1b)", () => {
+describe("Ciclo de aprobación de purchase_requests vía el motor (bloque 3.2a)", () => {
+  // Reemplaza el ciclo de un solo nivel de 3.1b (resolve_purchase_request
+  // gateado a finance/org_admin en bloque) por el motor real: el aprobador
+  // autorizado es el resuelto en purchase_request_steps para el paso activo
+  // (aquí, el manager real del departamento — tier 500-5000, sin fallback).
   let admin: TestTenant;
   let employeeA: TestTenant;
   let employeeB: TestTenant;
   let finance: TestTenant;
   let manager: TestTenant;
+  let departmentId: string;
 
   beforeAll(async () => {
     admin = await signUpOrg("appr-admin");
@@ -254,52 +259,61 @@ describe("Ciclo de aprobación de purchase_requests (bloque 3.1b)", () => {
       inviteAndAccept(admin, "finance", "appr-finance"),
       inviteAndAccept(admin, "manager", "appr-manager"),
     ]);
+
+    const managerId = await publicUserId(manager);
+    const { data: deptId, error: deptError } = await admin.client.rpc("create_department", {
+      p_name: `Approval Dept ${randomSuffix()}`,
+      p_manager_user_id: managerId,
+    });
+    expect(deptError).toBeNull();
+    departmentId = deptId as string;
+
+    const employeeAId = await publicUserId(employeeA);
+    const { error: assignError } = await admin.client.rpc("update_user_department", {
+      p_user_id: employeeAId,
+      p_department_id: departmentId,
+    });
+    expect(assignError).toBeNull();
   });
 
   async function createRequest(overrides: Partial<Record<string, unknown>> = {}) {
+    // 1200 EUR + departamento con manager real -> tier 500-5000, 1 paso,
+    // resuelto directamente al manager (sin fallback_no_manager).
     const { data: requestId, error } = await employeeA.client.rpc(
       "create_purchase_request",
-      createRequestParams(overrides),
+      createRequestParams({ p_department_id: departmentId, ...overrides }),
     );
     expect(error).toBeNull();
     return requestId as string;
   }
 
-  it("al crear una solicitud, finance y org_admin reciben una notificación 'purchase_request_submitted'; manager/employee no", async () => {
+  it("al crear la solicitud, el manager real recibe 'purchase_request_step_pending'; finance no (no es su paso)", async () => {
     const requestId = await createRequest();
-    const financeId = await publicUserId(finance);
-    const adminId = await publicUserId(admin);
     const managerId = await publicUserId(manager);
-
-    const { data: financeNotifs } = await finance.client
-      .from("notifications")
-      .select("id, type, payload")
-      .eq("request_id", requestId)
-      .eq("user_id", financeId)
-      .eq("type", "purchase_request_submitted");
-    expect(financeNotifs).toHaveLength(1);
-    expect(financeNotifs?.[0]?.payload).toMatchObject({ vendor_name: "Notion" });
-
-    const { data: adminNotifs } = await admin.client
-      .from("notifications")
-      .select("id")
-      .eq("request_id", requestId)
-      .eq("user_id", adminId)
-      .eq("type", "purchase_request_submitted");
-    expect(adminNotifs).toHaveLength(1);
+    const financeId = await publicUserId(finance);
 
     const { data: managerNotifs } = await manager.client
       .from("notifications")
+      .select("id, type, payload, step_order")
+      .eq("request_id", requestId)
+      .eq("user_id", managerId)
+      .eq("type", "purchase_request_step_pending");
+    expect(managerNotifs).toHaveLength(1);
+    expect(managerNotifs?.[0]?.step_order).toBe(1);
+    expect(managerNotifs?.[0]?.payload).toMatchObject({ vendor_name: "Notion" });
+
+    const { data: financeNotifs } = await finance.client
+      .from("notifications")
       .select("id")
       .eq("request_id", requestId)
-      .eq("user_id", managerId);
-    expect(managerNotifs).toHaveLength(0);
+      .eq("user_id", financeId);
+    expect(financeNotifs).toHaveLength(0);
   });
 
-  it("finance aprueba una solicitud pendiente; el solicitante ve el cambio y recibe 'purchase_request_resolved'", async () => {
+  it("el manager real aprueba; el solicitante recibe 'purchase_request_resolved'", async () => {
     const requestId = await createRequest();
 
-    const { error } = await finance.client.rpc("resolve_purchase_request", {
+    const { error } = await manager.client.rpc("resolve_purchase_request", {
       p_request_id: requestId,
       p_decision: "approved",
       p_rejection_reason: null,
@@ -321,26 +335,33 @@ describe("Ciclo de aprobación de purchase_requests (bloque 3.1b)", () => {
       .eq("type", "purchase_request_resolved");
     expect(notifs).toHaveLength(1);
     expect(notifs?.[0]?.payload).toMatchObject({ status: "approved" });
+
+    const { data: step } = await serviceRole
+      .from("purchase_request_steps")
+      .select("status, decided_by")
+      .eq("request_id", requestId)
+      .single();
+    expect(step?.status).toBe("approved");
   });
 
-  it("org_admin rechaza con motivo obligatorio — sin motivo el RPC falla, con motivo lo persiste", async () => {
+  it("rechazo exige comentario obligatorio; con comentario lo persiste", async () => {
     const requestId = await createRequest();
 
-    const { error: missingReasonError } = await admin.client.rpc("resolve_purchase_request", {
+    const { error: missingReasonError } = await manager.client.rpc("resolve_purchase_request", {
       p_request_id: requestId,
       p_decision: "rejected",
       p_rejection_reason: null,
     });
     expect(missingReasonError).not.toBeNull();
 
-    const { error: blankReasonError } = await admin.client.rpc("resolve_purchase_request", {
+    const { error: blankReasonError } = await manager.client.rpc("resolve_purchase_request", {
       p_request_id: requestId,
       p_decision: "rejected",
       p_rejection_reason: "   ",
     });
     expect(blankReasonError).not.toBeNull();
 
-    const { error } = await admin.client.rpc("resolve_purchase_request", {
+    const { error } = await manager.client.rpc("resolve_purchase_request", {
       p_request_id: requestId,
       p_decision: "rejected",
       p_rejection_reason: "Ya tenemos una herramienta equivalente en el stack.",
@@ -363,15 +384,15 @@ describe("Ciclo de aprobación de purchase_requests (bloque 3.1b)", () => {
     expect(notifs?.[0]?.payload).toMatchObject({ status: "rejected" });
   });
 
-  it("manager/employee no pueden resolver solicitudes — solo finance/org_admin", async () => {
+  it("finance/employee (no son el aprobador del paso activo) no pueden resolver", async () => {
     const requestId = await createRequest();
 
-    const { error: managerError } = await manager.client.rpc("resolve_purchase_request", {
+    const { error: financeError } = await finance.client.rpc("resolve_purchase_request", {
       p_request_id: requestId,
       p_decision: "approved",
       p_rejection_reason: null,
     });
-    expect(managerError).not.toBeNull();
+    expect(financeError).not.toBeNull();
 
     const { error: employeeError } = await employeeB.client.rpc("resolve_purchase_request", {
       p_request_id: requestId,
@@ -388,15 +409,15 @@ describe("Ciclo de aprobación de purchase_requests (bloque 3.1b)", () => {
     expect(request?.status).toBe("pending");
   });
 
-  it("resolve_purchase_request solo actúa sobre solicitudes pending", async () => {
+  it("resolve_purchase_request solo actúa sobre el paso activo — no dos veces sobre la misma solicitud", async () => {
     const requestId = await createRequest();
-    await finance.client.rpc("resolve_purchase_request", {
+    await manager.client.rpc("resolve_purchase_request", {
       p_request_id: requestId,
       p_decision: "approved",
       p_rejection_reason: null,
     });
 
-    const { error } = await finance.client.rpc("resolve_purchase_request", {
+    const { error } = await manager.client.rpc("resolve_purchase_request", {
       p_request_id: requestId,
       p_decision: "rejected",
       p_rejection_reason: "demasiado tarde",
@@ -435,7 +456,7 @@ describe("Ciclo de aprobación de purchase_requests (bloque 3.1b)", () => {
 
   it("mark_purchase_request_purchased solo desde approved, y solo el solicitante o finance/org_admin", async () => {
     const requestId = await createRequest();
-    await finance.client.rpc("resolve_purchase_request", {
+    await manager.client.rpc("resolve_purchase_request", {
       p_request_id: requestId,
       p_decision: "approved",
       p_rejection_reason: null,
@@ -466,7 +487,7 @@ describe("Ciclo de aprobación de purchase_requests (bloque 3.1b)", () => {
 
   it("finance también puede marcar como comprada una solicitud aprobada de otro usuario", async () => {
     const requestId = await createRequest();
-    await admin.client.rpc("resolve_purchase_request", {
+    await manager.client.rpc("resolve_purchase_request", {
       p_request_id: requestId,
       p_decision: "approved",
       p_rejection_reason: null,
@@ -476,43 +497,53 @@ describe("Ciclo de aprobación de purchase_requests (bloque 3.1b)", () => {
     expect(error).toBeNull();
   });
 
-  it("RLS ampliada: finance/org_admin ven cualquier solicitud de la org; manager/employee solo las propias", async () => {
+  it("RLS: requester, org_admin, finance (rol amplio) y el aprobador del paso ven la solicitud; un empleado ajeno no", async () => {
     const requestId = await createRequest();
 
-    const { data: financeRows } = await finance.client.from("purchase_requests").select("id").eq("id", requestId);
-    expect(financeRows).toHaveLength(1);
+    const { data: managerRows } = await manager.client.from("purchase_requests").select("id").eq("id", requestId);
+    expect(managerRows).toHaveLength(1);
 
     const { data: adminRows } = await admin.client.from("purchase_requests").select("id").eq("id", requestId);
     expect(adminRows).toHaveLength(1);
 
-    const { data: managerRows } = await manager.client.from("purchase_requests").select("id").eq("id", requestId);
-    expect(managerRows).toHaveLength(0);
+    const { data: financeRows } = await finance.client.from("purchase_requests").select("id").eq("id", requestId);
+    expect(financeRows).toHaveLength(1); // finance conserva visibilidad amplia de 3.1b, no solo la de sus pasos
 
     const { data: employeeBRows } = await employeeB.client
       .from("purchase_requests")
       .select("id")
       .eq("id", requestId);
     expect(employeeBRows).toHaveLength(0);
+
+    // purchase_request_steps: visibilidad más estricta, acotada al aprobador
+    // real/requester/org_admin — un empleado ajeno no ve el paso ni a través
+    // de esta tabla.
+    const { data: stepsForStranger } = await employeeB.client
+      .from("purchase_request_steps")
+      .select("id")
+      .eq("request_id", requestId);
+    expect(stepsForStranger).toHaveLength(0);
   });
 
-  it("idempotencia: el índice único de notifications rechaza una segunda fila (request_id, user_id, type) repetida", async () => {
+  it("idempotencia: el índice único de notifications rechaza una segunda fila (request_id, step_order, user_id, type) repetida", async () => {
     const requestId = await createRequest();
-    const financeId = await publicUserId(finance);
+    const managerId = await publicUserId(manager);
 
     const { data: existing } = await serviceRole
       .from("notifications")
-      .select("id, org_id")
+      .select("id, org_id, step_order")
       .eq("request_id", requestId)
-      .eq("user_id", financeId)
-      .eq("type", "purchase_request_submitted")
+      .eq("user_id", managerId)
+      .eq("type", "purchase_request_step_pending")
       .single();
     expect(existing).not.toBeNull();
 
     const { error: duplicateError } = await serviceRole.from("notifications").insert({
       org_id: existing!.org_id,
-      user_id: financeId,
-      type: "purchase_request_submitted",
+      user_id: managerId,
+      type: "purchase_request_step_pending",
       request_id: requestId,
+      step_order: existing!.step_order,
       payload: {},
     });
     expect(duplicateError).not.toBeNull();

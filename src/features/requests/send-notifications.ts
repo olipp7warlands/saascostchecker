@@ -11,11 +11,26 @@ function getResendClient(): Resend | null {
   return apiKey ? new Resend(apiKey) : null;
 }
 
-export type PurchaseRequestSubmittedPayload = {
+export type PurchaseRequestStepPendingPayload = {
   vendor_name: string;
   estimated_annual_cost: number;
   currency: string;
   requester_name: string | null;
+  approval_token: string;
+};
+
+export type PurchaseRequestReminderPayload = {
+  vendor_name: string;
+  estimated_annual_cost: number;
+  currency: string;
+  approval_token: string;
+};
+
+export type PurchaseRequestEscalatedPayload = {
+  vendor_name: string;
+  estimated_annual_cost: number;
+  currency: string;
+  approval_token: string;
 };
 
 export type PurchaseRequestResolvedPayload = {
@@ -28,10 +43,16 @@ export function buildRequestDeepLink(locale: "es" | "en", requestId: string): st
   return `${SITE_URL}/${locale}/requests/${requestId}`;
 }
 
-export function renderPurchaseRequestSubmittedEmail(
-  payload: PurchaseRequestSubmittedPayload,
+// El link de aprobación (aprobar/rechazar SIN login) es el CTA principal de
+// step_pending/reminder/escalated — no el deep link normal, que exige
+// sesión. Formato del token: ver approval-links.ts.
+export function buildApprovalActionLink(locale: "es" | "en", approvalToken: string): string {
+  return `${SITE_URL}/${locale}/approvals/${approvalToken}`;
+}
+
+export function renderPurchaseRequestStepPendingEmail(
+  payload: PurchaseRequestStepPendingPayload,
   locale: "es" | "en",
-  deepLinkUrl: string,
 ): { subject: string; html: string } {
   const vendorName = escapeHtml(payload.vendor_name);
   const requesterName = escapeHtml(payload.requester_name ?? "");
@@ -41,11 +62,12 @@ export function renderPurchaseRequestSubmittedEmail(
     currency: payload.currency,
     maximumFractionDigits: 0,
   });
+  const actionUrl = buildApprovalActionLink(locale, payload.approval_token);
 
   const subject =
     locale === "es"
-      ? `Nueva solicitud de compra: ${payload.vendor_name}`
-      : `New purchase request: ${payload.vendor_name}`;
+      ? `Solicitud pendiente de tu aprobación: ${payload.vendor_name}`
+      : `Purchase request awaiting your approval: ${payload.vendor_name}`;
 
   const bodyLine =
     locale === "es"
@@ -56,7 +78,73 @@ export function renderPurchaseRequestSubmittedEmail(
     <div style="font-family: Arial, sans-serif; color: #15181A; max-width: 480px; margin: 0 auto;">
       <p style="font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: #6E7478; margin: 0 0 16px;">StackX</p>
       <p style="font-size: 15px; line-height: 1.5; margin: 0 0 24px;">${bodyLine}</p>
-      <a href="${deepLinkUrl}" style="display: inline-block; background: #15181A; color: #C6FF3E; text-decoration: none; padding: 10px 20px; border-radius: 16px; font-size: 14px; font-weight: 600;">${ctaLabel}</a>
+      <a href="${actionUrl}" style="display: inline-block; background: #15181A; color: #C6FF3E; text-decoration: none; padding: 10px 20px; border-radius: 16px; font-size: 14px; font-weight: 600;">${ctaLabel}</a>
+    </div>
+  `.trim();
+
+  return { subject, html };
+}
+
+export function renderPurchaseRequestReminderEmail(
+  payload: PurchaseRequestReminderPayload,
+  locale: "es" | "en",
+): { subject: string; html: string } {
+  const vendorName = escapeHtml(payload.vendor_name);
+  const ctaLabel = locale === "es" ? "Revisar solicitud" : "Review request";
+  const costFormatter = new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: payload.currency,
+    maximumFractionDigits: 0,
+  });
+  const actionUrl = buildApprovalActionLink(locale, payload.approval_token);
+
+  const subject =
+    locale === "es"
+      ? `Recordatorio: solicitud pendiente de tu aprobación`
+      : `Reminder: purchase request awaiting your approval`;
+
+  const bodyLine =
+    locale === "es"
+      ? `<strong>${vendorName}</strong> (${costFormatter.format(payload.estimated_annual_cost)}/año) sigue pendiente de tu aprobación desde hace 3 días.`
+      : `<strong>${vendorName}</strong> (${costFormatter.format(payload.estimated_annual_cost)}/year) has been awaiting your approval for 3 days.`;
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; color: #15181A; max-width: 480px; margin: 0 auto;">
+      <p style="font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: #6E7478; margin: 0 0 16px;">StackX</p>
+      <p style="font-size: 15px; line-height: 1.5; margin: 0 0 24px;">${bodyLine}</p>
+      <a href="${actionUrl}" style="display: inline-block; background: #15181A; color: #C6FF3E; text-decoration: none; padding: 10px 20px; border-radius: 16px; font-size: 14px; font-weight: 600;">${ctaLabel}</a>
+    </div>
+  `.trim();
+
+  return { subject, html };
+}
+
+export function renderPurchaseRequestEscalatedEmail(
+  payload: PurchaseRequestEscalatedPayload,
+  locale: "es" | "en",
+): { subject: string; html: string } {
+  const vendorName = escapeHtml(payload.vendor_name);
+  const ctaLabel = locale === "es" ? "Revisar solicitud" : "Review request";
+  const costFormatter = new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: payload.currency,
+    maximumFractionDigits: 0,
+  });
+  const actionUrl = buildApprovalActionLink(locale, payload.approval_token);
+
+  const subject =
+    locale === "es" ? `Solicitud escalada a administración` : `Request escalated to admin`;
+
+  const bodyLine =
+    locale === "es"
+      ? `<strong>${vendorName}</strong> (${costFormatter.format(payload.estimated_annual_cost)}/año) llevaba 7 días sin aprobador y se ha escalado a administración.`
+      : `<strong>${vendorName}</strong> (${costFormatter.format(payload.estimated_annual_cost)}/year) had no approver response after 7 days and was escalated to admin.`;
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; color: #15181A; max-width: 480px; margin: 0 auto;">
+      <p style="font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: #6E7478; margin: 0 0 16px;">StackX</p>
+      <p style="font-size: 15px; line-height: 1.5; margin: 0 0 24px;">${bodyLine}</p>
+      <a href="${actionUrl}" style="display: inline-block; background: #15181A; color: #C6FF3E; text-decoration: none; padding: 10px 20px; border-radius: 16px; font-size: 14px; font-weight: 600;">${ctaLabel}</a>
     </div>
   `.trim();
 
@@ -105,10 +193,9 @@ export function renderPurchaseRequestResolvedEmail(
   return { subject, html };
 }
 
-export function buildPurchaseRequestSubmittedTeamsCard(
-  payload: PurchaseRequestSubmittedPayload,
+export function buildPurchaseRequestStepPendingTeamsCard(
+  payload: PurchaseRequestStepPendingPayload,
   locale: "es" | "en",
-  deepLinkUrl: string,
 ): object {
   const ctaLabel = locale === "es" ? "Revisar solicitud" : "Review request";
   const costFormatter = new Intl.NumberFormat(locale, {
@@ -116,7 +203,7 @@ export function buildPurchaseRequestSubmittedTeamsCard(
     currency: payload.currency,
     maximumFractionDigits: 0,
   });
-  const title = locale === "es" ? "Nueva solicitud de compra" : "New purchase request";
+  const title = locale === "es" ? "Solicitud pendiente de tu aprobación" : "Purchase request awaiting your approval";
   const text =
     locale === "es"
       ? `${payload.requester_name ?? ""} ha solicitado "${payload.vendor_name}" (${costFormatter.format(payload.estimated_annual_cost)}/año).`
@@ -135,7 +222,85 @@ export function buildPurchaseRequestSubmittedTeamsCard(
             { type: "TextBlock", text: title, weight: "Bolder", size: "Medium" },
             { type: "TextBlock", text, wrap: true },
           ],
-          actions: [{ type: "Action.OpenUrl", title: ctaLabel, url: deepLinkUrl }],
+          actions: [
+            { type: "Action.OpenUrl", title: ctaLabel, url: buildApprovalActionLink(locale, payload.approval_token) },
+          ],
+        },
+      },
+    ],
+  };
+}
+
+export function buildPurchaseRequestReminderTeamsCard(
+  payload: PurchaseRequestReminderPayload,
+  locale: "es" | "en",
+): object {
+  const ctaLabel = locale === "es" ? "Revisar solicitud" : "Review request";
+  const costFormatter = new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: payload.currency,
+    maximumFractionDigits: 0,
+  });
+  const title = locale === "es" ? "Recordatorio: solicitud pendiente" : "Reminder: pending purchase request";
+  const text =
+    locale === "es"
+      ? `"${payload.vendor_name}" (${costFormatter.format(payload.estimated_annual_cost)}/año) sigue pendiente de tu aprobación.`
+      : `"${payload.vendor_name}" (${costFormatter.format(payload.estimated_annual_cost)}/year) is still awaiting your approval.`;
+
+  return {
+    type: "message",
+    attachments: [
+      {
+        contentType: "application/vnd.microsoft.card.adaptive",
+        content: {
+          type: "AdaptiveCard",
+          $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
+          version: "1.4",
+          body: [
+            { type: "TextBlock", text: title, weight: "Bolder", size: "Medium" },
+            { type: "TextBlock", text, wrap: true },
+          ],
+          actions: [
+            { type: "Action.OpenUrl", title: ctaLabel, url: buildApprovalActionLink(locale, payload.approval_token) },
+          ],
+        },
+      },
+    ],
+  };
+}
+
+export function buildPurchaseRequestEscalatedTeamsCard(
+  payload: PurchaseRequestEscalatedPayload,
+  locale: "es" | "en",
+): object {
+  const ctaLabel = locale === "es" ? "Revisar solicitud" : "Review request";
+  const costFormatter = new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: payload.currency,
+    maximumFractionDigits: 0,
+  });
+  const title = locale === "es" ? "Solicitud escalada a administración" : "Request escalated to admin";
+  const text =
+    locale === "es"
+      ? `"${payload.vendor_name}" (${costFormatter.format(payload.estimated_annual_cost)}/año) llevaba 7 días sin respuesta y se ha escalado.`
+      : `"${payload.vendor_name}" (${costFormatter.format(payload.estimated_annual_cost)}/year) had no response after 7 days and was escalated.`;
+
+  return {
+    type: "message",
+    attachments: [
+      {
+        contentType: "application/vnd.microsoft.card.adaptive",
+        content: {
+          type: "AdaptiveCard",
+          $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
+          version: "1.4",
+          body: [
+            { type: "TextBlock", text: title, weight: "Bolder", size: "Medium" },
+            { type: "TextBlock", text, wrap: true },
+          ],
+          actions: [
+            { type: "Action.OpenUrl", title: ctaLabel, url: buildApprovalActionLink(locale, payload.approval_token) },
+          ],
         },
       },
     ],
@@ -184,14 +349,31 @@ export function buildPurchaseRequestResolvedTeamsCard(
   };
 }
 
-export async function sendPurchaseRequestSubmittedEmail(
+export async function sendPurchaseRequestStepPendingEmail(
   to: string,
-  payload: PurchaseRequestSubmittedPayload,
+  payload: PurchaseRequestStepPendingPayload,
   locale: "es" | "en",
-  deepLinkUrl: string,
 ): Promise<boolean> {
-  const { subject, html } = renderPurchaseRequestSubmittedEmail(payload, locale, deepLinkUrl);
-  return sendEmail(to, subject, html, "purchase-request-submitted-email");
+  const { subject, html } = renderPurchaseRequestStepPendingEmail(payload, locale);
+  return sendEmail(to, subject, html, "purchase-request-step-pending-email");
+}
+
+export async function sendPurchaseRequestReminderEmail(
+  to: string,
+  payload: PurchaseRequestReminderPayload,
+  locale: "es" | "en",
+): Promise<boolean> {
+  const { subject, html } = renderPurchaseRequestReminderEmail(payload, locale);
+  return sendEmail(to, subject, html, "purchase-request-reminder-email");
+}
+
+export async function sendPurchaseRequestEscalatedEmail(
+  to: string,
+  payload: PurchaseRequestEscalatedPayload,
+  locale: "es" | "en",
+): Promise<boolean> {
+  const { subject, html } = renderPurchaseRequestEscalatedEmail(payload, locale);
+  return sendEmail(to, subject, html, "purchase-request-escalated-email");
 }
 
 export async function sendPurchaseRequestResolvedEmail(

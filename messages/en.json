@@ -666,6 +666,22 @@
           "cancelled": "Cancelled"
         }
       },
+      "steps": {
+        "title": "Approval steps",
+        "stepLabel": "Step {order}",
+        "unknownApprover": "No approver",
+        "status": {
+          "queued": "Queued",
+          "pending": "Pending",
+          "approved": "Approved",
+          "rejected": "Rejected",
+          "skipped": "Skipped",
+          "escalated_to_org_admin": "Escalated"
+        },
+        "fallbackNoManager": "Approval escalated to admin: department has no manager assigned.",
+        "escalatedTimeout": "Escalated to admin after 7 days without a response.",
+        "reassignedSelfApproval": "Reassigned: the requester was the approver for every applicable step."
+      },
       "actions": {
         "approve": "Approve",
         "reject": "Reject",
@@ -682,6 +698,20 @@
         "cancelDialogCancel": "Go back",
         "cancelDialogConfirm": "Cancel request"
       }
+    },
+    "approvalLink": {
+      "kicker": "Purchase request",
+      "requestedBy": "Requested by {name}",
+      "unknownRequester": "a member of your organization",
+      "invalidTitle": "Invalid or expired link",
+      "invalidBody": "This link can no longer be used. Sign in to StackX to review the request status.",
+      "approve": "Approve",
+      "reject": "Reject",
+      "cancel": "Cancel",
+      "confirmReject": "Reject request",
+      "rejectionReasonPlaceholder": "Rejection reason",
+      "doneApproved": "Request approved. Thank you.",
+      "doneRejected": "Request rejected. Thank you."
     }
   },
   "Renewals": {

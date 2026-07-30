@@ -117,14 +117,22 @@ SPECS §6.
 - [x] Enlace "Crear vendor/contrato" precargado desde una solicitud aprobada (`/vendors/new` con prefill vía query params)
 - ✅ Aceptación: tests de la máquina de estados y permisos por rol en CI; RLS ampliada verificada; idempotencia de notificaciones verificada; e2e solicitar→aprobar→notificar y solicitar→rechazar con motivo
 
-### 3.2 Motor de aprobaciones (SPECS §6 completo)
-- [ ] Migraciones: `approval_rules`, `approval_actions`, `approval_delegations`
-- [ ] Materialización de pasos (snapshot), precedencia depto > global, conversión de moneda antes de evaluar
-- [ ] Links firmados (JWT un solo uso, 7 días) para aprobar desde email/Teams sin login
-- [ ] Auto-skip si solicitante = aprobador; recordatorio 72h; escalado 7 días; delegaciones
-- [ ] Seed de matriz default para orgs nuevas
-- [ ] Tests de TODOS los edge cases listados en SPECS §6
-- ✅ Aceptación: los 4 edge cases pasan en CI; aprobar desde link firmado funciona
+### 3.2a Motor de aprobaciones — núcleo end-to-end
+Primera pasada del motor completo de SPECS §6 (ver docs/DECISIONS.md) — deja
+**fuera** de esta pasada, explícitamente diferido a 3.2b: RPCs de edición de
+`approval_rules` (org_admin no puede editar la matriz todavía, solo existe el
+seed default) y `approval_delegations`.
+- [x] Migraciones: `approval_rules` (seed default por org, sin RPC de edición), `purchase_request_steps` (snapshot materializado), `approval_actions`, `approval_link_tokens`
+- [x] Materialización de pasos (snapshot inmutable), precedencia depto > global, conversión de moneda antes de evaluar (`convert_amount()`, puerto SQL de la versión TS)
+- [x] Links firmados de un solo uso (72h, no JWT — token aleatorio + hash SHA-256, mismo patrón que las invitaciones; ver docs/DECISIONS.md) para aprobar/rechazar desde email/Teams sin login, revocados si la solicitud cambia de estado por otra vía
+- [x] Auto-skip si solicitante = aprobador, con tope de seguridad (nunca auto-aprueba sin una decisión humana distinta del solicitante — reasigna a otro rol); recordatorio 72h; escalado 7 días (idempotentes, doble pasada verificada)
+- [x] Seed de matriz default para orgs nuevas (vía `handle_new_user()`) + backfill de orgs existentes
+- [x] Fallback de departamento sin manager → escalado a org_admin, con `resolved_via` explicado en la UI + aviso visible en `/team/departments`
+- ✅ Aceptación (3.2a): materialización por tier + auto-skip con tope + fallback sin manager + inmutabilidad del snapshot + ciclo completo del link + idempotencia de recordatorio/escalado, todos con test dedicado en `src/features/requests/approval-engine.test.ts` + `e2e/requests-approval.spec.ts`; delegaciones y edición de reglas quedan para 3.2b
+
+### 3.2b Delegaciones + UI de edición de approval_rules
+- [ ] `approval_delegations` (rango de fechas) + UI de gestión
+- [ ] RPCs `create_approval_rule`/`update_approval_rule`/`delete_approval_rule` + UI de administración por departamento/monto
 
 ### 3.3 Cierre del ciclo
 - [ ] Conversión solicitud aprobada → vendor + contrato precargado (1 clic)

@@ -666,6 +666,22 @@
           "cancelled": "Cancelada"
         }
       },
+      "steps": {
+        "title": "Pasos de aprobación",
+        "stepLabel": "Paso {order}",
+        "unknownApprover": "Sin aprobador",
+        "status": {
+          "queued": "En espera",
+          "pending": "Pendiente",
+          "approved": "Aprobado",
+          "rejected": "Rechazado",
+          "skipped": "Saltado",
+          "escalated_to_org_admin": "Escalado"
+        },
+        "fallbackNoManager": "Aprobación elevada a administración: departamento sin manager asignado.",
+        "escalatedTimeout": "Escalado a administración tras 7 días sin respuesta.",
+        "reassignedSelfApproval": "Reasignado: el solicitante era el aprobador de todos los pasos aplicables."
+      },
       "actions": {
         "approve": "Aprobar",
         "reject": "Rechazar",
@@ -682,6 +698,20 @@
         "cancelDialogCancel": "Volver",
         "cancelDialogConfirm": "Cancelar solicitud"
       }
+    },
+    "approvalLink": {
+      "kicker": "Solicitud de compra",
+      "requestedBy": "Solicitada por {name}",
+      "unknownRequester": "un empleado de tu organización",
+      "invalidTitle": "Enlace no válido o caducado",
+      "invalidBody": "Este enlace ya no se puede usar. Entra en StackX para revisar el estado de la solicitud.",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "cancel": "Cancelar",
+      "confirmReject": "Rechazar solicitud",
+      "rejectionReasonPlaceholder": "Motivo del rechazo",
+      "doneApproved": "Solicitud aprobada. Gracias.",
+      "doneRejected": "Solicitud rechazada. Gracias."
     }
   },
   "Renewals": {

@@ -33,3 +33,17 @@ export const resolvePurchaseRequestSchema = z
     message: "rejectionReason is required when rejecting",
     path: ["rejectionReason"],
   });
+
+export const resolvePurchaseRequestViaLinkSchema = z
+  .object({
+    token: z.string().min(1),
+    decision: z.enum(["approved", "rejected"]),
+    comment: z.preprocess(
+      (value) => (value === "" || value === null || value === undefined ? null : value),
+      z.string().trim().max(2000).nullable(),
+    ),
+  })
+  .refine((data) => data.decision !== "rejected" || (data.comment && data.comment.length > 0), {
+    message: "comment is required when rejecting",
+    path: ["comment"],
+  });

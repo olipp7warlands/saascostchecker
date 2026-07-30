@@ -7,6 +7,7 @@ import { deleteDepartment, updateDepartment } from "@/features/departments/actio
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
+import { Pill } from "@/components/ui/pill";
 
 type Member = { id: string; full_name: string | null; email: string };
 type Department = { id: string; name: string; manager_user_id: string | null };
@@ -56,6 +57,11 @@ export function DepartmentRow({
 
   return (
     <li className="flex flex-col gap-2 rounded-lg border border-line bg-surface px-3 py-2">
+      {department.manager_user_id === null && (
+        <Pill tone="amber" className="self-start">
+          {t("noManager")}
+        </Pill>
+      )}
       <form action={handleSave} className="flex flex-wrap items-center gap-2">
         <Input
           name="name"

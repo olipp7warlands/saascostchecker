@@ -1,9 +1,10 @@
 "use server";
 
-import { createHash, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { ActionResult } from "@/lib/action-result";
+import { hashToken } from "@/lib/token-hash";
 import { createClient } from "@/lib/supabase/server";
 import { sendInvitationEmail } from "./email";
 import {
@@ -14,10 +15,6 @@ import {
 } from "./schemas";
 
 const INVITATION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-
-function hashToken(token: string) {
-  return createHash("sha256").update(token).digest("hex");
-}
 
 function firstIssueMessage(error: { issues: { message: string }[] }) {
   return error.issues[0]?.message ?? "Invalid input";

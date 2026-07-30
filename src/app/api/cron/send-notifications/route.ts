@@ -10,14 +10,20 @@ import {
   type RenewalAlertPayload,
 } from "@/features/renewals/send-notifications";
 import {
+  buildPurchaseRequestEscalatedTeamsCard,
   buildPurchaseRequestResolvedTeamsCard,
-  buildPurchaseRequestSubmittedTeamsCard,
+  buildPurchaseRequestReminderTeamsCard,
+  buildPurchaseRequestStepPendingTeamsCard,
   buildRequestDeepLink,
+  sendPurchaseRequestEscalatedEmail,
+  sendPurchaseRequestReminderEmail,
   sendPurchaseRequestResolvedEmail,
-  sendPurchaseRequestSubmittedEmail,
+  sendPurchaseRequestStepPendingEmail,
   sendPurchaseRequestTeams,
+  type PurchaseRequestEscalatedPayload,
+  type PurchaseRequestReminderPayload,
   type PurchaseRequestResolvedPayload,
-  type PurchaseRequestSubmittedPayload,
+  type PurchaseRequestStepPendingPayload,
 } from "@/features/requests/send-notifications";
 
 // Disparada cada 15 min por trigger_send_pending_notifications() (pg_cron +
@@ -46,7 +52,12 @@ function single<T>(relation: OneOrMany<T>): T | null {
   return relation;
 }
 
-type NotificationType = "renewal_alert" | "purchase_request_submitted" | "purchase_request_resolved";
+type NotificationType =
+  | "renewal_alert"
+  | "purchase_request_step_pending"
+  | "purchase_request_resolved"
+  | "purchase_request_reminder"
+  | "purchase_request_escalated";
 
 type PendingNotificationRow = {
   id: string;
@@ -54,8 +65,14 @@ type PendingNotificationRow = {
   type: NotificationType;
   contract_id: string | null;
   request_id: string | null;
+  step_order: number | null;
   threshold_days: number | null;
-  payload: RenewalAlertPayload | PurchaseRequestSubmittedPayload | PurchaseRequestResolvedPayload;
+  payload:
+    | RenewalAlertPayload
+    | PurchaseRequestStepPendingPayload
+    | PurchaseRequestResolvedPayload
+    | PurchaseRequestReminderPayload
+    | PurchaseRequestEscalatedPayload;
   organizations: OneOrMany<{ locale: "es" | "en" }>;
   users: OneOrMany<{ email: string }>;
   contracts: OneOrMany<{ vendor_id: string }>;
@@ -121,10 +138,16 @@ export async function POST(request: NextRequest) {
   const { data: pending, error } = await supabase
     .from("notifications")
     .select(
-      "id, org_id, type, contract_id, request_id, threshold_days, payload, organizations(locale), users(email), contracts(vendor_id)",
+      "id, org_id, type, contract_id, request_id, step_order, threshold_days, payload, organizations(locale), users(email), contracts(vendor_id)",
     )
     .is("sent_at", null)
-    .in("type", ["renewal_alert", "purchase_request_submitted", "purchase_request_resolved"])
+    .in("type", [
+      "renewal_alert",
+      "purchase_request_step_pending",
+      "purchase_request_resolved",
+      "purchase_request_reminder",
+      "purchase_request_escalated",
+    ])
     .limit(200);
 
   if (error) {
@@ -172,25 +195,52 @@ export async function POST(request: NextRequest) {
           () => sendRenewalAlertEmail(user.email, payload, locale, deepLinkUrl),
           teamsWebhookUrl ? () => sendRenewalAlertTeams(teamsWebhookUrl, payload, locale, deepLinkUrl) : null,
         );
-      } else if (row.type === "purchase_request_submitted") {
+      } else if (row.type === "purchase_request_step_pending") {
         if (!row.request_id) {
           results.skipped++;
           continue;
         }
-        const payload = row.payload as PurchaseRequestSubmittedPayload;
-        const deepLinkUrl = buildRequestDeepLink(locale, row.request_id);
+        const payload = row.payload as PurchaseRequestStepPendingPayload;
         outcome = await attemptAndMark(
           supabase,
           row.id,
           emailEnabled,
           teamsEnabled,
-          () => sendPurchaseRequestSubmittedEmail(user.email, payload, locale, deepLinkUrl),
+          () => sendPurchaseRequestStepPendingEmail(user.email, payload, locale),
           teamsWebhookUrl
-            ? () =>
-                sendPurchaseRequestTeams(
-                  teamsWebhookUrl,
-                  buildPurchaseRequestSubmittedTeamsCard(payload, locale, deepLinkUrl),
-                )
+            ? () => sendPurchaseRequestTeams(teamsWebhookUrl, buildPurchaseRequestStepPendingTeamsCard(payload, locale))
+            : null,
+        );
+      } else if (row.type === "purchase_request_reminder") {
+        if (!row.request_id) {
+          results.skipped++;
+          continue;
+        }
+        const payload = row.payload as PurchaseRequestReminderPayload;
+        outcome = await attemptAndMark(
+          supabase,
+          row.id,
+          emailEnabled,
+          teamsEnabled,
+          () => sendPurchaseRequestReminderEmail(user.email, payload, locale),
+          teamsWebhookUrl
+            ? () => sendPurchaseRequestTeams(teamsWebhookUrl, buildPurchaseRequestReminderTeamsCard(payload, locale))
+            : null,
+        );
+      } else if (row.type === "purchase_request_escalated") {
+        if (!row.request_id) {
+          results.skipped++;
+          continue;
+        }
+        const payload = row.payload as PurchaseRequestEscalatedPayload;
+        outcome = await attemptAndMark(
+          supabase,
+          row.id,
+          emailEnabled,
+          teamsEnabled,
+          () => sendPurchaseRequestEscalatedEmail(user.email, payload, locale),
+          teamsWebhookUrl
+            ? () => sendPurchaseRequestTeams(teamsWebhookUrl, buildPurchaseRequestEscalatedTeamsCard(payload, locale))
             : null,
         );
       } else {

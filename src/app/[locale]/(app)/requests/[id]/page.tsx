@@ -2,8 +2,10 @@ import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { AppLogo } from "@/components/catalog/app-logo";
+import { ApprovalSteps, type ApprovalStepView } from "@/components/requests/approval-steps";
 import { StatusTimeline } from "@/components/requests/status-timeline";
 import { Pill } from "@/components/ui/pill";
+import type { Role } from "@/features/auth/session";
 import { getCurrentUserProfile } from "@/features/auth/session";
 import { REQUEST_STATUS_TONE } from "@/features/requests/status-tone";
 import type { PurchaseRequestStatus } from "@/features/requests/timeline";
@@ -11,7 +13,6 @@ import { routing } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
 import { RequestActions } from "./request-actions";
 
-const APPROVER_ROLES = ["finance", "org_admin"];
 const VENDOR_MANAGER_ROLES = ["finance", "it_admin", "org_admin"];
 
 export default async function RequestDetailPage({
@@ -36,7 +37,7 @@ export default async function RequestDetailPage({
   // RLS acota purchase_requests a requester_id = current_user_id() o a
   // finance/org_admin de la org (bloque 3.1b) — una solicitud fuera de esas
   // dos condiciones simplemente no existe para esta consulta.
-  const [{ data: request, error }, { data: me }] = await Promise.all([
+  const [{ data: request, error }, { data: me }, { data: stepRows }] = await Promise.all([
     supabase
       .from("purchase_requests")
       .select(
@@ -45,6 +46,18 @@ export default async function RequestDetailPage({
       .eq("id", id)
       .single(),
     supabase.from("users").select("id").eq("auth_id", profile.authId).single(),
+    // RLS de purchase_request_steps acota lo visible (aprobador del paso,
+    // org_admin, o el propio solicitante) — sin filtro adicional aquí.
+    // FK explícita: purchase_request_steps referencia a users dos veces
+    // (resolved_approver_id y decided_by) — el embed implícito "users(...)"
+    // es ambiguo para PostgREST sin especificar cuál.
+    supabase
+      .from("purchase_request_steps")
+      .select(
+        "step_order, status, approver_role, resolved_approver_id, resolved_via, users!purchase_request_steps_resolved_approver_id_fkey(full_name)",
+      )
+      .eq("request_id", id)
+      .order("step_order", { ascending: true }),
   ]);
 
   if (error || !request) {
@@ -61,7 +74,24 @@ export default async function RequestDetailPage({
     : request.saas_catalog;
   const requester = Array.isArray(request.users) ? request.users[0] : request.users;
 
-  const canApprove = APPROVER_ROLES.includes(profile.role);
+  const steps: ApprovalStepView[] = (stepRows ?? []).map((row) => {
+    const approver = Array.isArray(row.users) ? row.users[0] : row.users;
+    return {
+      stepOrder: row.step_order,
+      status: row.status as ApprovalStepView["status"],
+      approverRole: row.approver_role as Role | null,
+      approverName: approver?.full_name ?? null,
+      resolvedVia: row.resolved_via as ApprovalStepView["resolvedVia"],
+    };
+  });
+
+  const activeStepRow = (stepRows ?? []).find(
+    (row) => row.status === "pending" || row.status === "escalated_to_org_admin",
+  );
+  const canApprove =
+    !!activeStepRow &&
+    (activeStepRow.resolved_approver_id === me?.id ||
+      (activeStepRow.approver_role !== null && activeStepRow.approver_role === profile.role));
   const isRequester = me?.id === request.requester_id;
   const canCreateVendor = VENDOR_MANAGER_ROLES.includes(profile.role);
 
@@ -158,6 +188,8 @@ export default async function RequestDetailPage({
           <div className="rounded-lg border border-line bg-surface p-4">
             <StatusTimeline status={status} />
           </div>
+
+          <ApprovalSteps steps={steps} />
 
           <RequestActions
             locale={locale}

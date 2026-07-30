@@ -4,7 +4,12 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
-import { createPurchaseRequestSchema, resolvePurchaseRequestSchema } from "./schemas";
+import { parseApprovalToken } from "./approval-links";
+import {
+  createPurchaseRequestSchema,
+  resolvePurchaseRequestSchema,
+  resolvePurchaseRequestViaLinkSchema,
+} from "./schemas";
 
 function firstIssueMessage(error: { issues: { message: string }[] }) {
   return error.issues[0]?.message ?? "Invalid input";
@@ -54,6 +59,37 @@ export async function resolvePurchaseRequest(locale: string, input: unknown): Pr
   }
 
   revalidatePath(`/${locale}/requests/${data.requestId}`);
+  return { success: true };
+}
+
+// Sin sesión (aprobar/rechazar desde email/Teams) — el token autentica quién
+// y qué; resolve_purchase_request_via_link() llama internamente a la misma
+// advance_purchase_request_step() que usa la UI. Mensaje de error genérico
+// para CUALQUIER motivo de fallo del token (no encontrado/expirado/usado/
+// revocado) — nunca se distingue el motivo real.
+export async function resolvePurchaseRequestViaLink(input: unknown): Promise<ActionResult> {
+  const parsed = resolvePurchaseRequestViaLinkSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: firstIssueMessage(parsed.error) };
+  }
+
+  const tokenParts = parseApprovalToken(parsed.data.token);
+  if (!tokenParts) {
+    return { error: "invalid_or_expired_token" };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("resolve_purchase_request_via_link", {
+    p_token_id: tokenParts.tokenId,
+    p_secret: tokenParts.secret,
+    p_decision: parsed.data.decision,
+    p_comment: parsed.data.comment,
+  });
+
+  if (error) {
+    return { error: "invalid_or_expired_token" };
+  }
+
   return { success: true };
 }
 
