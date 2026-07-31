@@ -662,7 +662,10 @@ test.describe("Catálogo interno: aviso de solapamiento al solicitar (bloque 3.4
 
       // La campanita ya trae el aviso de solapamiento en la notificación de
       // "pendiente de tu aprobación" antes incluso de abrir el detalle.
-      await adminPage.getByLabel("Notificaciones").click();
+      // getByRole (no getByLabel): el mismo aria-label también decora el
+      // menú desplegable, no solo el botón disparador — mismo patrón ya
+      // usado más arriba en este archivo.
+      await adminPage.getByRole("button", { name: "Notificaciones" }).click();
       await expect(adminPage.getByText("Solapamiento conocido con el stack existente")).toBeVisible();
 
       await adminPage.goto(requestUrl);
