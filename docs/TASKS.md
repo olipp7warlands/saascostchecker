@@ -130,9 +130,14 @@ seed default) y `approval_delegations`.
 - [x] Fallback de departamento sin manager → escalado a org_admin, con `resolved_via` explicado en la UI + aviso visible en `/team/departments`
 - ✅ Aceptación (3.2a): materialización por tier + auto-skip con tope + fallback sin manager + inmutabilidad del snapshot + ciclo completo del link + idempotencia de recordatorio/escalado, todos con test dedicado en `src/features/requests/approval-engine.test.ts` + `e2e/requests-approval.spec.ts`; delegaciones y edición de reglas quedan para 3.2b
 
-### 3.2b Delegaciones + UI de edición de approval_rules
-- [ ] `approval_delegations` (rango de fechas) + UI de gestión
-- [ ] RPCs `create_approval_rule`/`update_approval_rule`/`delete_approval_rule` + UI de administración por departamento/monto
+### 3.2b Delegaciones + UI de administración de approval_rules
+- [x] `approval_delegations` (rango de fechas, aditivo, sin cadenas, autoservicio + `org_admin`) + `/settings/delegations` (propias + "cubriendo a" + vista `org_admin` de todas)
+- [x] Resolución dinámica del aprobador efectivo (`resolve_effective_approver()`), nunca congelada en el snapshot — recordatorio/escalado y notificaciones la consideran sin duplicar destinatario
+- [x] Actor real + delegante en `approval_actions`/timeline ("Decidido por X en nombre de Y"), incluida la atribución vía link firmado (`approval_link_tokens.token_actor_id`/`token_delegated_from_id`)
+- [x] Anti-auto-aprobación también vía delegado; edge case del delegado=solicitante (notifica al original, no al delegado)
+- [x] `save_approval_rule_scope()` (reemplazo atómico por scope — desviación deliberada de los 3 RPCs originalmente previstos, ver docs/DECISIONS.md) + `restore_default_approval_rules()` + `/team/approval-rules` (matriz global + overrides por departamento, validación de solapes/huecos/bordes en Zod y en la RPC)
+- ✅ Aceptación (3.2b): tests dedicados en `src/features/delegations/delegations.test.ts` + `src/features/approval-rules/approval-rules.test.ts` (vigente/expirada/revocada, anti-auto-aprobación, sin cadena, actor+delegante, validación de tramos, inmutabilidad bajo edición en vuelo) + `e2e/requests-approval.spec.ts` (delegar→aprobar→timeline "en nombre de")
+- **Bloque 3.2 (a+b) cerrado por completo.**
 
 ### 3.3 Cierre del ciclo
 - [ ] Conversión solicitud aprobada → vendor + contrato precargado (1 clic)

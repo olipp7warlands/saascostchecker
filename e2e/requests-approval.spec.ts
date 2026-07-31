@@ -61,6 +61,36 @@ async function inviteUser(adminClient: SupabaseClient, email: string, role: stri
   return rawToken;
 }
 
+// Acepta una invitación vía API (sin UI) — para actores secundarios de un
+// escenario donde solo el flujo PRINCIPAL necesita pasar por la UI real.
+async function acceptInvitationViaApi(rawToken: string, fullName: string, password: string) {
+  const client = createClient(supabaseUrl!, supabaseAnonKey!, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+  const tokenHash = createHash("sha256").update(rawToken).digest("hex");
+  const { data: preview, error: previewError } = await client.rpc("get_invitation_preview", {
+    p_token_hash: tokenHash,
+  });
+  if (previewError || !preview?.[0]) throw previewError ?? new Error("invitation preview not found");
+  const { error } = await client.auth.signUp({
+    email: preview[0].email,
+    password,
+    options: { data: { full_name: fullName, invitation_token_hash: tokenHash } },
+  });
+  if (error) throw error;
+  return client;
+}
+
+async function setUpDepartmentEngine(admin: SupabaseClient, managerPublicId: string) {
+  const name = `Approval Engine Dept ${randomSuffix()}`;
+  const { error } = await admin.rpc("create_department", {
+    p_name: name,
+    p_manager_user_id: managerPublicId,
+  });
+  if (error) throw error;
+  return name;
+}
+
 test.describe("Ciclo de aprobación de solicitudes (bloque 3.1b)", () => {
   test.skip(!usesLocalSupabase, "Requiere Supabase local — ver docs/DECISIONS.md");
 
@@ -186,34 +216,6 @@ test.describe("Ciclo de aprobación de solicitudes (bloque 3.1b)", () => {
 
 test.describe("Motor de aprobaciones multi-paso y links firmados (bloque 3.2a)", () => {
   test.skip(!usesLocalSupabase, "Requiere Supabase local — ver docs/DECISIONS.md");
-
-  async function acceptInvitationViaApi(rawToken: string, fullName: string, password: string) {
-    const client = createClient(supabaseUrl!, supabaseAnonKey!, {
-      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-    });
-    const tokenHash = createHash("sha256").update(rawToken).digest("hex");
-    const { data: preview, error: previewError } = await client.rpc("get_invitation_preview", {
-      p_token_hash: tokenHash,
-    });
-    if (previewError || !preview?.[0]) throw previewError ?? new Error("invitation preview not found");
-    const { error } = await client.auth.signUp({
-      email: preview[0].email,
-      password,
-      options: { data: { full_name: fullName, invitation_token_hash: tokenHash } },
-    });
-    if (error) throw error;
-    return client;
-  }
-
-  async function setUpDepartmentEngine(admin: SupabaseClient, managerPublicId: string) {
-    const name = `Approval Engine Dept ${randomSuffix()}`;
-    const { error } = await admin.rpc("create_department", {
-      p_name: name,
-      p_manager_user_id: managerPublicId,
-    });
-    if (error) throw error;
-    return name;
-  }
 
   test("multi-paso: manager aprueba, avanza a finance, finance aprueba", async ({ browser }) => {
     const admin = await createOrgAdmin("multistep");
@@ -364,6 +366,97 @@ test.describe("Motor de aprobaciones multi-paso y links firmados (bloque 3.2a)",
       await expect(employeePage.getByText("Aprobada", { exact: true })).toBeVisible();
     } finally {
       await employeeContext.close();
+    }
+  });
+});
+
+test.describe("Delegaciones de aprobación (bloque 3.2b)", () => {
+  test.skip(!usesLocalSupabase, "Requiere Supabase local — ver docs/DECISIONS.md");
+
+  test("delegar → el delegado aprueba vía UI → el timeline muestra 'en nombre de'", async ({ browser }) => {
+    const admin = await createOrgAdmin("delegateflow");
+    const managerEmail = `delegateflow-manager-${randomSuffix()}@example.test`;
+    const delegateEmail = `delegateflow-delegate-${randomSuffix()}@example.test`;
+    const employeeEmail = `delegateflow-employee-${randomSuffix()}@example.test`;
+
+    const managerToken = await inviteUser(admin.client, managerEmail, "manager");
+    const delegateToken = await inviteUser(admin.client, delegateEmail, "manager");
+    const employeeToken = await inviteEmployee(admin.client, employeeEmail);
+
+    const password = "Test1234!";
+    const managerApiClient = await acceptInvitationViaApi(managerToken, "Manager Delegante", password);
+    const delegateApiClient = await acceptInvitationViaApi(delegateToken, "Manager Delegado", password);
+
+    const {
+      data: { user: managerAuthUser },
+    } = await managerApiClient.auth.getUser();
+    const { data: managerRow } = await managerApiClient
+      .from("users")
+      .select("id")
+      .eq("auth_id", managerAuthUser!.id)
+      .single();
+    const {
+      data: { user: delegateAuthUser },
+    } = await delegateApiClient.auth.getUser();
+    const { data: delegateRow } = await delegateApiClient
+      .from("users")
+      .select("id")
+      .eq("auth_id", delegateAuthUser!.id)
+      .single();
+
+    const departmentName = await setUpDepartmentEngine(admin.client, managerRow!.id);
+
+    const { error: delegationErr } = await managerApiClient.rpc("create_approval_delegation", {
+      p_delegator_user_id: managerRow!.id,
+      p_delegate_user_id: delegateRow!.id,
+      p_starts_on: new Date().toISOString().slice(0, 10),
+      p_ends_on: new Date(Date.now() + 5 * 24 * 3600 * 1000).toISOString().slice(0, 10),
+    });
+    if (delegationErr) throw delegationErr;
+
+    const employeeContext = await browser.newContext();
+    const employeePage = await employeeContext.newPage();
+    const delegateContext = await browser.newContext();
+    const delegatePage = await delegateContext.newPage();
+
+    try {
+      await employeePage.goto(`/es/invite/${employeeToken}`);
+      await employeePage.getByLabel("Tu nombre completo").fill("Empleado Delegación");
+      await employeePage.getByLabel("Elige una contraseña").fill(password);
+      await employeePage.getByRole("button", { name: "Unirme" }).click();
+      await employeePage.waitForURL(/\/es\/dashboard$/);
+
+      await employeePage.goto("/es/requests/new");
+      const combobox = employeePage.getByRole("combobox");
+      await combobox.fill("notion");
+      await employeePage.getByRole("option").filter({ hasText: "Notion" }).click();
+      await employeePage.getByLabel("Coste anual estimado").fill("1200");
+      await employeePage.getByLabel("Moneda").fill("EUR");
+      await employeePage.getByLabel("Departamento").selectOption({ label: departmentName });
+      await employeePage.getByLabel("Justificación").fill("Documentación centralizada, prueba de delegación.");
+      await employeePage.getByRole("button", { name: "Enviar solicitud" }).click();
+      await employeePage.waitForURL(/\/es\/requests\/[0-9a-f-]+$/, { timeout: 15_000 });
+      const requestUrl = employeePage.url();
+
+      // El delegado (no el manager) aprueba — la notificación/link ya iban
+      // dirigidos a él, pero aquí se ejercita la UI autenticada directamente.
+      await delegatePage.goto("/es/login");
+      await delegatePage.getByLabel("Email").fill(delegateEmail);
+      await delegatePage.getByLabel("Contraseña").fill(password);
+      await delegatePage.getByRole("button", { name: "Entrar" }).click();
+      await delegatePage.waitForURL(/\/es\/dashboard$/);
+      await delegatePage.goto(requestUrl);
+      await delegatePage.getByRole("button", { name: "Aprobar" }).click();
+      await expect(delegatePage.getByText("Aprobada", { exact: true })).toBeVisible();
+      await expect(
+        delegatePage.getByText(`Decidido por Manager Delegado en nombre de Manager Delegante`),
+      ).toBeVisible();
+
+      await employeePage.reload();
+      await expect(employeePage.getByText("Aprobada", { exact: true })).toBeVisible();
+    } finally {
+      await employeeContext.close();
+      await delegateContext.close();
     }
   });
 });

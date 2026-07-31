@@ -233,6 +233,34 @@
       "confirmDelete": "¿Seguro que quieres eliminar esta empresa?",
       "empty": "Todavía no hay empresas",
       "forbidden": "Solo un administrador puede gestionar empresas"
+    },
+    "approvalRules": {
+      "title": "Reglas de aprobación",
+      "immutabilityNotice": "Los cambios aquí NO afectan a solicitudes ya en curso — cada solicitud congela sus pasos de aprobación en el momento de crearse.",
+      "forbidden": "Solo un administrador puede gestionar las reglas de aprobación",
+      "globalScope": "Global (todos los departamentos)",
+      "restoreDefaults": "Restaurar valores por defecto",
+      "removeOverrides": "Quitar personalización",
+      "noLimit": "sin límite",
+      "stepLabel": "Paso {order}",
+      "approverType": {
+        "auto": "Auto-aprobado",
+        "managerOfRequester": "Manager del departamento",
+        "role": "Un rol",
+        "specificUser": "Una persona concreta"
+      },
+      "selectUser": "Elige a la persona",
+      "removeStep": "Quitar paso",
+      "addStep": "+ Añadir paso",
+      "addTier": "+ Añadir tramo",
+      "removeTier": "Quitar último tramo",
+      "save": "Guardar",
+      "confirmRestoreTitle": "Restaurar valores por defecto",
+      "confirmRestore": "¿Seguro que quieres restaurar la matriz global a los valores de fábrica? Se perderán los cambios de este scope.",
+      "confirmRemoveOverridesTitle": "Quitar personalización",
+      "confirmRemoveOverrides": "¿Seguro que quieres quitar las reglas propias de este departamento? Volverá a heredar la matriz global.",
+      "selectDepartmentToCustomize": "Elige un departamento para personalizar",
+      "customizeForDepartment": "Personalizar para este departamento"
     }
   },
   "Settings": {
@@ -252,6 +280,33 @@
       "testSyntheticNotice": "La organización no tiene contratos activos, así que la alerta usa datos de ejemplo.",
       "testFailed": "No se pudo enviar la alerta de prueba.",
       "forbidden": "Solo un administrador puede gestionar las notificaciones"
+    },
+    "delegations": {
+      "ownTitle": "Tus delegaciones",
+      "ownDescription": "Delega tus aprobaciones a otra persona durante un rango de fechas (por ejemplo, vacaciones).",
+      "delegateLabel": "Delegado",
+      "selectDelegate": "Elige a quién delegar",
+      "startsOnLabel": "Desde",
+      "endsOnLabel": "Hasta",
+      "create": "Crear delegación",
+      "empty": "No hay delegaciones",
+      "delegateRowLabel": "Delegado en {name}",
+      "coveringForTitle": "Estás cubriendo a",
+      "coveringForDescription": "Solicitudes de estas personas también te llegarán a ti mientras la delegación esté vigente.",
+      "emptyCoveringFor": "No estás cubriendo a nadie ahora mismo",
+      "delegatorRowLabel": "Cubriendo a {name}",
+      "allTitle": "Todas las delegaciones de la organización",
+      "allDescription": "Vista de administrador: todas las delegaciones creadas por cualquier persona.",
+      "allRowLabel": "{delegator} → {delegate}",
+      "status": {
+        "active": "Vigente",
+        "upcoming": "Próxima",
+        "expired": "Expirada",
+        "revoked": "Revocada"
+      },
+      "revoke": "Revocar",
+      "confirmRevokeTitle": "Revocar delegación",
+      "confirmRevoke": "¿Seguro que quieres revocar esta delegación? Dejará de aplicar de inmediato."
     }
   },
   "Shell": {
@@ -270,7 +325,9 @@
       "teamRules": "Equipo y reglas",
       "companies": "Empresas",
       "departments": "Departamentos",
+      "approvalRules": "Reglas de aprobación",
       "notificationSettings": "Notificaciones",
+      "delegations": "Delegaciones",
       "comingSoon": "Pronto",
       "budgets": "Presupuestos",
       "more": "Más",
@@ -680,7 +737,9 @@
         },
         "fallbackNoManager": "Aprobación elevada a administración: departamento sin manager asignado.",
         "escalatedTimeout": "Escalado a administración tras 7 días sin respuesta.",
-        "reassignedSelfApproval": "Reasignado: el solicitante era el aprobador de todos los pasos aplicables."
+        "reassignedSelfApproval": "Reasignado: el solicitante era el aprobador de todos los pasos aplicables.",
+        "decidedBy": "Decidido por {actor}",
+        "decidedByOnBehalfOf": "Decidido por {actor} en nombre de {delegator}"
       },
       "actions": {
         "approve": "Aprobar",

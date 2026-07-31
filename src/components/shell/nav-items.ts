@@ -9,8 +9,10 @@ import {
   LayoutDashboard,
   Network,
   RefreshCw,
+  SlidersHorizontal,
   Store,
   Upload,
+  UserCog,
   Users,
   Wallet,
   type LucideIcon,
@@ -28,7 +30,9 @@ export type NavItemKey =
   | "teamRules"
   | "companies"
   | "departments"
+  | "approvalRules"
   | "notificationSettings"
+  | "delegations"
   | "ownSoftware"
   | "marketplace"
   | "inventory";
@@ -107,10 +111,26 @@ export const NAV_ITEMS: NavItem[] = [
     section: "settings",
   },
   {
+    key: "approvalRules",
+    href: "/team/approval-rules",
+    icon: SlidersHorizontal,
+    roles: ["org_admin"],
+    section: "settings",
+  },
+  {
     key: "notificationSettings",
     href: "/settings/notifications",
     icon: Bell,
     roles: ["org_admin"],
+    section: "settings",
+  },
+  // Autoservicio (bloque 3.2b): cualquier rol delega sus propias
+  // aprobaciones, no solo org_admin — a diferencia del resto de "settings".
+  {
+    key: "delegations",
+    href: "/settings/delegations",
+    icon: UserCog,
+    roles: "all",
     section: "settings",
   },
   // Fase 6 (backlog futuro, ver docs/TASKS.md) — sin página propia todavía,

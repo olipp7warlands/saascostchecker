@@ -37,7 +37,7 @@ export default async function RequestDetailPage({
   // RLS acota purchase_requests a requester_id = current_user_id() o a
   // finance/org_admin de la org (bloque 3.1b) — una solicitud fuera de esas
   // dos condiciones simplemente no existe para esta consulta.
-  const [{ data: request, error }, { data: me }, { data: stepRows }] = await Promise.all([
+  const [{ data: request, error }, { data: me }, { data: stepRows }, { data: actionRows }] = await Promise.all([
     supabase
       .from("purchase_requests")
       .select(
@@ -54,10 +54,18 @@ export default async function RequestDetailPage({
     supabase
       .from("purchase_request_steps")
       .select(
-        "step_order, status, approver_role, resolved_approver_id, resolved_via, users!purchase_request_steps_resolved_approver_id_fkey(full_name)",
+        "step_order, status, approver_role, resolved_approver_id, resolved_via, resolved:users!purchase_request_steps_resolved_approver_id_fkey(full_name), decider:users!purchase_request_steps_decided_by_fkey(full_name)",
       )
       .eq("request_id", id)
       .order("step_order", { ascending: true }),
+    // approval_actions guarda "actor real + en nombre de quién" (delegated_from_id,
+    // bloque 3.2b) — se lee aparte porque es un log de movimientos, no el
+    // snapshot de purchase_request_steps.
+    supabase
+      .from("approval_actions")
+      .select("step_order, action, delegator:users!approval_actions_delegated_from_id_fkey(full_name)")
+      .eq("request_id", id)
+      .in("action", ["approved", "rejected"]),
   ]);
 
   if (error || !request) {
@@ -74,14 +82,24 @@ export default async function RequestDetailPage({
     : request.saas_catalog;
   const requester = Array.isArray(request.users) ? request.users[0] : request.users;
 
+  const actionByStep = new Map(
+    (actionRows ?? []).map((row) => {
+      const delegator = Array.isArray(row.delegator) ? row.delegator[0] : row.delegator;
+      return [row.step_order, delegator?.full_name ?? null];
+    }),
+  );
+
   const steps: ApprovalStepView[] = (stepRows ?? []).map((row) => {
-    const approver = Array.isArray(row.users) ? row.users[0] : row.users;
+    const approver = Array.isArray(row.resolved) ? row.resolved[0] : row.resolved;
+    const decider = Array.isArray(row.decider) ? row.decider[0] : row.decider;
     return {
       stepOrder: row.step_order,
       status: row.status as ApprovalStepView["status"],
       approverRole: row.approver_role as Role | null,
       approverName: approver?.full_name ?? null,
       resolvedVia: row.resolved_via as ApprovalStepView["resolvedVia"],
+      decidedByName: decider?.full_name ?? null,
+      delegatedFromName: actionByStep.get(row.step_order) ?? null,
     };
   });
 

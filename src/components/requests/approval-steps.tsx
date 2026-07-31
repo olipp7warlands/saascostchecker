@@ -11,6 +11,8 @@ export type ApprovalStepView = {
   approverRole: Role | null;
   approverName: string | null;
   resolvedVia: ApprovalStepResolvedVia | null;
+  decidedByName: string | null;
+  delegatedFromName: string | null;
 };
 
 const STATUS_TONE: Record<ApprovalStepStatus, PillTone> = {
@@ -56,6 +58,13 @@ export async function ApprovalSteps({ steps }: { steps: ApprovalStepView[] }) {
             )}
             {step.resolvedVia === "reassigned_self_approval" && (
               <p className="text-xs text-ink-soft">{t("reassignedSelfApproval")}</p>
+            )}
+            {(step.status === "approved" || step.status === "rejected") && step.decidedByName && (
+              <p className="text-xs text-ink-soft">
+                {step.delegatedFromName
+                  ? t("decidedByOnBehalfOf", { actor: step.decidedByName, delegator: step.delegatedFromName })
+                  : t("decidedBy", { actor: step.decidedByName })}
+              </p>
             )}
           </li>
         ))}

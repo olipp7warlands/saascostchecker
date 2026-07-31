@@ -233,6 +233,34 @@
       "confirmDelete": "Are you sure you want to delete this company?",
       "empty": "No companies yet",
       "forbidden": "Only an admin can manage companies"
+    },
+    "approvalRules": {
+      "title": "Approval rules",
+      "immutabilityNotice": "Changes here do NOT affect requests already in flight — each request freezes its approval steps the moment it's created.",
+      "forbidden": "Only an admin can manage approval rules",
+      "globalScope": "Global (all departments)",
+      "restoreDefaults": "Restore defaults",
+      "removeOverrides": "Remove customization",
+      "noLimit": "no limit",
+      "stepLabel": "Step {order}",
+      "approverType": {
+        "auto": "Auto-approved",
+        "managerOfRequester": "Department manager",
+        "role": "A role",
+        "specificUser": "A specific person"
+      },
+      "selectUser": "Choose the person",
+      "removeStep": "Remove step",
+      "addStep": "+ Add step",
+      "addTier": "+ Add tier",
+      "removeTier": "Remove last tier",
+      "save": "Save",
+      "confirmRestoreTitle": "Restore defaults",
+      "confirmRestore": "Are you sure you want to restore the global matrix to factory defaults? Changes to this scope will be lost.",
+      "confirmRemoveOverridesTitle": "Remove customization",
+      "confirmRemoveOverrides": "Are you sure you want to remove this department's own rules? It will go back to inheriting the global matrix.",
+      "selectDepartmentToCustomize": "Choose a department to customize",
+      "customizeForDepartment": "Customize for this department"
     }
   },
   "Settings": {
@@ -252,6 +280,33 @@
       "testSyntheticNotice": "This organization has no active contracts, so the alert uses example data.",
       "testFailed": "The test alert could not be sent.",
       "forbidden": "Only an admin can manage notifications"
+    },
+    "delegations": {
+      "ownTitle": "Your delegations",
+      "ownDescription": "Delegate your approvals to someone else for a date range (e.g. vacation).",
+      "delegateLabel": "Delegate",
+      "selectDelegate": "Choose who to delegate to",
+      "startsOnLabel": "From",
+      "endsOnLabel": "To",
+      "create": "Create delegation",
+      "empty": "No delegations",
+      "delegateRowLabel": "Delegated to {name}",
+      "coveringForTitle": "You're covering for",
+      "coveringForDescription": "Requests from these people will also reach you while the delegation is active.",
+      "emptyCoveringFor": "You're not covering for anyone right now",
+      "delegatorRowLabel": "Covering for {name}",
+      "allTitle": "All delegations in the organization",
+      "allDescription": "Admin view: every delegation created by anyone.",
+      "allRowLabel": "{delegator} → {delegate}",
+      "status": {
+        "active": "Active",
+        "upcoming": "Upcoming",
+        "expired": "Expired",
+        "revoked": "Revoked"
+      },
+      "revoke": "Revoke",
+      "confirmRevokeTitle": "Revoke delegation",
+      "confirmRevoke": "Are you sure you want to revoke this delegation? It will stop applying immediately."
     }
   },
   "Shell": {
@@ -270,7 +325,9 @@
       "teamRules": "Team & rules",
       "companies": "Companies",
       "departments": "Departments",
+      "approvalRules": "Approval rules",
       "notificationSettings": "Notifications",
+      "delegations": "Delegations",
       "comingSoon": "Soon",
       "budgets": "Budgets",
       "more": "More",
@@ -680,7 +737,9 @@
         },
         "fallbackNoManager": "Approval escalated to admin: department has no manager assigned.",
         "escalatedTimeout": "Escalated to admin after 7 days without a response.",
-        "reassignedSelfApproval": "Reassigned: the requester was the approver for every applicable step."
+        "reassignedSelfApproval": "Reassigned: the requester was the approver for every applicable step.",
+        "decidedBy": "Decided by {actor}",
+        "decidedByOnBehalfOf": "Decided by {actor} on behalf of {delegator}"
       },
       "actions": {
         "approve": "Approve",
