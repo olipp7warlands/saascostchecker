@@ -353,8 +353,11 @@
       "renewalAlert": "{vendorName} renews in {days} days",
       "noticeExpired": "{vendorName}: the cancellation notice deadline is today",
       "purchaseRequestSubmitted": "New request from {requesterName}: {vendorName}",
+      "purchaseRequestReminder": "Reminder: {vendorName} is still awaiting your approval",
+      "purchaseRequestEscalated": "{vendorName}: escalated to admin after 7 days with no response",
       "purchaseRequestApproved": "Your request for {vendorName} was approved",
-      "purchaseRequestRejected": "Your request for {vendorName} was rejected"
+      "purchaseRequestRejected": "Your request for {vendorName} was rejected",
+      "knownOverlapNote": "⚠ Known overlap with the existing stack"
     },
     "dashboard": {
       "crumb": "Dashboard",
@@ -699,6 +702,17 @@
       "justificationLabel": "Justification",
       "alternativesLabel": "Alternatives considered (optional)",
       "submit": "Submit request"
+    },
+    "overlap": {
+      "title": "Already in place in your organization",
+      "detailIntro": "The requester saw this warning and chose to proceed anyway.",
+      "basicBodyWithOwner": "Already under contract ({count, plural, one {# active contract} other {# active contracts}}). Talk to {owner} before duplicating it.",
+      "basicBodyNoOwner": "Already under contract ({count, plural, one {# active contract} other {# active contracts}}). Check with your team before duplicating it.",
+      "noOwner": "no owner assigned",
+      "noDepartment": "no department",
+      "perYear": "year",
+      "potentialSavingsLabel": "Estimated potential savings",
+      "potentialSavingsNote": "An estimate, not an accounting figure: it's the annual cost of this request if duplicating what already exists is avoided."
     },
     "detail": {
       "back": "← Back to requests",

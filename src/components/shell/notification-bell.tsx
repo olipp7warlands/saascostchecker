@@ -14,23 +14,47 @@ type NotificationPayload = {
   notice_expired?: boolean;
   requester_name?: string;
   status?: "approved" | "rejected";
+  // Bloque 3.4: presente solo en purchase_request_step_pending/reminder/
+  // escalated — el solicitante fue avisado del solapamiento y siguió
+  // adelante de todos modos.
+  known_overlap?: boolean;
 };
+
+type NotificationType =
+  | "renewal_alert"
+  | "purchase_request_submitted"
+  | "purchase_request_resolved"
+  | "purchase_request_step_pending"
+  | "purchase_request_reminder"
+  | "purchase_request_escalated";
 
 type NotificationRow = {
   id: string;
-  type: "renewal_alert" | "purchase_request_submitted" | "purchase_request_resolved";
+  type: NotificationType;
   request_id: string | null;
   threshold_days: number | null;
   payload: NotificationPayload;
   read_at: string | null;
 };
 
+const OVERLAP_ELIGIBLE_TYPES: NotificationType[] = [
+  "purchase_request_step_pending",
+  "purchase_request_reminder",
+  "purchase_request_escalated",
+];
+
 function messageFor(t: (key: string, values?: Record<string, string | number>) => string, item: NotificationRow): string {
-  if (item.type === "purchase_request_submitted") {
+  if (item.type === "purchase_request_submitted" || item.type === "purchase_request_step_pending") {
     return t("purchaseRequestSubmitted", {
       vendorName: item.payload.vendor_name ?? "",
       requesterName: item.payload.requester_name ?? "",
     });
+  }
+  if (item.type === "purchase_request_reminder") {
+    return t("purchaseRequestReminder", { vendorName: item.payload.vendor_name ?? "" });
+  }
+  if (item.type === "purchase_request_escalated") {
+    return t("purchaseRequestEscalated", { vendorName: item.payload.vendor_name ?? "" });
   }
   if (item.type === "purchase_request_resolved") {
     return item.payload.status === "rejected"
@@ -163,6 +187,9 @@ export function NotificationBell({ dark = false }: { dark?: boolean }) {
                   </span>
                   {item.payload.contract_name && (
                     <span className="text-xs text-ink-soft">{item.payload.contract_name}</span>
+                  )}
+                  {item.payload.known_overlap && OVERLAP_ELIGIBLE_TYPES.includes(item.type) && (
+                    <span className="text-xs text-warning">{t("knownOverlapNote")}</span>
                   )}
                 </Menu.Item>
               );

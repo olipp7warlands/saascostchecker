@@ -576,3 +576,107 @@ test.describe("Cierre del ciclo: conversión a vendor/contrato (bloque 3.3)", ()
     }
   });
 });
+
+test.describe("Catálogo interno: aviso de solapamiento al solicitar (bloque 3.4)", () => {
+  test.skip(!usesLocalSupabase, "Requiere Supabase local — ver docs/DECISIONS.md");
+
+  test("empleado ve aviso sin importes al elegir una herramienta ya contratada; org_admin ve el mismo aviso con costes en el detalle", async ({
+    browser,
+  }) => {
+    const admin = await createOrgAdmin("overlap-flow");
+    const employeeEmail = `overlap-flow-employee-${randomSuffix()}@example.test`;
+    const rawToken = await inviteEmployee(admin.client, employeeEmail);
+
+    // Vendor+contrato activos para "Figma" creados directamente vía RPC (no
+    // es lo que este test verifica) — el foco es el aviso de solapamiento,
+    // no el alta del vendor en sí (ya cubierta por vendors.spec.ts/3.3).
+    const { data: figmaCatalog, error: catalogError } = await admin.client
+      .from("saas_catalog")
+      .select("id")
+      .eq("name", "Figma")
+      .single();
+    if (catalogError || !figmaCatalog) throw catalogError ?? new Error("Figma not found in saas_catalog seed");
+
+    const { data: vendorId, error: vendorError } = await admin.client.rpc("create_vendor", {
+      p_catalog_id: figmaCatalog.id,
+      p_name: "Figma",
+      p_website: "figma.com",
+      p_category: "design",
+      p_owner_user_id: null,
+      p_is_custom: false,
+      p_notes: null,
+    });
+    if (vendorError || !vendorId) throw vendorError ?? new Error("create_vendor failed");
+
+    const { error: contractError } = await admin.client.rpc("create_contract", {
+      p_vendor_id: vendorId,
+      p_name: "Figma — plan equipo",
+      p_cost_amount: 36000,
+      p_currency: "EUR",
+      p_billing_cycle: "annual",
+      p_seats_purchased: 10,
+      p_start_date: isoDate(-30),
+      p_renewal_date: isoDate(335),
+      p_auto_renews: true,
+      p_cancellation_notice_days: 30,
+      p_document_url: null,
+    });
+    if (contractError) throw contractError;
+
+    const employeeContext = await browser.newContext();
+    const employeePage = await employeeContext.newPage();
+    const adminContext = await browser.newContext();
+    const adminPage = await adminContext.newPage();
+
+    try {
+      await employeePage.goto(`/es/invite/${rawToken}`);
+      await employeePage.getByLabel("Tu nombre completo").fill("Empleado Solapamiento");
+      await employeePage.getByLabel("Elige una contraseña").fill("Test1234!");
+      await employeePage.getByRole("button", { name: "Unirme" }).click();
+      await employeePage.waitForURL(/\/es\/dashboard$/);
+
+      await employeePage.goto("/es/requests/new");
+      const combobox = employeePage.getByRole("combobox");
+      await combobox.fill("figm");
+      await employeePage.getByRole("option").filter({ hasText: "Figma" }).click();
+
+      // Nivel básico (empleado, no MANAGER_ROLES): existencia + aviso, SIN
+      // ninguna cifra de coste del contrato ya existente — la fila con el
+      // coste (sufijo "/año") solo se renderiza en el nivel MANAGER_ROLES.
+      await expect(employeePage.getByText("Ya contratado en tu organización")).toBeVisible();
+      await expect(employeePage.getByText(/\/año/)).toHaveCount(0);
+      await expect(employeePage.getByText("Ahorro potencial estimado")).toHaveCount(0);
+
+      await employeePage.getByLabel("Coste anual estimado").fill("5000");
+      await employeePage.getByLabel("Moneda").fill("EUR");
+      await employeePage.getByLabel("Justificación").fill("Asientos adicionales para otra unidad de negocio.");
+      await employeePage.getByRole("button", { name: "Enviar solicitud" }).click();
+      await employeePage.waitForURL(/\/es\/requests\/[0-9a-f-]+$/, { timeout: 15_000 });
+      const requestUrl = employeePage.url();
+
+      await adminPage.goto("/es/login");
+      await adminPage.getByLabel("Email").fill(admin.email);
+      await adminPage.getByLabel("Contraseña").fill(admin.password);
+      await adminPage.getByRole("button", { name: "Entrar" }).click();
+      await adminPage.waitForURL(/\/es\/dashboard$/);
+
+      // La campanita ya trae el aviso de solapamiento en la notificación de
+      // "pendiente de tu aprobación" antes incluso de abrir el detalle.
+      await adminPage.getByLabel("Notificaciones").click();
+      await expect(adminPage.getByText("Solapamiento conocido con el stack existente")).toBeVisible();
+
+      await adminPage.goto(requestUrl);
+      // Nivel MANAGER_ROLES: mismo aviso, ahora con el coste del contrato
+      // existente y la etiqueta de estimación del ahorro potencial.
+      await expect(adminPage.getByText("El solicitante vio este aviso y decidió continuar")).toBeVisible();
+      await expect(adminPage.getByText(/\/año/)).toBeVisible();
+      await expect(adminPage.getByText("Ahorro potencial estimado")).toBeVisible();
+
+      await adminPage.getByRole("button", { name: "Aprobar" }).click();
+      await expect(adminPage.getByText("Aprobada", { exact: true })).toBeVisible();
+    } finally {
+      await employeeContext.close();
+      await adminContext.close();
+    }
+  });
+});

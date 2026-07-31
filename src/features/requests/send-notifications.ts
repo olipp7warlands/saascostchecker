@@ -17,6 +17,7 @@ export type PurchaseRequestStepPendingPayload = {
   currency: string;
   requester_name: string | null;
   approval_token: string;
+  known_overlap: boolean;
 };
 
 export type PurchaseRequestReminderPayload = {
@@ -24,6 +25,7 @@ export type PurchaseRequestReminderPayload = {
   estimated_annual_cost: number;
   currency: string;
   approval_token: string;
+  known_overlap: boolean;
 };
 
 export type PurchaseRequestEscalatedPayload = {
@@ -31,6 +33,7 @@ export type PurchaseRequestEscalatedPayload = {
   estimated_annual_cost: number;
   currency: string;
   approval_token: string;
+  known_overlap: boolean;
 };
 
 export type PurchaseRequestResolvedPayload = {
@@ -77,12 +80,26 @@ export function renderPurchaseRequestStepPendingEmail(
   const html = `
     <div style="font-family: Arial, sans-serif; color: #15181A; max-width: 480px; margin: 0 auto;">
       <p style="font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: #6E7478; margin: 0 0 16px;">StackX</p>
-      <p style="font-size: 15px; line-height: 1.5; margin: 0 0 24px;">${bodyLine}</p>
+      <p style="font-size: 15px; line-height: 1.5; margin: 0 0 8px;">${bodyLine}</p>
+      ${knownOverlapLine(payload.known_overlap, locale)}
+      <div style="margin-bottom: 16px;"></div>
       <a href="${actionUrl}" style="display: inline-block; background: #15181A; color: #C6FF3E; text-decoration: none; padding: 10px 20px; border-radius: 16px; font-size: 14px; font-weight: 600;">${ctaLabel}</a>
     </div>
   `.trim();
 
   return { subject, html };
+}
+
+// Bloque 3.4 — aviso corto compartido por los 3 emails de aprobación
+// pendiente (step_pending/reminder/escalated) cuando la solicitud fue creada
+// a pesar de un solapamiento conocido con el stack existente.
+function knownOverlapLine(knownOverlap: boolean, locale: "es" | "en"): string {
+  if (!knownOverlap) return "";
+  const text =
+    locale === "es"
+      ? "⚠ Ya existe una herramienta similar contratada en tu organización."
+      : "⚠ A similar tool is already in place in your organization.";
+  return `<p style="font-size: 13px; color: #B45309; margin: 0;">${text}</p>`;
 }
 
 export function renderPurchaseRequestReminderEmail(
@@ -111,7 +128,9 @@ export function renderPurchaseRequestReminderEmail(
   const html = `
     <div style="font-family: Arial, sans-serif; color: #15181A; max-width: 480px; margin: 0 auto;">
       <p style="font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: #6E7478; margin: 0 0 16px;">StackX</p>
-      <p style="font-size: 15px; line-height: 1.5; margin: 0 0 24px;">${bodyLine}</p>
+      <p style="font-size: 15px; line-height: 1.5; margin: 0 0 8px;">${bodyLine}</p>
+      ${knownOverlapLine(payload.known_overlap, locale)}
+      <div style="margin-bottom: 16px;"></div>
       <a href="${actionUrl}" style="display: inline-block; background: #15181A; color: #C6FF3E; text-decoration: none; padding: 10px 20px; border-radius: 16px; font-size: 14px; font-weight: 600;">${ctaLabel}</a>
     </div>
   `.trim();
@@ -143,7 +162,9 @@ export function renderPurchaseRequestEscalatedEmail(
   const html = `
     <div style="font-family: Arial, sans-serif; color: #15181A; max-width: 480px; margin: 0 auto;">
       <p style="font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: #6E7478; margin: 0 0 16px;">StackX</p>
-      <p style="font-size: 15px; line-height: 1.5; margin: 0 0 24px;">${bodyLine}</p>
+      <p style="font-size: 15px; line-height: 1.5; margin: 0 0 8px;">${bodyLine}</p>
+      ${knownOverlapLine(payload.known_overlap, locale)}
+      <div style="margin-bottom: 16px;"></div>
       <a href="${actionUrl}" style="display: inline-block; background: #15181A; color: #C6FF3E; text-decoration: none; padding: 10px 20px; border-radius: 16px; font-size: 14px; font-weight: 600;">${ctaLabel}</a>
     </div>
   `.trim();
@@ -221,6 +242,7 @@ export function buildPurchaseRequestStepPendingTeamsCard(
           body: [
             { type: "TextBlock", text: title, weight: "Bolder", size: "Medium" },
             { type: "TextBlock", text, wrap: true },
+            ...knownOverlapTeamsBlock(payload.known_overlap, locale),
           ],
           actions: [
             { type: "Action.OpenUrl", title: ctaLabel, url: buildApprovalActionLink(locale, payload.approval_token) },
@@ -229,6 +251,18 @@ export function buildPurchaseRequestStepPendingTeamsCard(
       },
     ],
   };
+}
+
+// Bloque 3.4 — mismo aviso que knownOverlapLine() (email), en forma de
+// bloque de tarjeta Adaptive Card; array vacío si no aplica (spread directo
+// en el `body` de cada tarjeta, sin condicional aparte por tarjeta).
+function knownOverlapTeamsBlock(knownOverlap: boolean, locale: "es" | "en"): object[] {
+  if (!knownOverlap) return [];
+  const text =
+    locale === "es"
+      ? "⚠ Ya existe una herramienta similar contratada en tu organización."
+      : "⚠ A similar tool is already in place in your organization.";
+  return [{ type: "TextBlock", text, wrap: true, color: "Warning", size: "Small" }];
 }
 
 export function buildPurchaseRequestReminderTeamsCard(
@@ -259,6 +293,7 @@ export function buildPurchaseRequestReminderTeamsCard(
           body: [
             { type: "TextBlock", text: title, weight: "Bolder", size: "Medium" },
             { type: "TextBlock", text, wrap: true },
+            ...knownOverlapTeamsBlock(payload.known_overlap, locale),
           ],
           actions: [
             { type: "Action.OpenUrl", title: ctaLabel, url: buildApprovalActionLink(locale, payload.approval_token) },
@@ -297,6 +332,7 @@ export function buildPurchaseRequestEscalatedTeamsCard(
           body: [
             { type: "TextBlock", text: title, weight: "Bolder", size: "Medium" },
             { type: "TextBlock", text, wrap: true },
+            ...knownOverlapTeamsBlock(payload.known_overlap, locale),
           ],
           actions: [
             { type: "Action.OpenUrl", title: ctaLabel, url: buildApprovalActionLink(locale, payload.approval_token) },

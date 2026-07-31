@@ -145,8 +145,32 @@ seed default) y `approval_delegations`.
 - ✅ Aceptación: flujo completo solicitud→aprobación→contrato en e2e de Playwright (`e2e/requests-approval.spec.ts`, describe "Cierre del ciclo: conversión a vendor/contrato") + guarda anti-doble-conversión y camino de vendor existente con tests dedicados en `src/features/requests/conversion.test.ts`
 
 ### 3.4 Catálogo interno
-- [ ] Al solicitar, detectar solapamiento con stack existente ("ya tienes Jira") con coste y renovación
-- ✅ Aceptación: solicitud de herramienta ya contratada muestra el aviso con ahorro neto (mockup pantalla 4)
+- [x] Al solicitar, detectar solapamiento con stack existente ("ya tienes Jira") con coste y renovación
+- ✅ Aceptación: solicitud de herramienta ya contratada muestra el aviso con ahorro neto (mockup pantalla 4) — verificado en `src/features/requests/catalog-overlap.test.ts` + `e2e/requests-approval.spec.ts` (describe "Catálogo interno") + verificación visual autenticada contra el remoto, ver docs/DECISIONS.md
+- **Bloque 3.4 cerrado. FASE 3 — Procurement (3.1–3.4) completa.**
+
+## Bloque adicional (futuro) — Vista de gestión de procurement
+
+Fuera de la numeración de fases (no está en SPECS.md — no confundir con §3.4
+"Catálogo interno" de arriba, que es una feature distinta). Pedido por el
+usuario el 2026-07-31 bajo el nombre "bloque 3.4"; al auditar se detectó que
+no coincide con el §3.4 real, así que se deja anotado aquí como trabajo
+futuro separado en vez de construirse en esa sesión (ver docs/DECISIONS.md).
+
+- [ ] Página `/requests/manage` para MANAGER_ROLES: tabla de todas las
+      solicitudes de la org con filtros (estado, departamento, empresa, rango
+      de importe), orden por antigüedad del paso activo
+- [ ] Métricas de cabecera: pendientes ahora / atascadas >72h (misma
+      semántica que el recordatorio existente) / tiempo medio de decisión
+      últimos 90 días / % auto-aprobadas — reutilizando helpers existentes,
+      sin recalcular por vía paralela
+- [ ] Fila enlaza al detalle; las convertidas (3.3) muestran su vínculo al contrato
+- [ ] **Pendiente de decidir antes de construir**: `purchase_requests_select`
+      (post 3.2b) da visibilidad org-wide solo a `finance`/`org_admin` +
+      solicitante + aprobadores/delegados de paso — **no incluye `it_admin`**,
+      así que no cubre el patrón `MANAGER_ROLES` estándar del resto del repo.
+      Requiere decidir la ampliación mínima de RLS antes de implementar esta
+      vista.
 
 ## FASE 4 — Comercialización
 ### 4.1 Billing (Stripe: subscripción por empleados, planes y límites)

@@ -353,8 +353,11 @@
       "renewalAlert": "{vendorName} renueva en {days} días",
       "noticeExpired": "{vendorName}: el preaviso de cancelación vence hoy",
       "purchaseRequestSubmitted": "Nueva solicitud de {requesterName}: {vendorName}",
+      "purchaseRequestReminder": "Recordatorio: {vendorName} sigue pendiente de tu aprobación",
+      "purchaseRequestEscalated": "{vendorName}: escalada a administración tras 7 días sin respuesta",
       "purchaseRequestApproved": "Tu solicitud de {vendorName} fue aprobada",
-      "purchaseRequestRejected": "Tu solicitud de {vendorName} fue rechazada"
+      "purchaseRequestRejected": "Tu solicitud de {vendorName} fue rechazada",
+      "knownOverlapNote": "⚠ Solapamiento conocido con el stack existente"
     },
     "dashboard": {
       "crumb": "Dashboard",
@@ -699,6 +702,17 @@
       "justificationLabel": "Justificación",
       "alternativesLabel": "Alternativas consideradas (opcional)",
       "submit": "Enviar solicitud"
+    },
+    "overlap": {
+      "title": "Ya contratado en tu organización",
+      "detailIntro": "El solicitante vio este aviso y decidió continuar de todos modos.",
+      "basicBodyWithOwner": "Ya contratado ({count, plural, one {# contrato activo} other {# contratos activos}}). Habla con {owner} antes de duplicarlo.",
+      "basicBodyNoOwner": "Ya contratado ({count, plural, one {# contrato activo} other {# contratos activos}}). Consulta con tu equipo antes de duplicarlo.",
+      "noOwner": "sin owner asignado",
+      "noDepartment": "sin departamento",
+      "perYear": "año",
+      "potentialSavingsLabel": "Ahorro potencial estimado",
+      "potentialSavingsNote": "Estimación, no una cifra contable: es el coste anual de esta solicitud si se evita duplicar lo ya existente."
     },
     "detail": {
       "back": "← Volver a solicitudes",

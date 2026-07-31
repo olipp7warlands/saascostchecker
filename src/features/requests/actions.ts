@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { parseApprovalToken } from "./approval-links";
+import { mapCatalogOverlapRow, type CatalogOverlapResult, type CatalogOverlapRpcRow } from "./catalog-overlap";
 import {
   createPurchaseRequestSchema,
   resolvePurchaseRequestSchema,
@@ -13,6 +14,26 @@ import {
 
 function firstIssueMessage(error: { issues: { message: string }[] }) {
   return error.issues[0]?.message ?? "Invalid input";
+}
+
+// Bloque 3.4: llamado justo tras elegir una herramienta del catálogo en el
+// formulario, antes de enviar la solicitud — informa si la org ya la tiene
+// contratada. check_catalog_overlap() decide server-side, según el rol del
+// caller, si el resultado lleva importes (MANAGER_ROLES) o no (cualquier
+// otro rol); esta acción solo transporta lo que la RPC ya decidió mostrar.
+export async function checkCatalogOverlap(
+  catalogId: string,
+): Promise<{ error: string } | { success: true; data: CatalogOverlapResult }> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .rpc("check_catalog_overlap", { p_catalog_id: catalogId })
+    .single();
+
+  if (error || !data) {
+    return { error: error?.message ?? "Could not check catalog overlap" };
+  }
+
+  return { success: true, data: mapCatalogOverlapRow(data as CatalogOverlapRpcRow) };
 }
 
 export async function createPurchaseRequest(locale: string, input: unknown): Promise<ActionResult> {

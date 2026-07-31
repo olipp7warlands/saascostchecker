@@ -7,10 +7,12 @@ import { StatusTimeline } from "@/components/requests/status-timeline";
 import { Pill } from "@/components/ui/pill";
 import type { Role } from "@/features/auth/session";
 import { getCurrentUserProfile } from "@/features/auth/session";
+import { mapCatalogOverlapRow, type CatalogOverlapRpcRow } from "@/features/requests/catalog-overlap";
 import { REQUEST_STATUS_TONE } from "@/features/requests/status-tone";
 import type { PurchaseRequestStatus } from "@/features/requests/timeline";
 import { routing } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
+import { CatalogOverlapBanner } from "../catalog-overlap-banner";
 import { RequestActions } from "./request-actions";
 
 const VENDOR_MANAGER_ROLES = ["finance", "it_admin", "org_admin"];
@@ -41,7 +43,7 @@ export default async function RequestDetailPage({
     supabase
       .from("purchase_requests")
       .select(
-        "id, requester_id, vendor_name, estimated_annual_cost, currency, department_id, justification, alternatives_considered, status, rejection_reason, created_at, catalog_id, converted_vendor_id, converted_contract_id, saas_catalog(website), users(full_name, email)",
+        "id, requester_id, vendor_name, estimated_annual_cost, currency, department_id, justification, alternatives_considered, status, rejection_reason, created_at, catalog_id, known_overlap, converted_vendor_id, converted_contract_id, saas_catalog(website), users(full_name, email)",
       )
       .eq("id", id)
       .single(),
@@ -71,6 +73,17 @@ export default async function RequestDetailPage({
   if (error || !request) {
     notFound();
   }
+
+  // Bloque 3.4: known_overlap es el hecho histórico ("el solicitante fue
+  // avisado y siguió adelante"); el contenido del banner se recalcula en
+  // vivo vía check_catalog_overlap() (mismo nivel de detalle según el rol
+  // del viewer) en vez de guardar un snapshot que quedaría desactualizado.
+  const overlapQuery = request.known_overlap && request.catalog_id
+    ? await supabase.rpc("check_catalog_overlap", { p_catalog_id: request.catalog_id }).single()
+    : null;
+  const overlap = overlapQuery?.data
+    ? mapCatalogOverlapRow(overlapQuery.data as CatalogOverlapRpcRow)
+    : null;
 
   const departmentQuery = request.department_id
     ? await supabase.from("departments").select("name").eq("id", request.department_id).single()
@@ -158,6 +171,17 @@ export default async function RequestDetailPage({
           {t(`status.${status}`)}
         </Pill>
       </div>
+
+      {overlap && (
+        <div className="mt-4">
+          <CatalogOverlapBanner
+            overlap={overlap}
+            requestedAnnualCost={Number(request.estimated_annual_cost)}
+            requestedCurrency={request.currency}
+            variant="detail"
+          />
+        </div>
+      )}
 
       <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-[1.4fr_1fr]">
         <div className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-4">
