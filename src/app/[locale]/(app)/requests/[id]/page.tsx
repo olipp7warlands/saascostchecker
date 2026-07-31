@@ -106,10 +106,23 @@ export default async function RequestDetailPage({
   const activeStepRow = (stepRows ?? []).find(
     (row) => row.status === "pending" || row.status === "escalated_to_org_admin",
   );
+  // El delegado vigente del aprobador resuelto también puede actuar (bloque
+  // 3.2b, aditivo — el original no pierde su capacidad): is_active_delegate_of()
+  // es relativo al caller (auth.uid()), así que basta con preguntar "¿soy yo
+  // delegado activo de resolved_approver_id?" sin exponer relaciones ajenas.
+  const isActiveDelegate =
+    !!activeStepRow?.resolved_approver_id &&
+    activeStepRow.resolved_approver_id !== me?.id &&
+    (
+      await supabase.rpc("is_active_delegate_of", {
+        p_delegator_user_id: activeStepRow.resolved_approver_id,
+      })
+    ).data === true;
   const canApprove =
     !!activeStepRow &&
     (activeStepRow.resolved_approver_id === me?.id ||
-      (activeStepRow.approver_role !== null && activeStepRow.approver_role === profile.role));
+      (activeStepRow.approver_role !== null && activeStepRow.approver_role === profile.role) ||
+      isActiveDelegate);
   const isRequester = me?.id === request.requester_id;
   const canCreateVendor = VENDOR_MANAGER_ROLES.includes(profile.role);
 

@@ -98,9 +98,13 @@ test.describe("Shell de la aplicación (bloque 0.4)", () => {
     const mainNav = page.getByRole("navigation", { name: "Navegación principal" });
     await expect(mainNav).toBeVisible();
     await expect(mainNav.getByText("Equipo y reglas")).toHaveCount(0);
-    await expect(mainNav.getByText("Ajustes")).toHaveCount(0);
     await expect(mainNav.getByText("Dashboard")).toBeVisible();
     await expect(mainNav.getByText("Solicitudes")).toBeVisible();
+    // "Ajustes" sí existe para un empleado (delegaciones es autoservicio, bloque 3.2b),
+    // pero sin ningún item de administración dentro.
+    await expect(mainNav.getByText("Ajustes")).toBeVisible();
+    await expect(mainNav.getByRole("link", { name: "Delegaciones" })).toBeVisible();
+    await expect(mainNav.getByRole("link", { name: "Reglas de aprobación" })).toHaveCount(0);
 
     // La página en sí sigue protegida server-side aunque el shell se renderice.
     await page.goto("/es/team/members");

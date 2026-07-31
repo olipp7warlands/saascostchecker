@@ -208,8 +208,11 @@ test.describe("Móvil: sin scroll horizontal + nav completo (bloque de fixes de 
     await expect(sheet).toBeVisible();
     await expect(sheet.getByText("Datos", { exact: true })).toBeVisible();
     await expect(sheet.getByRole("link", { name: "Presupuestos" })).toBeVisible();
-    // finance no es org_admin: la sección "Ajustes" completa no debe existir.
-    await expect(sheet.getByText("Ajustes", { exact: true })).toHaveCount(0);
+    // finance no es org_admin: no ve los items de administración...
     await expect(sheet.getByRole("link", { name: "Empresas" })).toHaveCount(0);
+    await expect(sheet.getByRole("link", { name: "Reglas de aprobación" })).toHaveCount(0);
+    // ...pero sí ve "Ajustes" porque delegaciones (bloque 3.2b) es autoservicio para todos los roles.
+    await expect(sheet.getByText("Ajustes", { exact: true })).toBeVisible();
+    await expect(sheet.getByRole("link", { name: "Delegaciones" })).toBeVisible();
   });
 });
