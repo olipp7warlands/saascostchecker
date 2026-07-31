@@ -650,7 +650,8 @@
       "historicalBadge": "Historical",
       "close": "Close",
       "notesPlaceholder": "Add negotiation context, agreed terms, or any other relevant notes about this vendor.",
-      "annualCapLabel": "Annual cap"
+      "annualCapLabel": "Annual cap",
+      "originRequest": "Origin: purchase request"
     },
     "tags": {
       "label": "Tags",
@@ -668,6 +669,7 @@
     "addButton": "+ New request",
     "empty": "You haven't created any requests yet",
     "emptyApprover": "There are no requests in the organization yet",
+    "convertedBadge": "Converted",
     "table": {
       "vendor": "Tool",
       "requester": "Requester",
@@ -708,6 +710,7 @@
       "alternativesLabel": "Alternatives considered",
       "rejectionReasonLabel": "Rejection reason",
       "requestedOn": "Requested on {date}",
+      "convertedBadge": "Already in inventory (contract created)",
       "timeline": {
         "step": {
           "submitted": "Submitted",
@@ -747,6 +750,7 @@
         "cancel": "Cancel request",
         "markPurchased": "Mark as purchased",
         "createVendorLink": "Create vendor/contract",
+        "viewContract": "View contract",
         "rejectDialogTitle": "Reject request",
         "rejectDialogDescription": "Enter the rejection reason. The requester will see it.",
         "rejectionReasonPlaceholder": "Rejection reason",
@@ -756,6 +760,19 @@
         "cancelDialogDescription": "Are you sure you want to cancel this request? This can't be undone.",
         "cancelDialogCancel": "Go back",
         "cancelDialogConfirm": "Cancel request"
+      }
+    },
+    "convert": {
+      "back": "← Back to the request",
+      "title": "Convert into vendor and contract",
+      "matchTitle": "You already have {vendor} in your stack",
+      "matchDescription": "You can add this contract to the existing vendor instead of creating a duplicate.",
+      "linkExisting": "Add contract here",
+      "createNewAnyway": "Create a new vendor anyway",
+      "existing": {
+        "back": "← Choose another option",
+        "title": "Add contract — {vendor}",
+        "submit": "Create contract"
       }
     },
     "approvalLink": {

@@ -650,7 +650,8 @@
       "historicalBadge": "Histórico",
       "close": "Cerrar",
       "notesPlaceholder": "Añade contexto de negociación, condiciones acordadas o cualquier nota relevante sobre este vendor.",
-      "annualCapLabel": "Cap anual"
+      "annualCapLabel": "Cap anual",
+      "originRequest": "Origen: solicitud de compra"
     },
     "tags": {
       "label": "Tags",
@@ -668,6 +669,7 @@
     "addButton": "+ Nueva solicitud",
     "empty": "Todavía no has creado ninguna solicitud",
     "emptyApprover": "Todavía no hay solicitudes en la organización",
+    "convertedBadge": "Convertida",
     "table": {
       "vendor": "Herramienta",
       "requester": "Solicitante",
@@ -708,6 +710,7 @@
       "alternativesLabel": "Alternativas consideradas",
       "rejectionReasonLabel": "Motivo del rechazo",
       "requestedOn": "Solicitada el {date}",
+      "convertedBadge": "Ya está en el inventario (contrato creado)",
       "timeline": {
         "step": {
           "submitted": "Enviada",
@@ -747,6 +750,7 @@
         "cancel": "Cancelar solicitud",
         "markPurchased": "Marcar como comprada",
         "createVendorLink": "Crear vendor/contrato",
+        "viewContract": "Ver contrato",
         "rejectDialogTitle": "Rechazar solicitud",
         "rejectDialogDescription": "Indica el motivo del rechazo. El solicitante lo verá.",
         "rejectionReasonPlaceholder": "Motivo del rechazo",
@@ -756,6 +760,19 @@
         "cancelDialogDescription": "¿Seguro que quieres cancelar esta solicitud? No podrás deshacerlo.",
         "cancelDialogCancel": "Volver",
         "cancelDialogConfirm": "Cancelar solicitud"
+      }
+    },
+    "convert": {
+      "back": "← Volver a la solicitud",
+      "title": "Convertir en vendor y contrato",
+      "matchTitle": "Ya tienes {vendor} en tu stack",
+      "matchDescription": "Puedes añadir este contrato al vendor existente en vez de crear uno duplicado.",
+      "linkExisting": "Añadir contrato aquí",
+      "createNewAnyway": "Crear vendor nuevo de todas formas",
+      "existing": {
+        "back": "← Elegir otra opción",
+        "title": "Añadir contrato — {vendor}",
+        "submit": "Crear contrato"
       }
     },
     "approvalLink": {

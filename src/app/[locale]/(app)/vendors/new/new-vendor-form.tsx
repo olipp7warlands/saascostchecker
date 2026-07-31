@@ -38,6 +38,7 @@ export function NewVendorForm({
   canManageOrgDimensions,
   initialSelection = null,
   initialContract = null,
+  sourceRequestId = null,
 }: {
   locale: string;
   members: Member[];
@@ -46,6 +47,7 @@ export function NewVendorForm({
   canManageOrgDimensions: boolean;
   initialSelection?: VendorSelection | null;
   initialContract?: InitialContract | null;
+  sourceRequestId?: string | null;
 }) {
   const t = useTranslations("Vendors.new");
   const tGeneric = useTranslations("Auth");
@@ -82,6 +84,7 @@ export function NewVendorForm({
     startTransition(async () => {
       const result = await createVendorWithContract(locale, {
         catalogId: selection.catalogId,
+        sourceRequestId,
         vendorName: formData.get("vendorName"),
         website: formData.get("website"),
         category: formData.get("category"),

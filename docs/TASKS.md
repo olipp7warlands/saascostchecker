@@ -140,9 +140,9 @@ seed default) y `approval_delegations`.
 - **Bloque 3.2 (a+b) cerrado por completo.**
 
 ### 3.3 Cierre del ciclo
-- [ ] Conversión solicitud aprobada → vendor + contrato precargado (1 clic)
-- [ ] Historial de negociación y notas por vendor
-- ✅ Aceptación: flujo completo solicitud→aprobación→contrato en e2e de Playwright
+- [x] Conversión solicitud aprobada → vendor + contrato precargado (1 clic)
+- [ ] Historial de negociación y notas por vendor (fuera de alcance de esta sesión — no pedido explícitamente; el vendor ya tiene pestaña "Notas" y renegociación con `savings_records` desde bloques anteriores, pendiente de revisar si eso ya lo cubre o falta algo específico)
+- ✅ Aceptación: flujo completo solicitud→aprobación→contrato en e2e de Playwright (`e2e/requests-approval.spec.ts`, describe "Cierre del ciclo: conversión a vendor/contrato") + guarda anti-doble-conversión y camino de vendor existente con tests dedicados en `src/features/requests/conversion.test.ts`
 
 ### 3.4 Catálogo interno
 - [ ] Al solicitar, detectar solapamiento con stack existente ("ya tienes Jira") con coste y renovación

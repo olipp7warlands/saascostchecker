@@ -38,6 +38,7 @@ type Contract = {
   department_id: string | null;
   company_id: string | null;
   snoozed_until: string | null;
+  source_request_id: string | null;
 };
 type Member = { id: string; full_name: string | null; email: string };
 type Department = { id: string; name: string };
@@ -256,6 +257,14 @@ export function ContractList({
                   </>
                 )}
               </p>
+              {contract.source_request_id && (
+                <a
+                  href={`/${locale}/requests/${contract.source_request_id}`}
+                  className="text-xs text-ink-soft underline underline-offset-4 hover:text-ink"
+                >
+                  {t("originRequest")}
+                </a>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-2">

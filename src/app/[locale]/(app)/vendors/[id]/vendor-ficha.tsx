@@ -42,6 +42,7 @@ type Contract = {
   department_id: string | null;
   company_id: string | null;
   snoozed_until: string | null;
+  source_request_id: string | null;
 };
 type Member = { id: string; full_name: string | null; email: string };
 type Department = { id: string; name: string };

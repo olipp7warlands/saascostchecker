@@ -37,7 +37,7 @@ export default async function RequestsPage({
     supabase
       .from("purchase_requests")
       .select(
-        "id, vendor_name, estimated_annual_cost, currency, department_id, status, created_at, users(full_name, email)",
+        "id, vendor_name, estimated_annual_cost, currency, department_id, status, created_at, converted_contract_id, users(full_name, email)",
       )
       .order("created_at", { ascending: false }),
     supabase.from("departments").select("id, name"),
@@ -127,7 +127,12 @@ export default async function RequestsPage({
                         {departmentName ?? "—"}
                       </td>
                       <td className="border-b border-line px-4 py-3">
-                        <Pill tone={REQUEST_STATUS_TONE[status]}>{t(`status.${status}`)}</Pill>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <Pill tone={REQUEST_STATUS_TONE[status]}>{t(`status.${status}`)}</Pill>
+                          {request.converted_contract_id && (
+                            <Pill tone="green">{t("convertedBadge")}</Pill>
+                          )}
+                        </div>
                       </td>
                       <td className="border-b border-line px-4 py-3 text-sm text-ink-soft">
                         {dateFormatter.format(new Date(request.created_at))}

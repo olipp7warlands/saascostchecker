@@ -41,7 +41,7 @@ export default async function RequestDetailPage({
     supabase
       .from("purchase_requests")
       .select(
-        "id, requester_id, vendor_name, estimated_annual_cost, currency, department_id, justification, alternatives_considered, status, rejection_reason, created_at, catalog_id, saas_catalog(website), users(full_name, email)",
+        "id, requester_id, vendor_name, estimated_annual_cost, currency, department_id, justification, alternatives_considered, status, rejection_reason, created_at, catalog_id, converted_vendor_id, converted_contract_id, saas_catalog(website), users(full_name, email)",
       )
       .eq("id", id)
       .single(),
@@ -134,12 +134,6 @@ export default async function RequestDetailPage({
   });
   const dateFormatter = new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" });
 
-  const vendorPrefillParams = new URLSearchParams();
-  if (request.catalog_id) vendorPrefillParams.set("catalog_id", request.catalog_id);
-  vendorPrefillParams.set("vendor_name", request.vendor_name);
-  if (request.department_id) vendorPrefillParams.set("department_id", request.department_id);
-  vendorPrefillParams.set("cost", String(request.estimated_annual_cost));
-  vendorPrefillParams.set("currency", request.currency);
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -230,14 +224,26 @@ export default async function RequestDetailPage({
             isRequester={isRequester}
           />
 
-          {status === "approved" && canCreateVendor && (
+          {status === "approved" && canCreateVendor && !request.converted_contract_id && (
             <a
-              href={`/${locale}/vendors/new?${vendorPrefillParams.toString()}`}
+              href={`/${locale}/requests/${request.id}/convert`}
               className="inline-flex h-9 items-center justify-center rounded-btn bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-[#2A2E30]"
             >
               {tDetail("actions.createVendorLink")}
             </a>
           )}
+
+          {request.converted_contract_id &&
+            (canCreateVendor ? (
+              <a
+                href={`/${locale}/vendors/${request.converted_vendor_id}#contract-${request.converted_contract_id}`}
+                className="inline-flex h-9 items-center justify-center rounded-btn border border-input bg-transparent px-4 text-sm font-semibold text-ink hover:bg-muted/40"
+              >
+                {tDetail("actions.viewContract")}
+              </a>
+            ) : (
+              <p className="text-xs text-ink-soft">{tDetail("convertedBadge")}</p>
+            ))}
         </div>
       </div>
     </div>

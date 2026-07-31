@@ -12,6 +12,12 @@ function randomSuffix() {
   return Math.random().toString(36).slice(2, 10);
 }
 
+function isoDate(daysFromNow: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + daysFromNow);
+  return d.toISOString().slice(0, 10);
+}
+
 async function createOrgAdmin(label: string) {
   const client = createClient(supabaseUrl!, supabaseAnonKey!, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
@@ -457,6 +463,116 @@ test.describe("Delegaciones de aprobación (bloque 3.2b)", () => {
     } finally {
       await employeeContext.close();
       await delegateContext.close();
+    }
+  });
+});
+
+test.describe("Cierre del ciclo: conversión a vendor/contrato (bloque 3.3)", () => {
+  test.skip(!usesLocalSupabase, "Requiere Supabase local — ver docs/DECISIONS.md");
+
+  test("aprobar → crear vendor nuevo con origen; segunda solicitud del mismo catálogo → enlazar a vendor existente; reconversión bloqueada", async ({
+    browser,
+  }) => {
+    const admin = await createOrgAdmin("convert-flow");
+    const employeeEmail = `convert-flow-employee-${randomSuffix()}@example.test`;
+    const rawToken = await inviteEmployee(admin.client, employeeEmail);
+
+    const employeeContext = await browser.newContext();
+    const employeePage = await employeeContext.newPage();
+    const adminContext = await browser.newContext();
+    const adminPage = await adminContext.newPage();
+
+    try {
+      await employeePage.goto(`/es/invite/${rawToken}`);
+      await employeePage.getByLabel("Tu nombre completo").fill("Empleado Conversion");
+      await employeePage.getByLabel("Elige una contraseña").fill("Test1234!");
+      await employeePage.getByRole("button", { name: "Unirme" }).click();
+      await employeePage.waitForURL(/\/es\/dashboard$/);
+
+      // 1. Primera solicitud de "Figma" (catálogo) — coste por encima del
+      // tier auto, aprobada manualmente por org_admin.
+      await employeePage.goto("/es/requests/new");
+      let combobox = employeePage.getByRole("combobox");
+      await combobox.fill("figm");
+      await employeePage.getByRole("option").filter({ hasText: "Figma" }).click();
+      await employeePage.getByLabel("Coste anual estimado").fill("1200");
+      await employeePage.getByLabel("Moneda").fill("EUR");
+      await employeePage.getByLabel("Justificación").fill("Herramienta de diseño para el equipo de producto.");
+      await employeePage.getByRole("button", { name: "Enviar solicitud" }).click();
+      await employeePage.waitForURL(/\/es\/requests\/[0-9a-f-]+$/, { timeout: 15_000 });
+      const request1Url = employeePage.url();
+
+      await adminPage.goto("/es/login");
+      await adminPage.getByLabel("Email").fill(admin.email);
+      await adminPage.getByLabel("Contraseña").fill(admin.password);
+      await adminPage.getByRole("button", { name: "Entrar" }).click();
+      await adminPage.waitForURL(/\/es\/dashboard$/);
+
+      await adminPage.goto(request1Url);
+      await adminPage.getByRole("button", { name: "Aprobar" }).click();
+      await expect(adminPage.getByText("Aprobada", { exact: true })).toBeVisible();
+
+      // 2. Convertir: todavía no existe ningún vendor "Figma" en la org, así
+      // que el intersticial redirige directo a /vendors/new precargado.
+      await adminPage.getByRole("link", { name: "Crear vendor/contrato" }).click();
+      await adminPage.waitForURL(/\/es\/vendors\/new\?/);
+      await expect(adminPage.getByLabel("Nombre", { exact: true })).toHaveValue("Figma");
+      await expect(adminPage.getByLabel("Coste")).toHaveValue("1200");
+      await adminPage.getByLabel("Fecha de inicio").fill(isoDate(-10));
+      await adminPage.getByLabel("Fecha de renovación").fill(isoDate(355));
+      await adminPage.getByRole("button", { name: "Crear vendor y contrato" }).click();
+      await adminPage.waitForURL(/\/es\/vendors\/[0-9a-f-]+$/, { timeout: 30_000 });
+      const vendorUrl = adminPage.url();
+      const vendorId = vendorUrl.split("/").pop()!;
+
+      // La ficha de la solicitud enlaza al contrato; el contrato muestra su origen.
+      await adminPage.goto(request1Url);
+      await expect(adminPage.getByRole("link", { name: "Ver contrato" })).toBeVisible();
+      await adminPage.goto(vendorUrl);
+      await adminPage.getByRole("tab", { name: "Contratos" }).click();
+      await expect(adminPage.getByRole("link", { name: "Origen: solicitud de compra" })).toBeVisible();
+
+      // 3. Segunda solicitud del mismo catálogo (Figma), coste bajo el tier
+      // "auto" — se aprueba sola. Al convertir, debe ofrecer enlazar al
+      // vendor ya creado en vez de duplicarlo.
+      await employeePage.goto("/es/requests/new");
+      combobox = employeePage.getByRole("combobox");
+      await combobox.fill("figm");
+      await employeePage.getByRole("option").filter({ hasText: "Figma" }).click();
+      await employeePage.getByLabel("Coste anual estimado").fill("300");
+      await employeePage.getByLabel("Moneda").fill("EUR");
+      await employeePage.getByLabel("Justificación").fill("Licencias adicionales de Figma para diseño.");
+      await employeePage.getByRole("button", { name: "Enviar solicitud" }).click();
+      await employeePage.waitForURL(/\/es\/requests\/[0-9a-f-]+$/, { timeout: 15_000 });
+      const request2Url = employeePage.url();
+
+      await adminPage.goto(request2Url);
+      await expect(adminPage.getByText("Aprobada", { exact: true })).toBeVisible();
+      await adminPage.getByRole("link", { name: "Crear vendor/contrato" }).click();
+      await adminPage.waitForURL(/\/convert$/);
+      await expect(adminPage.getByText("Ya tienes Figma en tu stack")).toBeVisible();
+      await adminPage.getByRole("link", { name: "Añadir contrato aquí" }).click();
+      await adminPage.waitForURL(/\/convert\/existing\/[0-9a-f-]+$/);
+      await adminPage.getByLabel("Fecha de inicio").fill(isoDate(-5));
+      await adminPage.getByLabel("Fecha de renovación").fill(isoDate(360));
+      await adminPage.getByRole("button", { name: "Crear contrato" }).click();
+      await adminPage.waitForURL(new RegExp(`/es/vendors/${vendorId}$`), { timeout: 30_000 });
+
+      // Un solo vendor "Figma", ahora con 2 contratos, cada uno con su propio origen.
+      await adminPage.getByRole("tab", { name: "Contratos" }).click();
+      await expect(adminPage.getByRole("link", { name: "Origen: solicitud de compra" })).toHaveCount(2);
+
+      // 4. Reconversión bloqueada: la URL directa de conversión de la
+      // primera solicitud (ya convertida) redirige de vuelta a su ficha en
+      // vez de exponer el intersticial — guarda server-side, no solo un
+      // enlace escondido en la UI.
+      const request1Id = request1Url.split("/").pop();
+      await adminPage.goto(`/es/requests/${request1Id}/convert`);
+      await adminPage.waitForURL(request1Url);
+      await expect(adminPage.getByRole("link", { name: "Crear vendor/contrato" })).toHaveCount(0);
+    } finally {
+      await employeeContext.close();
+      await adminContext.close();
     }
   });
 });

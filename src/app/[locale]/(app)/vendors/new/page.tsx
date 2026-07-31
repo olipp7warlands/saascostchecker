@@ -19,6 +19,7 @@ export default async function NewVendorPage({
     department_id?: string;
     cost?: string;
     currency?: string;
+    source_request_id?: string;
   }>;
 }) {
   const { locale } = await params;
@@ -49,6 +50,7 @@ export default async function NewVendorPage({
   const prefillDepartmentId = search.department_id ?? null;
   const prefillCost = search.cost ?? null;
   const prefillCurrency = search.currency ?? null;
+  const sourceRequestId = search.source_request_id ?? null;
 
   const catalogEntry = catalogId
     ? (await supabase.from("saas_catalog").select("id, name, website, category").eq("id", catalogId).single())
@@ -90,6 +92,7 @@ export default async function NewVendorPage({
           canManageOrgDimensions={profile.role === "org_admin"}
           initialSelection={initialSelection}
           initialContract={initialContract}
+          sourceRequestId={sourceRequestId}
         />
       </div>
     </div>

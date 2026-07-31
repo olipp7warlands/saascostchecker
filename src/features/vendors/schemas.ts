@@ -45,6 +45,10 @@ export const createVendorWithContractSchema = z.object({
     (value) => (value === "" ? null : value),
     z.string().trim().max(2000).nullable(),
   ),
+  // Bloque 3.3: presente solo cuando se llega desde "Crear vendor/contrato"
+  // de una solicitud aprobada — dispara el enlace record_purchase_request_conversion
+  // tras crear vendor+contrato (best-effort, ver src/features/vendors/actions.ts).
+  sourceRequestId: uuidOrNull,
   ...contractFieldsSchema,
 });
 
@@ -63,6 +67,9 @@ export const updateVendorSchema = z.object({
 
 export const createContractSchema = z.object({
   vendorId: z.string().uuid(),
+  // Bloque 3.3: presente cuando se crea un contrato para un vendor YA
+  // existente desde el flujo de conversión de una solicitud aprobada.
+  sourceRequestId: uuidOrNull,
   ...contractFieldsSchema,
 });
 

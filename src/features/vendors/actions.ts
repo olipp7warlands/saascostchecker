@@ -27,6 +27,28 @@ function sanitizeFileName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, "_");
 }
 
+// Bloque 3.3: enlaza una solicitud aprobada al vendor/contrato recién creado.
+// Best-effort y deliberadamente NO transaccional con la creación de arriba
+// (ver docs/DECISIONS.md) — si falla (p.ej. la solicitud ya se convirtió en
+// otra pestaña), el vendor/contrato quedan creados igualmente: se traga el
+// error y la solicitud sigue ofreciendo "convertir" (enlazable después vía
+// el camino de "vendor existente", que vuelve a llamar a esta misma RPC).
+async function tryRecordConversion(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  sourceRequestId: string | null,
+  vendorId: string,
+  contractId: string,
+) {
+  if (!sourceRequestId) {
+    return;
+  }
+  await supabase.rpc("record_purchase_request_conversion", {
+    p_request_id: sourceRequestId,
+    p_vendor_id: vendorId,
+    p_contract_id: contractId,
+  });
+}
+
 async function currentOrgId(supabase: Awaited<ReturnType<typeof createClient>>) {
   const {
     data: { user },
@@ -138,6 +160,8 @@ export async function createVendorWithContract(
     }
   }
 
+  await tryRecordConversion(supabase, data.sourceRequestId, vendorId, contractId);
+
   redirect(`/${locale}/vendors/${vendorId}`);
 }
 
@@ -231,6 +255,8 @@ export async function createContract(input: unknown): Promise<ActionResult> {
       return { error: updateError.message };
     }
   }
+
+  await tryRecordConversion(supabase, data.sourceRequestId, data.vendorId, contractId);
 
   return { success: true };
 }
