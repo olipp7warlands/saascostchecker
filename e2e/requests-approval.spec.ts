@@ -647,7 +647,10 @@ test.describe("Catálogo interno: aviso de solapamiento al solicitar (bloque 3.4
       await expect(employeePage.getByText(/\/año/)).toHaveCount(0);
       await expect(employeePage.getByText("Ahorro potencial estimado")).toHaveCount(0);
 
-      await employeePage.getByLabel("Coste anual estimado").fill("5000");
+      // 3000 cae en el tier "manager" (500-5000 excl.) del seed default, un
+      // único paso — a diferencia de >=5000 ("manager+finance", 2 pasos),
+      // que dejaría la solicitud en 'pending' tras aprobar solo el paso 1.
+      await employeePage.getByLabel("Coste anual estimado").fill("3000");
       await employeePage.getByLabel("Moneda").fill("EUR");
       await employeePage.getByLabel("Justificación").fill("Asientos adicionales para otra unidad de negocio.");
       await employeePage.getByRole("button", { name: "Enviar solicitud" }).click();

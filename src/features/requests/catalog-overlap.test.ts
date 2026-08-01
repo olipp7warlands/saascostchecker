@@ -205,20 +205,19 @@ describe("check_catalog_overlap() / known_overlap (bloque 3.4)", () => {
   it("un contrato cancelado no cuenta como solapamiento (vendor sigue activo)", async () => {
     const vendorId = await createVendor(admin, "Cancelled Contract Vendor", catalogIds[2]);
     const contractId = await createContract(admin, vendorId);
-    await admin.client.rpc("update_contract", {
+    // update_contract() rechaza p_status='cancelled' desde el bloque 2.3b
+    // ("use cancel_contract() to cancel a contract, not update_contract()")
+    // — toda cancelación real pasa por cancel_contract(), que además captura
+    // el ahorro en savings_records.
+    const { error: cancelError } = await admin.client.rpc("cancel_contract", {
       p_contract_id: contractId,
-      p_name: "Test contract",
-      p_cost_amount: 1200,
-      p_currency: "EUR",
-      p_billing_cycle: "annual",
-      p_seats_purchased: 5,
-      p_start_date: "2026-01-01",
-      p_renewal_date: "2027-01-01",
-      p_auto_renews: true,
-      p_cancellation_notice_days: 30,
-      p_document_url: null,
-      p_status: "cancelled",
+      p_previous_annual_cost: 1200,
+      p_new_annual_cost: 0,
+      p_savings_amount: 1200,
+      p_org_currency: "EUR",
+      p_closed_at: "2026-01-15",
     });
+    if (cancelError) throw cancelError;
 
     const { data } = await checkOverlap(admin.client, catalogIds[2]);
     expect(data?.has_overlap).toBe(false);
@@ -228,7 +227,7 @@ describe("check_catalog_overlap() / known_overlap (bloque 3.4)", () => {
   it("un vendor inactivo no cuenta como solapamiento aunque su contrato siga activo", async () => {
     const vendorId = await createVendor(admin, "Inactive Vendor", catalogIds[3]);
     await createContract(admin, vendorId);
-    await admin.client.rpc("update_vendor", {
+    const { error: updateError } = await admin.client.rpc("update_vendor", {
       p_vendor_id: vendorId,
       p_name: "Inactive Vendor",
       p_website: "example.com",
@@ -237,6 +236,7 @@ describe("check_catalog_overlap() / known_overlap (bloque 3.4)", () => {
       p_status: "inactive",
       p_notes: null,
     });
+    if (updateError) throw updateError;
 
     const { data } = await checkOverlap(admin.client, catalogIds[3]);
     expect(data?.has_overlap).toBe(false);
