@@ -8,7 +8,7 @@ import {
   buildCompanySpend,
   buildDepartmentSpend,
   buildKpis,
-  buildRenewalTrack,
+  buildRenewalTickets,
   buildSavingsYtd,
   buildStackStatus,
 } from "@/features/dashboard/aggregate";
@@ -26,7 +26,7 @@ import { BudgetSummary } from "./budget-summary";
 import { KpiCards } from "./kpi-cards";
 import { MonthlySpendChart } from "./monthly-spend-chart";
 import { ReconciliationPreview } from "./reconciliation-preview";
-import { RenewalTrack } from "./renewal-track";
+import { RenewalAgenda } from "./renewal-agenda";
 import { SpendByGroupChart } from "./spend-by-group-chart";
 import { StackStatusDonut } from "./stack-status-donut";
 
@@ -118,7 +118,7 @@ export default async function DashboardPage({
     (savingsRows ?? []).map((row) => ({ savingsAmount: Number(row.savings_amount), closedAt: row.closed_at })),
     currentYear,
   );
-  const tickets = buildRenewalTrack(contracts);
+  const tickets = buildRenewalTickets(contracts, orgCurrency, rates);
   const stackStatus = buildStackStatus(vendors, contracts);
 
   // Resumen discreto (§E del diseño, ver docs/DECISIONS.md) — reutiliza los
@@ -202,7 +202,7 @@ export default async function DashboardPage({
       </p>
 
       <KpiCards kpis={kpis} locale={locale} orgCurrency={orgCurrency} savingsYtd={savingsYtd} />
-      <RenewalTrack tickets={tickets} locale={locale} />
+      <RenewalAgenda tickets={tickets} locale={locale} orgCurrency={orgCurrency} />
 
       <div className="mt-6 grid grid-cols-1 gap-3.5 lg:grid-cols-[1fr_1.6fr]">
         <StackStatusDonut summary={stackStatus} locale={locale} />

@@ -3,9 +3,10 @@ import {
   buildCompanySpend,
   buildDepartmentSpend,
   buildKpis,
-  buildRenewalTrack,
+  buildRenewalTickets,
   buildSavingsYtd,
   buildStackStatus,
+  groupRenewalTicketsByTier,
 } from "./aggregate";
 import type { DashboardContract, DashboardVendor, SavingsRecord } from "./types";
 
@@ -109,7 +110,9 @@ describe("buildKpis", () => {
   });
 });
 
-describe("buildRenewalTrack", () => {
+describe("buildRenewalTickets", () => {
+  const RATES = [{ baseCurrency: "USD", quoteCurrency: "EUR", rate: 0.9 }];
+
   const contracts: DashboardContract[] = [
     contract({
       id: "overdue",
@@ -130,6 +133,13 @@ describe("buildRenewalTrack", () => {
       cancellationNoticeDays: 14,
     }),
     contract({
+      id: "usd",
+      currency: "USD",
+      costAmount: 1000,
+      billingCycle: "annual",
+      renewalDate: isoDaysFrom(TODAY, 26),
+    }),
+    contract({
       id: "outside-window",
       renewalDate: isoDaysFrom(TODAY, 150),
     }),
@@ -140,16 +150,15 @@ describe("buildRenewalTrack", () => {
     }),
   ];
 
-  const tickets = buildRenewalTrack(contracts, TODAY, 120);
+  const tickets = buildRenewalTickets(contracts, "EUR", RATES, TODAY, 120);
 
   it("excluye contratos cancelados y fuera de la ventana", () => {
-    expect(tickets.map((t) => t.contractId)).toEqual(["overdue", "hot", "soon"]);
+    expect(tickets.map((t) => t.contractId)).toEqual(["overdue", "hot", "soon", "usd"]);
   });
 
-  it("clampa los vencidos a la posición 0% en vez de ocultarlos", () => {
+  it("los vencidos mantienen días negativos y tono rojo, sin ocultarse", () => {
     const overdue = tickets.find((t) => t.contractId === "overdue")!;
     expect(overdue.daysUntil).toBe(-3);
-    expect(overdue.xPercent).toBe(0);
     expect(overdue.tone).toBe("red");
   });
 
@@ -162,13 +171,61 @@ describe("buildRenewalTrack", () => {
     expect(soon.tone).toBe("amber");
   });
 
-  it("asigna carriles alternos cuando dos tickets caen demasiado cerca en el eje", () => {
-    const overdue = tickets.find((t) => t.contractId === "overdue")!;
-    const hot = tickets.find((t) => t.contractId === "hot")!;
-    const soon = tickets.find((t) => t.contractId === "soon")!;
-    expect(overdue.lane).toBe(0);
-    expect(hot.lane).toBe(1); // demasiado cerca de "overdue" en el eje x
-    expect(soon.lane).toBe(0); // suficientemente lejos, vuelve al carril 0
+  it("mantiene el coste anual en moneda nativa por fila, pero convierte annualCostOrgCurrency a la moneda de la org", () => {
+    const usd = tickets.find((t) => t.contractId === "usd")!;
+    expect(usd.currency).toBe("USD");
+    expect(usd.annualCost).toBe(1000);
+    expect(usd.annualCostOrgCurrency).toBeCloseTo(900); // 1000 * 0.9
+  });
+});
+
+describe("groupRenewalTicketsByTier", () => {
+  const contracts: DashboardContract[] = [
+    contract({ id: "critical-1", renewalDate: isoDaysFrom(TODAY, 3), costAmount: 100, billingCycle: "annual" }),
+    contract({ id: "upcoming-1", renewalDate: isoDaysFrom(TODAY, 20), costAmount: 200, billingCycle: "annual" }),
+    contract({ id: "upcoming-2", renewalDate: isoDaysFrom(TODAY, 40), costAmount: 300, billingCycle: "annual" }),
+    contract({ id: "stable-1", renewalDate: isoDaysFrom(TODAY, 100), costAmount: 400, billingCycle: "annual" }),
+  ];
+
+  const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY, 120);
+
+  it("asigna cada ticket a su tramo según el tono (crítico ≤7d, próximo ≤45d, estable resto)", () => {
+    const tiers = groupRenewalTicketsByTier(tickets, 120);
+    expect(tiers.find((t) => t.key === "critical")!.tickets.map((t) => t.contractId)).toEqual(["critical-1"]);
+    expect(tiers.find((t) => t.key === "upcoming")!.tickets.map((t) => t.contractId)).toEqual([
+      "upcoming-1",
+      "upcoming-2",
+    ]);
+    expect(tiers.find((t) => t.key === "stable")!.tickets.map((t) => t.contractId)).toEqual(["stable-1"]);
+  });
+
+  it("devuelve los 3 tramos siempre, aunque alguno esté vacío", () => {
+    const tiers = groupRenewalTicketsByTier([], 120);
+    expect(tiers.map((t) => t.key)).toEqual(["critical", "upcoming", "stable"]);
+    expect(tiers.every((t) => t.tickets.length === 0 && t.totalAnnualCostOrgCurrency === 0)).toBe(true);
+  });
+
+  it("suma el coste anualizado (ya en moneda de la org) dentro de cada tramo", () => {
+    const tiers = groupRenewalTicketsByTier(tickets, 120);
+    expect(tiers.find((t) => t.key === "upcoming")!.totalAnnualCostOrgCurrency).toBe(500); // 200 + 300
+  });
+
+  it("filtra por el rango elegido, en los bordes exactos (30/60/90/120)", () => {
+    // A 20d cae dentro de 30d; a 40d queda fuera de 30d pero dentro de 60d.
+    const at30 = groupRenewalTicketsByTier(tickets, 30);
+    expect(at30.find((t) => t.key === "upcoming")!.tickets.map((t) => t.contractId)).toEqual(["upcoming-1"]);
+
+    const at60 = groupRenewalTicketsByTier(tickets, 60);
+    expect(at60.find((t) => t.key === "upcoming")!.tickets.map((t) => t.contractId)).toEqual([
+      "upcoming-1",
+      "upcoming-2",
+    ]);
+
+    // A 100d (stable-1) queda fuera de todo menos 120d.
+    const at90 = groupRenewalTicketsByTier(tickets, 90);
+    expect(at90.find((t) => t.key === "stable")!.tickets).toHaveLength(0);
+    const at120 = groupRenewalTicketsByTier(tickets, 120);
+    expect(at120.find((t) => t.key === "stable")!.tickets).toHaveLength(1);
   });
 });
 

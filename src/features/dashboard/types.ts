@@ -55,12 +55,22 @@ export type RenewalTicket = {
   vendorWebsite: string;
   annualCost: number;
   currency: string;
+  // Coste anualizado convertido a la moneda default de la org — solo para
+  // sumar por tramo en la agenda; las filas siguen mostrando `annualCost` en
+  // la moneda nativa del contrato (sin cambios de comportamiento visible).
+  annualCostOrgCurrency: number;
   daysUntil: number;
   tone: RenewalTone;
-  xPercent: number;
-  lane: 0 | 1;
   noticeWarning: boolean;
   cancellationNoticeDays: number;
+};
+
+export type RenewalTierKey = "critical" | "upcoming" | "stable";
+
+export type RenewalAgendaTier = {
+  key: RenewalTierKey;
+  tickets: RenewalTicket[];
+  totalAnnualCostOrgCurrency: number;
 };
 
 export type DepartmentSpendRow = {

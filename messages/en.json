@@ -388,12 +388,19 @@
       },
       "runway": {
         "title": "Renewals runway",
-        "hint": "Next 120 days · position = days remaining",
-        "empty": "No renewals in the next 120 days",
+        "rangeLabel": "Agenda range",
+        "rangeOption": "{days}d",
         "perYear": "{amount}/yr",
         "daysRemaining": "{days} days",
         "overdue": "Overdue by {days} days",
-        "noticeWarning": "⚠ {days} days · {noticeDays}d notice"
+        "noticeWarning": "⚠ {days} days · {noticeDays}d notice",
+        "contractsCount": "{count, plural, one {# contract} other {# contracts}}",
+        "moreCount": "+{count} more",
+        "showMore": "Show more",
+        "showLess": "Hide",
+        "criticalEmpty": "Nothing critical right now 🎉",
+        "upcomingEmpty": "Nothing upcoming in this range",
+        "stableEmpty": "No stable renewals in this range"
       },
       "departmentSpend": {
         "title": "Spend by department",
@@ -816,11 +823,20 @@
     "nav": {
       "today": "Today",
       "prevMonth": "Previous month",
-      "nextMonth": "Next month"
+      "nextMonth": "Next month",
+      "viewMonth": "Month",
+      "viewYear": "Year",
+      "pickMonth": "Pick month and year",
+      "prevYear": "Previous year",
+      "nextYear": "Next year"
     },
     "calendar": {
       "moreCount": "+{count} more",
       "empty": "No renewals this month"
+    },
+    "yearView": {
+      "empty": "No renewals this year",
+      "monthSummary": "{month}: {count, plural, =0 {no renewals} one {# renewal} other {# renewals}}"
     },
     "agenda": {
       "title": "Monthly renewals agenda",

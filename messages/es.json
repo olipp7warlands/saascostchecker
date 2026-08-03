@@ -388,12 +388,19 @@
       },
       "runway": {
         "title": "Pista de renovaciones",
-        "hint": "Próximos 120 días · posición = días restantes",
-        "empty": "No hay renovaciones en los próximos 120 días",
+        "rangeLabel": "Rango de la agenda",
+        "rangeOption": "{days}d",
         "perYear": "{amount}/año",
         "daysRemaining": "{days} días",
         "overdue": "Vencido hace {days} días",
-        "noticeWarning": "⚠ {days} días · preaviso {noticeDays}d"
+        "noticeWarning": "⚠ {days} días · preaviso {noticeDays}d",
+        "contractsCount": "{count, plural, one {# contrato} other {# contratos}}",
+        "moreCount": "+{count} más",
+        "showMore": "Mostrar más",
+        "showLess": "Ocultar",
+        "criticalEmpty": "Nada crítico por ahora 🎉",
+        "upcomingEmpty": "Nada próximo en este rango",
+        "stableEmpty": "Sin renovaciones estables en este rango"
       },
       "departmentSpend": {
         "title": "Gasto por departamento",
@@ -816,11 +823,20 @@
     "nav": {
       "today": "Hoy",
       "prevMonth": "Mes anterior",
-      "nextMonth": "Mes siguiente"
+      "nextMonth": "Mes siguiente",
+      "viewMonth": "Mes",
+      "viewYear": "Año",
+      "pickMonth": "Elegir mes y año",
+      "prevYear": "Año anterior",
+      "nextYear": "Año siguiente"
     },
     "calendar": {
       "moreCount": "+{count} más",
       "empty": "No hay renovaciones este mes"
+    },
+    "yearView": {
+      "empty": "Sin renovaciones este año",
+      "monthSummary": "{month}: {count, plural, =0 {sin renovaciones} one {# renovación} other {# renovaciones}}"
     },
     "agenda": {
       "title": "Agenda de renovaciones del mes",

@@ -15,16 +15,14 @@ import type {
   DashboardVendor,
   DepartmentSpendRow,
   ExchangeRate,
+  RenewalAgendaTier,
   RenewalTicket,
+  RenewalTierKey,
   SavingsRecord,
   StackStatusSummary,
 } from "./types";
 
 const RENEWAL_WINDOW_DAYS = 120;
-// Distancia mínima en % del eje (0-100) entre dos tickets para no
-// considerarlos solapados — mismo criterio visual que los `top:6px/60px`
-// alternos del mockup, aquí resuelto con 2 carriles en vez de offsets fijos.
-const LANE_COLLISION_PCT = 6;
 
 export function buildKpis(
   contracts: DashboardContract[],
@@ -79,8 +77,17 @@ export function buildKpis(
   };
 }
 
-export function buildRenewalTrack(
+// Construye la lista de tickets de renovación (ventana máxima 120 días, el
+// mayor rango que ofrece el selector de la agenda) — el tono se calcula con
+// `renewalTone(daysUntil)` (días BRUTOS hasta renewal_date), a propósito el
+// mismo cálculo que ya usaba la pista anterior, NO `actionableDaysUntil`
+// (que sí usan el calendario y buildStackStatus más abajo). Unificar esos dos
+// criterios sería un cambio de comportamiento de negocio no pedido en el
+// rediseño visual de la agenda — queda anotado en docs/DECISIONS.md.
+export function buildRenewalTickets(
   contracts: DashboardContract[],
+  orgCurrency: string,
+  rates: ExchangeRate[],
   today: Date = new Date(),
   windowDays: number = RENEWAL_WINDOW_DAYS,
 ): RenewalTicket[] {
@@ -90,16 +97,8 @@ export function buildRenewalTrack(
     .filter(({ days }) => days <= windowDays)
     .sort((a, b) => a.days - b.days);
 
-  const laneLastX: [number, number] = [-Infinity, -Infinity];
-
   return withinWindow.map(({ contract, days }) => {
-    // Vencidos (días negativos) se muestran clamped al extremo izquierdo en
-    // vez de ocultarse — un contrato ya vencido sigue siendo información
-    // real y accionable.
-    const xPercent = Math.min((Math.max(days, 0) / windowDays) * 100, 100);
-    const lane: 0 | 1 = xPercent - laneLastX[0] >= LANE_COLLISION_PCT ? 0 : 1;
-    laneLastX[lane] = xPercent;
-
+    const annualCost = annualizedCost(contract.costAmount, contract.billingCycle);
     const noticeWarning =
       contract.autoRenews &&
       contract.cancellationNoticeDays > 0 &&
@@ -110,14 +109,48 @@ export function buildRenewalTrack(
       vendorId: contract.vendorId,
       vendorName: contract.vendorName,
       vendorWebsite: contract.vendorWebsite,
-      annualCost: annualizedCost(contract.costAmount, contract.billingCycle),
+      annualCost,
       currency: contract.currency,
+      annualCostOrgCurrency: convertAmount(annualCost, contract.currency, orgCurrency, rates),
       daysUntil: days,
       tone: renewalTone(days),
-      xPercent,
-      lane,
       noticeWarning,
       cancellationNoticeDays: contract.cancellationNoticeDays,
+    };
+  });
+}
+
+const TONE_TO_TIER: Record<RenewalTicket["tone"], RenewalTierKey> = {
+  red: "critical",
+  amber: "upcoming",
+  neutral: "stable",
+};
+const TIER_ORDER: RenewalTierKey[] = ["critical", "upcoming", "stable"];
+
+// Agrupa tickets ya construidos (`buildRenewalTickets`) en los 3 tramos de
+// la agenda, acotando además al rango elegido en el selector (30/60/90/120)
+// — pura, sin I/O, así el selector de rango del cliente recalcula al vuelo
+// sin pedir datos nuevos al servidor (ya se cargó el máximo de 120 días).
+// Bucketear por `ticket.tone` (en vez de comparar `daysUntil` a mano contra
+// los umbrales) es equivalente: `renewalTone` ya encapsula
+// CRITICAL_THRESHOLD_DAYS/WARNING_THRESHOLD_DAYS como única fuente de verdad.
+export function groupRenewalTicketsByTier(
+  tickets: RenewalTicket[],
+  windowDays: number,
+): RenewalAgendaTier[] {
+  const withinRange = tickets.filter((ticket) => ticket.daysUntil <= windowDays);
+
+  const byTier = new Map<RenewalTierKey, RenewalTicket[]>(TIER_ORDER.map((key) => [key, []]));
+  for (const ticket of withinRange) {
+    byTier.get(TONE_TO_TIER[ticket.tone])?.push(ticket);
+  }
+
+  return TIER_ORDER.map((key) => {
+    const tierTickets = byTier.get(key) ?? [];
+    return {
+      key,
+      tickets: tierTickets,
+      totalAnnualCostOrgCurrency: tierTickets.reduce((sum, t) => sum + t.annualCostOrgCurrency, 0),
     };
   });
 }

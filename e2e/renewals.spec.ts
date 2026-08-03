@@ -182,6 +182,13 @@ test.describe("Calendario de renovaciones (bloque 2.3)", () => {
       "href",
       new RegExp(`/es/vendors/.+#contract-.+`),
     );
+    // Chip enriquecido: el nombre accesible sigue siendo solo el vendor (via
+    // aria-label, no se contamina con el logo/coste), y el title nativo lleva
+    // nombre + coste abreviado como red de seguridad cuando no cabe en el chip.
+    await expect(page.getByRole("link", { name: "VendorCritical", exact: true })).toHaveAttribute(
+      "title",
+      /VendorCritical/,
+    );
     await expect(page.getByRole("link", { name: "VendorManual", exact: true })).toBeVisible();
     // VendorNotice aparece dos veces: marcador accionable (día 5) + informativo mudo (día 20).
     await expect(page.getByRole("link", { name: "VendorNotice", exact: true })).toHaveCount(2);
@@ -200,5 +207,76 @@ test.describe("Calendario de renovaciones (bloque 2.3)", () => {
     await expect(page.getByRole("link", { name: "VendorCritical", exact: true })).toBeVisible();
     await expect(page.getByRole("link", { name: "VendorManual", exact: true })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "VendorNotice", exact: true })).toHaveCount(0);
+  });
+
+  test("selector de mes/año: clic en el título abre el picker y salta directo a un mes lejano", async ({
+    page,
+  }) => {
+    test.setTimeout(90_000);
+
+    const admin = await signUpOrg("renewals-picker");
+
+    // 3 meses por delante del actual — lo bastante lejos para probar que el
+    // picker salta directo, no que simplemente avanza mes a mes.
+    const now = new Date();
+    const targetDate = new Date(now.getFullYear(), now.getMonth() + 3, 15);
+    const targetIso = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, "0")}-${String(targetDate.getDate()).padStart(2, "0")}`;
+    await createVendorWithContract(admin, {
+      vendorName: "VendorFarAway",
+      renewalDate: targetIso,
+      autoRenews: false,
+      cancellationNoticeDays: 30,
+      companyId: null,
+    });
+
+    await page.goto("/es/login");
+    await page.getByLabel("Email").fill(admin.email);
+    await page.getByLabel("Contraseña").fill("Test1234!");
+    await page.getByRole("button", { name: "Entrar" }).click();
+    await page.waitForURL(/\/es\/dashboard$/);
+    await page.goto("/es/renewals");
+
+    await expect(page.getByRole("link", { name: "VendorFarAway", exact: true })).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Elegir mes y año" }).click();
+    const targetMonthAbbrev = new Intl.DateTimeFormat("es", { month: "short" }).format(targetDate);
+    await page.getByRole("button", { name: targetMonthAbbrev, exact: true }).click();
+
+    await expect(page.getByRole("link", { name: "VendorFarAway", exact: true })).toBeVisible();
+  });
+
+  test("vista anual: muestra el resumen de cada mes y clicar un mini-mes navega a su vista mensual", async ({
+    page,
+  }) => {
+    test.setTimeout(90_000);
+
+    const admin = await signUpOrg("renewals-year");
+    await createVendorWithContract(admin, {
+      vendorName: "VendorYearView",
+      renewalDate: isoInNextMonth(8),
+      autoRenews: false,
+      cancellationNoticeDays: 30,
+      companyId: null,
+    });
+
+    await page.goto("/es/login");
+    await page.getByLabel("Email").fill(admin.email);
+    await page.getByLabel("Contraseña").fill("Test1234!");
+    await page.getByRole("button", { name: "Entrar" }).click();
+    await page.waitForURL(/\/es\/dashboard$/);
+    await page.goto("/es/renewals");
+
+    const now = new Date();
+    const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const nextMonthLabelLong = new Intl.DateTimeFormat("es", { month: "long" }).format(nextMonthDate);
+
+    await page.getByRole("tab", { name: "Año" }).click();
+
+    // Resumen sr-only del mini-mes con el marcador (misma info, forma lineal).
+    await expect(page.getByText(new RegExp(`${nextMonthLabelLong}: 1 renovaci`, "i"))).toBeVisible();
+
+    // Clicar la cabecera del mini-mes vuelve a la vista mensual de ese mes.
+    await page.getByRole("button", { name: nextMonthLabelLong, exact: true }).click();
+    await expect(page.getByRole("link", { name: "VendorYearView", exact: true })).toBeVisible();
   });
 });

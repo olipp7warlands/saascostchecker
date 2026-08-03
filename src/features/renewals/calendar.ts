@@ -1,15 +1,30 @@
 import type { DashboardContract } from "@/features/dashboard/types";
-import { actionableDaysUntil, renewalTone, type RenewalTone } from "@/features/vendors/renewal";
+import { actionableDaysUntil, annualizedCost, renewalTone, type RenewalTone } from "@/features/vendors/renewal";
 
 const DAYS_IN_GRID = 42; // 6 semanas x 7 días — siempre cubre el mes completo.
+// Prioridad para "peor tono" en un día/mes con varios marcadores — usada por
+// la vista anual para decidir el color del punto de un día con varios
+// contratos. Mismo orden de severidad que renewalTone (rojo > ámbar > neutro).
+const TONE_PRIORITY: Record<RenewalTone, number> = { red: 0, amber: 1, neutral: 2 };
 
 export type CalendarMarker = {
   contractId: string;
   vendorId: string;
   vendorName: string;
+  vendorWebsite: string;
+  annualCost: number;
+  currency: string;
   tone: RenewalTone;
   kind: "actionable" | "informational";
 };
+
+// Tono más severo de una lista de marcadores/tonos — usado por la vista
+// anual para colorear el punto de un día con varios contratos. `null` si la
+// lista está vacía (día sin marcadores).
+export function worstTone(tones: RenewalTone[]): RenewalTone | null {
+  if (tones.length === 0) return null;
+  return tones.reduce((worst, tone) => (TONE_PRIORITY[tone] < TONE_PRIORITY[worst] ? tone : worst));
+}
 
 export type CalendarDay = {
   date: string; // "YYYY-MM-DD"
@@ -84,11 +99,15 @@ export function buildCalendarMonth(
         today,
       ),
     );
+    const annualCost = annualizedCost(contract.costAmount, contract.billingCycle);
 
     pushMarker(actionableIso, {
       contractId: contract.id,
       vendorId: contract.vendorId,
       vendorName: contract.vendorName,
+      vendorWebsite: contract.vendorWebsite,
+      annualCost,
+      currency: contract.currency,
       tone,
       kind: "actionable",
     });
@@ -98,6 +117,9 @@ export function buildCalendarMonth(
         contractId: contract.id,
         vendorId: contract.vendorId,
         vendorName: contract.vendorName,
+        vendorWebsite: contract.vendorWebsite,
+        annualCost,
+        currency: contract.currency,
         tone: "neutral",
         kind: "informational",
       });

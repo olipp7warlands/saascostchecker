@@ -332,4 +332,99 @@ test.describe("Dashboard (bloque 1.5)", () => {
       "/es/reconciliation",
     );
   });
+
+  test("agenda por tramos: secciones, selector de rango, expandir/colapsar y navegación de fila", async ({
+    page,
+  }) => {
+    test.setTimeout(90_000);
+
+    const admin = await signUpOrg("agenda-admin");
+    const adminPublicId = await publicUserId(admin);
+
+    const critical: ContractParams = {
+      vendorName: "Critical1",
+      ownerUserId: adminPublicId,
+      costAmount: 100,
+      currency: "EUR",
+      billingCycle: "annual",
+      seatsPurchased: null,
+      renewalDays: 3,
+      cancellationNoticeDays: 0,
+      departmentId: null,
+    };
+    const { vendorId: criticalVendorId, contractId: criticalContractId } = await createVendorWithContract(
+      admin,
+      critical,
+    );
+
+    // 7 en tramo "Próximo" (8-45 días) para forzar el "+N más" (se muestran 5).
+    const upcomingDays = [10, 15, 20, 25, 30, 35, 40];
+    for (const [index, days] of upcomingDays.entries()) {
+      await createVendorWithContract(admin, {
+        vendorName: `Upcoming${index + 1}`,
+        ownerUserId: adminPublicId,
+        costAmount: 100,
+        currency: "EUR",
+        billingCycle: "annual",
+        seatsPurchased: null,
+        renewalDays: days,
+        cancellationNoticeDays: 0,
+        departmentId: null,
+      });
+    }
+
+    const stable: ContractParams = {
+      vendorName: "StableOne",
+      ownerUserId: adminPublicId,
+      costAmount: 100,
+      currency: "EUR",
+      billingCycle: "annual",
+      seatsPurchased: null,
+      renewalDays: 100,
+      cancellationNoticeDays: 0,
+      departmentId: null,
+    };
+    await createVendorWithContract(admin, stable);
+
+    await page.goto("/es/login");
+    await page.getByLabel("Email").fill(admin.email);
+    await page.getByLabel("Contraseña").fill("Test1234!");
+    await page.getByRole("button", { name: "Entrar" }).click();
+    await page.waitForURL(/\/es\/dashboard$/);
+
+    // Crítico: siempre expandido, 1 contrato.
+    await expect(page.getByRole("heading", { name: "Crítico" })).toContainText("1 contrato");
+    await expect(page.getByRole("link", { name: /Critical1/ })).toBeVisible();
+
+    // Próximo: cabecera con 7, solo 5 filas visibles + "+2 más".
+    await expect(page.getByRole("heading", { name: "Próximo" })).toContainText("7 contratos");
+    for (let i = 1; i <= 5; i++) {
+      await expect(page.getByRole("link", { name: new RegExp(`Upcoming${i}\\b`) })).toBeVisible();
+    }
+    await expect(page.getByRole("link", { name: /Upcoming6/ })).toHaveCount(0);
+    const moreButton = page.getByRole("button", { name: "+2 más" });
+    await expect(moreButton).toBeVisible();
+    await moreButton.click();
+    await expect(page.getByRole("link", { name: /Upcoming6/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Upcoming7/ })).toBeVisible();
+
+    // Estable: colapsado por defecto (solo cabecera), se expande al clicar.
+    await expect(page.getByRole("heading", { name: "Estable" })).toContainText("1 contrato");
+    await expect(page.getByRole("link", { name: /StableOne/ })).toHaveCount(0);
+    await page.getByRole("button", { name: "Mostrar más" }).click();
+    await expect(page.getByRole("link", { name: /StableOne/ })).toBeVisible();
+
+    // Selector de rango: a 30 días, "Upcoming6"(35d)/"Upcoming7"(40d) quedan
+    // fuera — el tramo Próximo pasa de 7 a 5 contratos.
+    await page.getByRole("tab", { name: "30d" }).click();
+    await expect(page.getByRole("heading", { name: "Próximo" })).toContainText("5 contratos");
+    await expect(page.getByRole("link", { name: /Upcoming6/ })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: /Upcoming1/ })).toBeVisible();
+
+    // Clic en una fila navega al contrato (mismo patrón que renewals.spec.ts).
+    await expect(page.getByRole("link", { name: /Critical1/ })).toHaveAttribute(
+      "href",
+      `/es/vendors/${criticalVendorId}#contract-${criticalContractId}`,
+    );
+  });
 });

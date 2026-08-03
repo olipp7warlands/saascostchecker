@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { DashboardContract } from "@/features/dashboard/types";
-import { buildCalendarMonth } from "./calendar";
+import { buildCalendarMonth, worstTone } from "./calendar";
 
 const TODAY = new Date(2026, 6, 10); // 10 jul 2026
 
@@ -43,6 +43,24 @@ describe("buildCalendarMonth", () => {
     const actionableDay = findDay(days, "2026-07-16");
     expect(actionableDay.markers).toHaveLength(1);
     expect(actionableDay.markers[0]).toMatchObject({ contractId: "c1", kind: "actionable" });
+  });
+
+  it("cada marcador lleva el logo/coste del contrato, para los chips enriquecidos del calendario", () => {
+    const contracts = [
+      contract({
+        id: "c1",
+        vendorWebsite: "figma.com",
+        costAmount: 50,
+        currency: "USD",
+        billingCycle: "monthly",
+        renewalDate: "2026-08-15",
+        autoRenews: true,
+        cancellationNoticeDays: 30,
+      }),
+    ];
+    const days = buildCalendarMonth(contracts, 2026, 6, TODAY);
+    const marker = findDay(days, "2026-07-16").markers[0];
+    expect(marker).toMatchObject({ vendorWebsite: "figma.com", annualCost: 600, currency: "USD" }); // 50 x 12
   });
 
   it("añade un marcador secundario mudo en renewalDate cuando difiere de la fecha accionable", () => {
@@ -113,5 +131,23 @@ describe("buildCalendarMonth", () => {
     const days = buildCalendarMonth([], 2028, 1, TODAY); // 2028 es bisiesto
     const feb29 = findDay(days, "2028-02-29");
     expect(feb29.isCurrentMonth).toBe(true);
+  });
+});
+
+describe("worstTone", () => {
+  it("prioriza rojo sobre ámbar y neutro", () => {
+    expect(worstTone(["neutral", "amber", "red"])).toBe("red");
+  });
+
+  it("prioriza ámbar sobre neutro cuando no hay rojo", () => {
+    expect(worstTone(["neutral", "amber"])).toBe("amber");
+  });
+
+  it("devuelve el único tono si solo hay uno", () => {
+    expect(worstTone(["neutral"])).toBe("neutral");
+  });
+
+  it("devuelve null para una lista vacía (día sin marcadores)", () => {
+    expect(worstTone([])).toBeNull();
   });
 });

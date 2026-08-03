@@ -3,15 +3,20 @@
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { AppLogo } from "@/components/catalog/app-logo";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SegmentedControlItem, SegmentedControlList } from "@/components/ui/segmented-control";
+import { Tabs } from "@/components/ui/tabs";
 import type { DashboardContract } from "@/features/dashboard/types";
 import { buildCalendarMonth, type CalendarDay, type CalendarMarker } from "@/features/renewals/calendar";
 import { buildContractPath } from "@/features/renewals/deep-link";
 import { daysUntil } from "@/features/vendors/renewal";
 import { TONE_CLASSES } from "@/features/vendors/renewal-tone-classes";
 import { cn } from "@/lib/utils";
+import { MonthPicker } from "./month-picker";
+import { YearView } from "./year-view";
 
 const MAX_VISIBLE_MARKERS = 3;
 // Lunes de referencia — solo para derivar las etiquetas de cabecera de día
@@ -27,16 +32,30 @@ function MarkerChip({
   marker: CalendarMarker;
   locale: string;
 }) {
+  const compactCost = useMemo(
+    () =>
+      new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency: marker.currency,
+        notation: "compact",
+        maximumFractionDigits: 1,
+      }).format(marker.annualCost),
+    [locale, marker.currency, marker.annualCost],
+  );
+
   return (
     <a
       href={buildContractPath(locale, marker.vendorId, marker.contractId)}
+      aria-label={marker.vendorName}
+      title={`${marker.vendorName} · ${compactCost}`}
       className={cn(
-        "block truncate rounded-[4px] border px-1 py-0.5 text-[10.5px] font-medium text-ink",
+        "flex items-center gap-1 overflow-hidden rounded-[4px] border px-1 py-0.5 text-[10.5px] font-medium text-ink",
         marker.kind === "actionable" ? TONE_CLASSES[marker.tone] : "border-line bg-surface text-ink-soft",
       )}
-      title={marker.vendorName}
     >
-      {marker.vendorName}
+      <AppLogo domain={marker.vendorWebsite || null} name={marker.vendorName} size={14} className="shrink-0 rounded-[3px]" />
+      <span className="min-w-0 flex-1 truncate">{marker.vendorName}</span>
+      <span className="num shrink-0 text-[9.5px] opacity-80">{compactCost}</span>
     </a>
   );
 }
@@ -55,6 +74,7 @@ export function RenewalsCalendar({
   const t = useTranslations("Renewals");
   const [today] = useState(() => new Date());
   const [view, setView] = useState(() => ({ year: today.getFullYear(), month: today.getMonth() }));
+  const [viewMode, setViewMode] = useState<"month" | "year">("month");
   const [companyId, setCompanyId] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [hideNoAutoRenew, setHideNoAutoRenew] = useState(false);
@@ -103,6 +123,14 @@ export function RenewalsCalendar({
 
   function goToToday() {
     setView({ year: today.getFullYear(), month: today.getMonth() });
+    setViewMode("month");
+  }
+
+  // Usado tanto por el picker de mes/año como por clicar un mini-mes en la
+  // vista anual — siempre vuelve a vista mensual del mes elegido.
+  function goToMonthYear(year: number, month: number) {
+    setView({ year, month });
+    setViewMode("month");
   }
 
   const agendaEntries = days
@@ -124,9 +152,16 @@ export function RenewalsCalendar({
           >
             <ChevronLeft className="size-4" aria-hidden="true" />
           </Button>
-          <h2 className="num min-w-[9rem] text-center font-disp text-base font-semibold text-ink capitalize sm:text-left">
-            {monthLabel}
-          </h2>
+          <MonthPicker
+            year={view.year}
+            month={view.month}
+            monthLabel={monthLabel}
+            locale={locale}
+            pickMonthLabel={t("nav.pickMonth")}
+            prevYearLabel={t("nav.prevYear")}
+            nextYearLabel={t("nav.nextYear")}
+            onSelect={goToMonthYear}
+          />
           <Button
             type="button"
             variant="outline"
@@ -139,6 +174,12 @@ export function RenewalsCalendar({
           <Button type="button" variant="outline" size="sm" onClick={goToToday}>
             {t("nav.today")}
           </Button>
+          <Tabs value={viewMode} onValueChange={(value) => setViewMode(value === "year" ? "year" : "month")}>
+            <SegmentedControlList>
+              <SegmentedControlItem value="month">{t("nav.viewMonth")}</SegmentedControlItem>
+              <SegmentedControlItem value="year">{t("nav.viewYear")}</SegmentedControlItem>
+            </SegmentedControlList>
+          </Tabs>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -195,57 +236,69 @@ export function RenewalsCalendar({
         </div>
       </div>
 
-      {!hasAnyMarkers && <p className="mt-4 text-sm text-ink-soft">{t("calendar.empty")}</p>}
+      {viewMode === "month" ? (
+        <>
+          {!hasAnyMarkers && <p className="mt-4 text-sm text-ink-soft">{t("calendar.empty")}</p>}
 
-      <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-[720px] table-fixed border-collapse">
-          <thead>
-            <tr>
-              {weekdayLabels.map((label) => (
-                <th
-                  key={label}
-                  className="border-b border-line px-1.5 py-1.5 text-left text-[11px] font-semibold tracking-wider text-ink-soft uppercase"
-                >
-                  {label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {Array.from({ length: days.length / 7 }, (_, weekIndex) => (
-              <tr key={weekIndex}>
-                {days.slice(weekIndex * 7, weekIndex * 7 + 7).map((day) => (
-                  <CalendarCell key={day.date} day={day} locale={locale} t={t} />
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[720px] table-fixed border-collapse">
+              <thead>
+                <tr>
+                  {weekdayLabels.map((label) => (
+                    <th
+                      key={label}
+                      className="border-b border-line px-1.5 py-1.5 text-left text-[11px] font-semibold tracking-wider text-ink-soft uppercase"
+                    >
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: days.length / 7 }, (_, weekIndex) => (
+                  <tr key={weekIndex}>
+                    {days.slice(weekIndex * 7, weekIndex * 7 + 7).map((day) => (
+                      <CalendarCell key={day.date} day={day} locale={locale} t={t} />
+                    ))}
+                  </tr>
                 ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              </tbody>
+            </table>
+          </div>
 
-      <div className="sr-only">
-        <h3>{t("agenda.title")}</h3>
-        {agendaEntries.length === 0 ? (
-          <p>{t("agenda.empty")}</p>
-        ) : (
-          <ul>
-            {agendaEntries.map(({ day, marker }) => (
-              <li key={`${marker.contractId}-${marker.kind}`}>
-                <a href={buildContractPath(locale, marker.vendorId, marker.contractId)}>
-                  {marker.kind === "informational"
-                    ? t("marker.informational", { vendor: marker.vendorName, date: dateFormatter.format(new Date(`${day.date}T00:00:00`)) })
-                    : (() => {
-                        const remainingDays = daysUntil(day.date, today);
-                        return remainingDays < 0
-                          ? t("marker.overdue", { vendor: marker.vendorName, days: Math.abs(remainingDays) })
-                          : t("marker.daysRemaining", { vendor: marker.vendorName, days: remainingDays });
-                      })()}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+          <div className="sr-only">
+            <h3>{t("agenda.title")}</h3>
+            {agendaEntries.length === 0 ? (
+              <p>{t("agenda.empty")}</p>
+            ) : (
+              <ul>
+                {agendaEntries.map(({ day, marker }) => (
+                  <li key={`${marker.contractId}-${marker.kind}`}>
+                    <a href={buildContractPath(locale, marker.vendorId, marker.contractId)}>
+                      {marker.kind === "informational"
+                        ? t("marker.informational", { vendor: marker.vendorName, date: dateFormatter.format(new Date(`${day.date}T00:00:00`)) })
+                        : (() => {
+                            const remainingDays = daysUntil(day.date, today);
+                            return remainingDays < 0
+                              ? t("marker.overdue", { vendor: marker.vendorName, days: Math.abs(remainingDays) })
+                              : t("marker.daysRemaining", { vendor: marker.vendorName, days: remainingDays });
+                          })()}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </>
+      ) : (
+        <YearView
+          year={view.year}
+          contracts={filteredContracts}
+          today={today}
+          locale={locale}
+          onSelectMonth={goToMonthYear}
+        />
+      )}
     </div>
   );
 }
