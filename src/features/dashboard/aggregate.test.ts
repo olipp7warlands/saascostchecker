@@ -171,6 +171,17 @@ describe("buildRenewalTickets", () => {
     expect(soon.tone).toBe("amber");
   });
 
+  it("el tono y actionableDaysUntil se calculan con la fecha accionable (preaviso descontado), no con daysUntil bruto", () => {
+    const soon = tickets.find((t) => t.contractId === "soon")!;
+    expect(soon.daysUntil).toBe(26);
+    expect(soon.actionableDaysUntil).toBe(12); // 26d - 14d de preaviso
+
+    const usd = tickets.find((t) => t.contractId === "usd")!;
+    expect(usd.daysUntil).toBe(26);
+    expect(usd.actionableDaysUntil).toBe(-4); // 26d - 30d de preaviso (por defecto), ya fuera de plazo
+    expect(usd.tone).toBe("red");
+  });
+
   it("mantiene el coste anual en moneda nativa por fila, pero convierte annualCostOrgCurrency a la moneda de la org", () => {
     const usd = tickets.find((t) => t.contractId === "usd")!;
     expect(usd.currency).toBe("USD");
@@ -180,11 +191,38 @@ describe("buildRenewalTickets", () => {
 });
 
 describe("groupRenewalTicketsByTier", () => {
+  // autoRenews: false en las 4 -> actionableDaysUntil === daysUntil, así este
+  // describe testea el bucketing en sí (tramo según tono), independiente del
+  // descuento de preaviso (que tiene su propio caso explícito más abajo).
   const contracts: DashboardContract[] = [
-    contract({ id: "critical-1", renewalDate: isoDaysFrom(TODAY, 3), costAmount: 100, billingCycle: "annual" }),
-    contract({ id: "upcoming-1", renewalDate: isoDaysFrom(TODAY, 20), costAmount: 200, billingCycle: "annual" }),
-    contract({ id: "upcoming-2", renewalDate: isoDaysFrom(TODAY, 40), costAmount: 300, billingCycle: "annual" }),
-    contract({ id: "stable-1", renewalDate: isoDaysFrom(TODAY, 100), costAmount: 400, billingCycle: "annual" }),
+    contract({
+      id: "critical-1",
+      renewalDate: isoDaysFrom(TODAY, 3),
+      costAmount: 100,
+      billingCycle: "annual",
+      autoRenews: false,
+    }),
+    contract({
+      id: "upcoming-1",
+      renewalDate: isoDaysFrom(TODAY, 20),
+      costAmount: 200,
+      billingCycle: "annual",
+      autoRenews: false,
+    }),
+    contract({
+      id: "upcoming-2",
+      renewalDate: isoDaysFrom(TODAY, 40),
+      costAmount: 300,
+      billingCycle: "annual",
+      autoRenews: false,
+    }),
+    contract({
+      id: "stable-1",
+      renewalDate: isoDaysFrom(TODAY, 100),
+      costAmount: 400,
+      billingCycle: "annual",
+      autoRenews: false,
+    }),
   ];
 
   const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY, 120);
@@ -197,6 +235,23 @@ describe("groupRenewalTicketsByTier", () => {
       "upcoming-2",
     ]);
     expect(tiers.find((t) => t.key === "stable")!.tickets.map((t) => t.contractId)).toEqual(["stable-1"]);
+  });
+
+  it("caso de la discrepancia resuelta: 40 días brutos con 35 de preaviso -> Crítico (5 días accionables), no Estable", () => {
+    const overlappingNotice = contract({
+      id: "notice-critical",
+      renewalDate: isoDaysFrom(TODAY, 40),
+      autoRenews: true,
+      cancellationNoticeDays: 35,
+    });
+    const [ticket] = buildRenewalTickets([overlappingNotice], "EUR", [], TODAY, 120);
+    expect(ticket.daysUntil).toBe(40);
+    expect(ticket.actionableDaysUntil).toBe(5);
+    expect(ticket.tone).toBe("red");
+
+    const tiers = groupRenewalTicketsByTier([ticket], 120);
+    expect(tiers.find((t) => t.key === "critical")!.tickets.map((t) => t.contractId)).toEqual(["notice-critical"]);
+    expect(tiers.find((t) => t.key === "stable")!.tickets).toHaveLength(0);
   });
 
   it("devuelve los 3 tramos siempre, aunque alguno esté vacío", () => {

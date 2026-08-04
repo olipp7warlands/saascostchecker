@@ -60,6 +60,13 @@ export type RenewalTicket = {
   // la moneda nativa del contrato (sin cambios de comportamiento visible).
   annualCostOrgCurrency: number;
   daysUntil: number;
+  // Días hasta la fecha ACCIONABLE (actionableDaysUntil) — preaviso de
+  // cancelación si el contrato auto-renueva, la propia fecha de renovación
+  // si no. Es la que decide `tone`/el tramo y la que se muestra como cifra
+  // principal en la fila (ver renewal-agenda.tsx); `daysUntil` (bruto) se
+  // conserva solo para el caso "vencido" y el mensaje de preaviso, que ya
+  // usaban ese número antes de la unificación.
+  actionableDaysUntil: number;
   tone: RenewalTone;
   noticeWarning: boolean;
   cancellationNoticeDays: number;

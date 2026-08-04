@@ -78,12 +78,15 @@ export function buildKpis(
 }
 
 // Construye la lista de tickets de renovación (ventana máxima 120 días, el
-// mayor rango que ofrece el selector de la agenda) — el tono se calcula con
-// `renewalTone(daysUntil)` (días BRUTOS hasta renewal_date), a propósito el
-// mismo cálculo que ya usaba la pista anterior, NO `actionableDaysUntil`
-// (que sí usan el calendario y buildStackStatus más abajo). Unificar esos dos
-// criterios sería un cambio de comportamiento de negocio no pedido en el
-// rediseño visual de la agenda — queda anotado en docs/DECISIONS.md.
+// mayor rango que ofrece el selector de la agenda, filtrada por días BRUTOS
+// hasta renewal_date — sigue siendo "¿cuánto falta para renovar?", el mismo
+// criterio de siempre para decidir qué entra en la agenda). El tono, en
+// cambio, se calcula con `renewalTone(actionableDaysUntil(...))` — la MISMA
+// fecha accionable que ya usan el calendario y `buildStackStatus` (donut
+// "Estado del stack") más abajo. Antes la agenda usaba días brutos para el
+// tono y quedaba desalineada con calendario/donut (contratos con preaviso
+// largo se veían "estables" estando en realidad ya fuera de plazo para
+// cancelar) — ver docs/DECISIONS.md.
 export function buildRenewalTickets(
   contracts: DashboardContract[],
   orgCurrency: string,
@@ -99,6 +102,12 @@ export function buildRenewalTickets(
 
   return withinWindow.map(({ contract, days }) => {
     const annualCost = annualizedCost(contract.costAmount, contract.billingCycle);
+    const actionableDays = actionableDaysUntil(
+      contract.renewalDate,
+      contract.autoRenews,
+      contract.cancellationNoticeDays,
+      today,
+    );
     const noticeWarning =
       contract.autoRenews &&
       contract.cancellationNoticeDays > 0 &&
@@ -113,7 +122,8 @@ export function buildRenewalTickets(
       currency: contract.currency,
       annualCostOrgCurrency: convertAmount(annualCost, contract.currency, orgCurrency, rates),
       daysUntil: days,
-      tone: renewalTone(days),
+      actionableDaysUntil: actionableDays,
+      tone: renewalTone(actionableDays),
       noticeWarning,
       cancellationNoticeDays: contract.cancellationNoticeDays,
     };
@@ -131,8 +141,8 @@ const TIER_ORDER: RenewalTierKey[] = ["critical", "upcoming", "stable"];
 // la agenda, acotando además al rango elegido en el selector (30/60/90/120)
 // — pura, sin I/O, así el selector de rango del cliente recalcula al vuelo
 // sin pedir datos nuevos al servidor (ya se cargó el máximo de 120 días).
-// Bucketear por `ticket.tone` (en vez de comparar `daysUntil` a mano contra
-// los umbrales) es equivalente: `renewalTone` ya encapsula
+// Bucketear por `ticket.tone` (en vez de comparar `actionableDaysUntil` a
+// mano contra los umbrales) es equivalente: `renewalTone` ya encapsula
 // CRITICAL_THRESHOLD_DAYS/WARNING_THRESHOLD_DAYS como única fuente de verdad.
 export function groupRenewalTicketsByTier(
   tickets: RenewalTicket[],

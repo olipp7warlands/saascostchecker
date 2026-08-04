@@ -60,12 +60,15 @@ function TicketRow({
         <span className="num shrink-0 text-[11.5px] text-ink-soft">
           {t("runway.perYear", { amount: amountFormatter.format(ticket.annualCost) })}
         </span>
+        {/* "Vencido"/preaviso siguen mostrando daysUntil bruto (siempre tono
+            rojo, sin contradicción posible); el caso general muestra
+            actionableDaysUntil, la misma cifra que decide `ticket.tone`. */}
         <span className={cn("num shrink-0 text-[11px] font-semibold", TONE_TEXT_CLASSES[ticket.tone])}>
           {ticket.daysUntil < 0
             ? t("runway.overdue", { days: Math.abs(ticket.daysUntil) })
             : ticket.noticeWarning
               ? t("runway.noticeWarning", { days: ticket.daysUntil, noticeDays: ticket.cancellationNoticeDays })
-              : t("runway.daysRemaining", { days: ticket.daysUntil })}
+              : t("runway.daysRemaining", { days: ticket.actionableDaysUntil })}
         </span>
       </a>
     </li>
