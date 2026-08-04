@@ -173,7 +173,8 @@ test.describe("Dashboard (bloque 1.5)", () => {
     const { contractId: hotContractId } = await createVendorWithContract(admin, hot);
     await admin.client.rpc("assign_seat", { p_contract_id: hotContractId, p_user_id: memberPublicId });
 
-    // Renovación en 26 días (ámbar), depto Ingeniería.
+    // Renovación en 26 días con 14 de preaviso -> 12 días accionables (ámbar),
+    // depto Ingeniería.
     const amber: ContractParams = {
       vendorName: "VendorAmber",
       ownerUserId: adminPublicId,
@@ -187,7 +188,8 @@ test.describe("Dashboard (bloque 1.5)", () => {
     };
     await createVendorWithContract(admin, amber);
 
-    // Renovación en 70 días (neutro), sin departamento -> "Sin asignar".
+    // Renovación en 80 días con 30 de preaviso (neutro también en días
+    // accionables: 80-30=50 > 45), sin departamento -> "Sin asignar".
     const neutral: ContractParams = {
       vendorName: "VendorNeutral",
       ownerUserId: adminPublicId,
@@ -195,7 +197,7 @@ test.describe("Dashboard (bloque 1.5)", () => {
       currency: "EUR",
       billingCycle: "annual",
       seatsPurchased: null,
-      renewalDays: 70,
+      renewalDays: 80,
       cancellationNoticeDays: 30,
       departmentId: null,
     };
@@ -311,7 +313,7 @@ test.describe("Dashboard (bloque 1.5)", () => {
     await expect(page.getByRole("link").filter({ hasText: "VendorOverdue" })).toContainText(
       "Vencido hace 3 días",
     );
-    await expect(page.getByRole("link").filter({ hasText: "VendorAmber" })).toContainText("26 días");
+    await expect(page.getByRole("link").filter({ hasText: "VendorAmber" })).toContainText("12 días");
     await expect(page.getByRole("link").filter({ hasText: "VendorCancelled" })).toHaveCount(0);
 
     // Gasto por departamento.
