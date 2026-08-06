@@ -386,21 +386,28 @@
           "sub": "Cierres de {year}"
         }
       },
-      "runway": {
-        "title": "Pista de renovaciones",
-        "rangeLabel": "Rango de la agenda",
+      "heatmap": {
+        "title": "Mapa de calor de renovaciones",
+        "rangeLabel": "Rango del mapa de calor",
         "rangeOption": "{days}d",
+        "gridLabel": "Semanas del mapa de calor",
+        "summary": "{count, plural, one {# contrato} other {# contratos}} · {amount} en este rango",
+        "contractsCount": "{count, plural, one {# contrato} other {# contratos}}",
         "perYear": "{amount}/año",
         "daysRemaining": "{days} días",
         "overdue": "Vencido hace {days} días",
         "noticeWarning": "⚠ {days} días · preaviso {noticeDays}d",
-        "contractsCount": "{count, plural, one {# contrato} other {# contratos}}",
-        "moreCount": "+{count} más",
-        "showMore": "Mostrar más",
-        "showLess": "Ocultar",
-        "criticalEmpty": "Nada crítico por ahora 🎉",
-        "upcomingEmpty": "Nada próximo en este rango",
-        "stableEmpty": "Sin renovaciones estables en este rango"
+        "cellTooltip": "semana del {date} · {count, plural, one {# contrato} other {# contratos}}",
+        "cellAriaLabel": "Semana del {date}, {tone}, {count, plural, one {# contrato} other {# contratos}}",
+        "panelLabel": "Detalle de la semana seleccionada",
+        "panelWeekLabel": "Semana del {date}",
+        "panelEmptyWeek": "Sin renovaciones esta semana",
+        "panelEmptyRange": "Sin renovaciones en este rango",
+        "srTitle": "Todas las renovaciones del rango",
+        "srEmpty": "Sin renovaciones en este rango",
+        "srOverdue": "{vendor} — semana del {date} · vencido hace {days} días",
+        "srNoticeWarning": "{vendor} — semana del {date} · ⚠ {days} días · preaviso {noticeDays}d",
+        "srDaysRemaining": "{vendor} — semana del {date} · {days} días"
       },
       "departmentSpend": {
         "title": "Gasto por departamento",

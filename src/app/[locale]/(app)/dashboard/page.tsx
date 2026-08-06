@@ -26,7 +26,7 @@ import { BudgetSummary } from "./budget-summary";
 import { KpiCards } from "./kpi-cards";
 import { MonthlySpendChart } from "./monthly-spend-chart";
 import { ReconciliationPreview } from "./reconciliation-preview";
-import { RenewalAgenda } from "./renewal-agenda";
+import { RenewalHeatmap } from "./renewal-heatmap";
 import { SpendByGroupChart } from "./spend-by-group-chart";
 import { StackStatusDonut } from "./stack-status-donut";
 
@@ -202,7 +202,7 @@ export default async function DashboardPage({
       </p>
 
       <KpiCards kpis={kpis} locale={locale} orgCurrency={orgCurrency} savingsYtd={savingsYtd} />
-      <RenewalAgenda tickets={tickets} locale={locale} orgCurrency={orgCurrency} />
+      <RenewalHeatmap tickets={tickets} locale={locale} orgCurrency={orgCurrency} />
 
       <div className="mt-6 grid grid-cols-1 gap-3.5 lg:grid-cols-[1fr_1.6fr]">
         <StackStatusDonut summary={stackStatus} locale={locale} />

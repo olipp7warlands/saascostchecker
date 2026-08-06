@@ -55,28 +55,35 @@ export type RenewalTicket = {
   vendorWebsite: string;
   annualCost: number;
   currency: string;
-  // Coste anualizado convertido a la moneda default de la org — solo para
-  // sumar por tramo en la agenda; las filas siguen mostrando `annualCost` en
-  // la moneda nativa del contrato (sin cambios de comportamiento visible).
+  // Coste anualizado convertido a la moneda default de la org — para sumar
+  // por semana/celda del heatmap; las filas del panel siguen mostrando
+  // `annualCost` en la moneda nativa del contrato (sin cambios visibles).
   annualCostOrgCurrency: number;
   daysUntil: number;
   // Días hasta la fecha ACCIONABLE (actionableDaysUntil) — preaviso de
   // cancelación si el contrato auto-renueva, la propia fecha de renovación
-  // si no. Es la que decide `tone`/el tramo y la que se muestra como cifra
-  // principal en la fila (ver renewal-agenda.tsx); `daysUntil` (bruto) se
-  // conserva solo para el caso "vencido" y el mensaje de preaviso, que ya
-  // usaban ese número antes de la unificación.
+  // si no. Fuente única de verdad del heatmap: decide en qué semana/celda
+  // cae el ticket, su tono, y la cifra principal mostrada en el panel (ver
+  // renewal-heatmap.tsx); `daysUntil` (bruto) se conserva solo para el caso
+  // "vencido" y el mensaje de preaviso.
   actionableDaysUntil: number;
   tone: RenewalTone;
   noticeWarning: boolean;
   cancellationNoticeDays: number;
 };
 
-export type RenewalTierKey = "critical" | "upcoming" | "stable";
+export type RenewalHeatmapIntensity = "low" | "medium" | "high";
 
-export type RenewalAgendaTier = {
-  key: RenewalTierKey;
+// Una celda del heatmap = una semana rolling desde "hoy" (semana 0 = días
+// accionables 0-6, semana 1 = 7-13, ...). `tone`/`intensity` resumen la
+// celda para pintarla; `tickets` alimenta el panel de detalle al seleccionarla.
+export type RenewalHeatmapWeek = {
+  index: number;
+  weekStart: string; // "YYYY-MM-DD"
+  weekEnd: string; // "YYYY-MM-DD"
   tickets: RenewalTicket[];
+  tone: RenewalTone;
+  intensity: RenewalHeatmapIntensity | null; // null = celda vacía, fuera de la escala
   totalAnnualCostOrgCurrency: number;
 };
 

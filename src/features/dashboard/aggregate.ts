@@ -1,3 +1,4 @@
+import { worstTone } from "@/features/renewals/calendar";
 import {
   actionableDaysUntil,
   annualizedCost,
@@ -15,9 +16,9 @@ import type {
   DashboardVendor,
   DepartmentSpendRow,
   ExchangeRate,
-  RenewalAgendaTier,
+  RenewalHeatmapIntensity,
+  RenewalHeatmapWeek,
   RenewalTicket,
-  RenewalTierKey,
   SavingsRecord,
   StackStatusSummary,
 } from "./types";
@@ -78,15 +79,16 @@ export function buildKpis(
 }
 
 // Construye la lista de tickets de renovación (ventana máxima 120 días, el
-// mayor rango que ofrece el selector de la agenda, filtrada por días BRUTOS
-// hasta renewal_date — sigue siendo "¿cuánto falta para renovar?", el mismo
-// criterio de siempre para decidir qué entra en la agenda). El tono, en
-// cambio, se calcula con `renewalTone(actionableDaysUntil(...))` — la MISMA
-// fecha accionable que ya usan el calendario y `buildStackStatus` (donut
-// "Estado del stack") más abajo. Antes la agenda usaba días brutos para el
-// tono y quedaba desalineada con calendario/donut (contratos con preaviso
-// largo se veían "estables" estando en realidad ya fuera de plazo para
-// cancelar) — ver docs/DECISIONS.md.
+// mayor rango que ofrece el selector del heatmap). Ventana, orden y tono se
+// calculan los TRES sobre la fecha ACCIONABLE (actionableDaysUntil) — la
+// misma que ya usan el calendario y `buildStackStatus` (donut "Estado del
+// stack") más abajo. Hasta el 2026-08-06 la ventana/orden usaban días BRUTOS
+// (`daysUntil`) deliberadamente, distinto del tono — una discrepancia que la
+// agenda por tramos podía tolerar (el filtro solo decidía "entra o no",
+// nunca una posición visual) pero que el heatmap no puede: si la columna que
+// ocupa un contrato (bucketing semanal, ver buildRenewalHeatmapWeeks) usara
+// una fecha distinta a la que decide su color, una celda mentiría sobre su
+// propio tono. Se unifica todo en fecha accionable — ver docs/DECISIONS.md.
 export function buildRenewalTickets(
   contracts: DashboardContract[],
   orgCurrency: string,
@@ -96,18 +98,21 @@ export function buildRenewalTickets(
 ): RenewalTicket[] {
   const withinWindow = contracts
     .filter((contract) => contract.status === "active")
-    .map((contract) => ({ contract, days: daysUntil(contract.renewalDate, today) }))
-    .filter(({ days }) => days <= windowDays)
-    .sort((a, b) => a.days - b.days);
+    .map((contract) => ({
+      contract,
+      days: daysUntil(contract.renewalDate, today),
+      actionableDays: actionableDaysUntil(
+        contract.renewalDate,
+        contract.autoRenews,
+        contract.cancellationNoticeDays,
+        today,
+      ),
+    }))
+    .filter(({ actionableDays }) => actionableDays <= windowDays)
+    .sort((a, b) => a.actionableDays - b.actionableDays);
 
-  return withinWindow.map(({ contract, days }) => {
+  return withinWindow.map(({ contract, days, actionableDays }) => {
     const annualCost = annualizedCost(contract.costAmount, contract.billingCycle);
-    const actionableDays = actionableDaysUntil(
-      contract.renewalDate,
-      contract.autoRenews,
-      contract.cancellationNoticeDays,
-      today,
-    );
     const noticeWarning =
       contract.autoRenews &&
       contract.cancellationNoticeDays > 0 &&
@@ -130,39 +135,96 @@ export function buildRenewalTickets(
   });
 }
 
-const TONE_TO_TIER: Record<RenewalTicket["tone"], RenewalTierKey> = {
-  red: "critical",
-  amber: "upcoming",
-  neutral: "stable",
-};
-const TIER_ORDER: RenewalTierKey[] = ["critical", "upcoming", "stable"];
+// Helpers de fecha locales, mismo patrón que src/features/renewals/calendar.ts
+// (cada archivo del dominio de renovaciones tiene los suyos, sin util
+// compartido — decisión ya tomada allí, no se introduce uno nuevo aquí).
+function toIsoDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
-// Agrupa tickets ya construidos (`buildRenewalTickets`) en los 3 tramos de
-// la agenda, acotando además al rango elegido en el selector (30/60/90/120)
-// — pura, sin I/O, así el selector de rango del cliente recalcula al vuelo
-// sin pedir datos nuevos al servidor (ya se cargó el máximo de 120 días).
-// Bucketear por `ticket.tone` (en vez de comparar `actionableDaysUntil` a
-// mano contra los umbrales) es equivalente: `renewalTone` ya encapsula
-// CRITICAL_THRESHOLD_DAYS/WARNING_THRESHOLD_DAYS como única fuente de verdad.
-export function groupRenewalTicketsByTier(
+function addDays(date: Date, days: number): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+}
+
+// Nº de columnas del heatmap para una ventana de `windowDays` días. La
+// última semana necesaria es la que contiene el día `windowDays` en sí
+// (semana k cubre los días accionables [7k, 7k+6]) — floor(windowDays/7)+1,
+// no un ceil directo sobre windowDays/7 (coinciden para 120 pero no en
+// general). 30/60/90/120 -> 5/9/13/18 columnas.
+export function renewalHeatmapWeekCount(windowDays: number): number {
+  return Math.floor(windowDays / 7) + 1;
+}
+
+// Intensidad de una celda por nº de contratos, 3 escalones discretos (no
+// continuo, pedido explícitamente): 1 = low, 2-4 = medium, 5+ = high. 0 no
+// tiene intensidad (celda vacía, tratada aparte con su propia clase neutra).
+export function weeklyIntensity(count: number): RenewalHeatmapIntensity | null {
+  if (count === 0) return null;
+  if (count === 1) return "low";
+  if (count <= 4) return "medium";
+  return "high";
+}
+
+// Agrupa tickets ya construidos (`buildRenewalTickets`, ya acotados a
+// `windowDays` por fecha accionable) en semanas ROLLING desde `today`
+// (semana 0 = días accionables 0-6, semana 1 = 7-13, ...). Un ticket vencido
+// o con preaviso ya pasado (actionableDaysUntil negativo) clampa a la semana
+// 0 — sigue siendo la más urgente posible, no tiene sentido una columna
+// "semana -1". Pura, sin I/O: el selector de rango del cliente recalcula al
+// vuelo sobre los tickets ya cargados (máximo 120 días), sin pedir datos
+// nuevos al servidor.
+export function buildRenewalHeatmapWeeks(
   tickets: RenewalTicket[],
   windowDays: number,
-): RenewalAgendaTier[] {
-  const withinRange = tickets.filter((ticket) => ticket.daysUntil <= windowDays);
+  today: Date = new Date(),
+): RenewalHeatmapWeek[] {
+  const weekCount = renewalHeatmapWeekCount(windowDays);
+  const buckets: RenewalTicket[][] = Array.from({ length: weekCount }, () => []);
 
-  const byTier = new Map<RenewalTierKey, RenewalTicket[]>(TIER_ORDER.map((key) => [key, []]));
-  for (const ticket of withinRange) {
-    byTier.get(TONE_TO_TIER[ticket.tone])?.push(ticket);
+  for (const ticket of tickets) {
+    if (ticket.actionableDaysUntil > windowDays) continue;
+    const index = Math.min(Math.max(0, Math.floor(ticket.actionableDaysUntil / 7)), weekCount - 1);
+    buckets[index].push(ticket);
   }
 
-  return TIER_ORDER.map((key) => {
-    const tierTickets = byTier.get(key) ?? [];
-    return {
-      key,
-      tickets: tierTickets,
-      totalAnnualCostOrgCurrency: tierTickets.reduce((sum, t) => sum + t.annualCostOrgCurrency, 0),
-    };
-  });
+  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  return buckets.map((weekTickets, index) => ({
+    index,
+    weekStart: toIsoDate(addDays(start, index * 7)),
+    weekEnd: toIsoDate(addDays(start, index * 7 + 6)),
+    tickets: weekTickets,
+    tone: worstTone(weekTickets.map((t) => t.tone)) ?? "neutral",
+    intensity: weeklyIntensity(weekTickets.length),
+    totalAnnualCostOrgCurrency: weekTickets.reduce((sum, t) => sum + t.annualCostOrgCurrency, 0),
+  }));
+}
+
+// Índice de la primera semana (más urgente) con contratos, para preseleccionar
+// el panel de detalle por defecto. `weeks` ya viene ordenado por índice
+// ascendente, así que basta el primer match. `null` si el rango entero está
+// vacío.
+export function defaultHeatmapWeekIndex(weeks: RenewalHeatmapWeek[]): number | null {
+  return weeks.find((week) => week.tickets.length > 0)?.index ?? null;
+}
+
+// Totales de cabecera del RANGO VISIBLE completo (todas las semanas, no solo
+// la seleccionada) — responsabilidad separada de
+// RenewalHeatmapWeek.totalAnnualCostOrgCurrency, que es por-celda (cabecera
+// del panel lateral).
+export function summarizeRenewalHeatmap(weeks: RenewalHeatmapWeek[]): {
+  contractCount: number;
+  totalAnnualCostOrgCurrency: number;
+} {
+  return weeks.reduce(
+    (acc, week) => ({
+      contractCount: acc.contractCount + week.tickets.length,
+      totalAnnualCostOrgCurrency: acc.totalAnnualCostOrgCurrency + week.totalAnnualCostOrgCurrency,
+    }),
+    { contractCount: 0, totalAnnualCostOrgCurrency: 0 },
+  );
 }
 
 const UNASSIGNED_KEY = "__unassigned__";

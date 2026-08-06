@@ -3,10 +3,14 @@ import {
   buildCompanySpend,
   buildDepartmentSpend,
   buildKpis,
+  buildRenewalHeatmapWeeks,
   buildRenewalTickets,
   buildSavingsYtd,
   buildStackStatus,
-  groupRenewalTicketsByTier,
+  defaultHeatmapWeekIndex,
+  renewalHeatmapWeekCount,
+  summarizeRenewalHeatmap,
+  weeklyIntensity,
 } from "./aggregate";
 import type { DashboardContract, DashboardVendor, SavingsRecord } from "./types";
 
@@ -140,8 +144,10 @@ describe("buildRenewalTickets", () => {
       renewalDate: isoDaysFrom(TODAY, 26),
     }),
     contract({
+      // 200d brutos, con el preaviso por defecto (30d) sigue quedando fuera
+      // de la ventana de 120d incluso por fecha accionable (200-30=170).
       id: "outside-window",
-      renewalDate: isoDaysFrom(TODAY, 150),
+      renewalDate: isoDaysFrom(TODAY, 200),
     }),
     contract({
       id: "cancelled",
@@ -152,8 +158,10 @@ describe("buildRenewalTickets", () => {
 
   const tickets = buildRenewalTickets(contracts, "EUR", RATES, TODAY, 120);
 
-  it("excluye contratos cancelados y fuera de la ventana", () => {
-    expect(tickets.map((t) => t.contractId)).toEqual(["overdue", "hot", "soon", "usd"]);
+  it("excluye contratos cancelados y fuera de la ventana, ordena por fecha accionable ascendente", () => {
+    // accionables: overdue -33, hot -25, usd -4, soon 12 (no por daysUntil bruto,
+    // que daría overdue/hot/soon/usd con soon y usd empatados a 26d).
+    expect(tickets.map((t) => t.contractId)).toEqual(["overdue", "hot", "usd", "soon"]);
   });
 
   it("los vencidos mantienen días negativos y tono rojo, sin ocultarse", () => {
@@ -188,56 +196,42 @@ describe("buildRenewalTickets", () => {
     expect(usd.annualCost).toBe(1000);
     expect(usd.annualCostOrgCurrency).toBeCloseTo(900); // 1000 * 0.9
   });
-});
 
-describe("groupRenewalTicketsByTier", () => {
-  // autoRenews: false en las 4 -> actionableDaysUntil === daysUntil, así este
-  // describe testea el bucketing en sí (tramo según tono), independiente del
-  // descuento de preaviso (que tiene su propio caso explícito más abajo).
-  const contracts: DashboardContract[] = [
-    contract({
-      id: "critical-1",
-      renewalDate: isoDaysFrom(TODAY, 3),
-      costAmount: 100,
-      billingCycle: "annual",
-      autoRenews: false,
-    }),
-    contract({
-      id: "upcoming-1",
-      renewalDate: isoDaysFrom(TODAY, 20),
-      costAmount: 200,
-      billingCycle: "annual",
-      autoRenews: false,
-    }),
-    contract({
-      id: "upcoming-2",
-      renewalDate: isoDaysFrom(TODAY, 40),
-      costAmount: 300,
-      billingCycle: "annual",
-      autoRenews: false,
-    }),
-    contract({
-      id: "stable-1",
-      renewalDate: isoDaysFrom(TODAY, 100),
-      costAmount: 400,
-      billingCycle: "annual",
-      autoRenews: false,
-    }),
-  ];
-
-  const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY, 120);
-
-  it("asigna cada ticket a su tramo según el tono (crítico ≤7d, próximo ≤45d, estable resto)", () => {
-    const tiers = groupRenewalTicketsByTier(tickets, 120);
-    expect(tiers.find((t) => t.key === "critical")!.tickets.map((t) => t.contractId)).toEqual(["critical-1"]);
-    expect(tiers.find((t) => t.key === "upcoming")!.tickets.map((t) => t.contractId)).toEqual([
-      "upcoming-1",
-      "upcoming-2",
-    ]);
-    expect(tiers.find((t) => t.key === "stable")!.tickets.map((t) => t.contractId)).toEqual(["stable-1"]);
+  it("incluye contratos cuya fecha bruta excede la ventana pero cuya fecha accionable cae dentro (fix 2026-08-06: ventana también por fecha accionable)", () => {
+    const farButActionable = contract({
+      id: "far-but-actionable",
+      renewalDate: isoDaysFrom(TODAY, 140),
+      autoRenews: true,
+      cancellationNoticeDays: 30, // accionable: 140-30 = 110 <= 120
+    });
+    const [ticket] = buildRenewalTickets([farButActionable], "EUR", [], TODAY, 120);
+    expect(ticket).toBeDefined();
+    expect(ticket.actionableDaysUntil).toBe(110);
   });
 
-  it("caso de la discrepancia resuelta: 40 días brutos con 35 de preaviso -> Crítico (5 días accionables), no Estable", () => {
+  it("ordena por fecha accionable ascendente incluso cuando difiere del orden por daysUntil bruto", () => {
+    const laterRawSoonerActionable = contract({
+      id: "later-raw",
+      renewalDate: isoDaysFrom(TODAY, 45),
+      autoRenews: true,
+      cancellationNoticeDays: 40, // accionable: 5
+    });
+    const soonerRawLaterActionable = contract({
+      id: "sooner-raw",
+      renewalDate: isoDaysFrom(TODAY, 40),
+      autoRenews: false, // accionable: 40
+    });
+    const ordered = buildRenewalTickets(
+      [soonerRawLaterActionable, laterRawSoonerActionable],
+      "EUR",
+      [],
+      TODAY,
+      120,
+    );
+    expect(ordered.map((t) => t.contractId)).toEqual(["later-raw", "sooner-raw"]);
+  });
+
+  it("test explícito de la discrepancia resuelta: 40 días brutos con 35 de preaviso -> crítico (5 días accionables)", () => {
     const overlappingNotice = contract({
       id: "notice-critical",
       renewalDate: isoDaysFrom(TODAY, 40),
@@ -248,39 +242,198 @@ describe("groupRenewalTicketsByTier", () => {
     expect(ticket.daysUntil).toBe(40);
     expect(ticket.actionableDaysUntil).toBe(5);
     expect(ticket.tone).toBe("red");
+  });
+});
 
-    const tiers = groupRenewalTicketsByTier([ticket], 120);
-    expect(tiers.find((t) => t.key === "critical")!.tickets.map((t) => t.contractId)).toEqual(["notice-critical"]);
-    expect(tiers.find((t) => t.key === "stable")!.tickets).toHaveLength(0);
+describe("renewalHeatmapWeekCount", () => {
+  it("floor(windowDays/7)+1 -> 30/60/90/120 dan 5/9/13/18 columnas", () => {
+    expect(renewalHeatmapWeekCount(30)).toBe(5);
+    expect(renewalHeatmapWeekCount(60)).toBe(9);
+    expect(renewalHeatmapWeekCount(90)).toBe(13);
+    expect(renewalHeatmapWeekCount(120)).toBe(18);
+  });
+});
+
+describe("weeklyIntensity", () => {
+  it("0 contratos -> null (celda vacía, fuera de la escala)", () => {
+    expect(weeklyIntensity(0)).toBeNull();
   });
 
-  it("devuelve los 3 tramos siempre, aunque alguno esté vacío", () => {
-    const tiers = groupRenewalTicketsByTier([], 120);
-    expect(tiers.map((t) => t.key)).toEqual(["critical", "upcoming", "stable"]);
-    expect(tiers.every((t) => t.tickets.length === 0 && t.totalAnnualCostOrgCurrency === 0)).toBe(true);
+  it("1 contrato -> low", () => {
+    expect(weeklyIntensity(1)).toBe("low");
   });
 
-  it("suma el coste anualizado (ya en moneda de la org) dentro de cada tramo", () => {
-    const tiers = groupRenewalTicketsByTier(tickets, 120);
-    expect(tiers.find((t) => t.key === "upcoming")!.totalAnnualCostOrgCurrency).toBe(500); // 200 + 300
+  it("2 a 4 contratos -> medium", () => {
+    expect(weeklyIntensity(2)).toBe("medium");
+    expect(weeklyIntensity(4)).toBe("medium");
   });
 
-  it("filtra por el rango elegido, en los bordes exactos (30/60/90/120)", () => {
-    // A 20d cae dentro de 30d; a 40d queda fuera de 30d pero dentro de 60d.
-    const at30 = groupRenewalTicketsByTier(tickets, 30);
-    expect(at30.find((t) => t.key === "upcoming")!.tickets.map((t) => t.contractId)).toEqual(["upcoming-1"]);
+  it("5 o más contratos -> high", () => {
+    expect(weeklyIntensity(5)).toBe("high");
+    expect(weeklyIntensity(20)).toBe("high");
+  });
+});
 
-    const at60 = groupRenewalTicketsByTier(tickets, 60);
-    expect(at60.find((t) => t.key === "upcoming")!.tickets.map((t) => t.contractId)).toEqual([
-      "upcoming-1",
-      "upcoming-2",
-    ]);
+describe("buildRenewalHeatmapWeeks", () => {
+  it("bucketea por semanas de 7 días sobre actionableDaysUntil (semana 0 = días 0-6)", () => {
+    const contracts: DashboardContract[] = [
+      contract({ id: "w0", renewalDate: isoDaysFrom(TODAY, 3), autoRenews: false }),
+      contract({ id: "w1-start", renewalDate: isoDaysFrom(TODAY, 7), autoRenews: false }),
+      contract({ id: "w1-end", renewalDate: isoDaysFrom(TODAY, 13), autoRenews: false }),
+      contract({ id: "w2", renewalDate: isoDaysFrom(TODAY, 14), autoRenews: false }),
+    ];
+    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY, 120);
+    const weeks = buildRenewalHeatmapWeeks(tickets, 120, TODAY);
 
-    // A 100d (stable-1) queda fuera de todo menos 120d.
-    const at90 = groupRenewalTicketsByTier(tickets, 90);
-    expect(at90.find((t) => t.key === "stable")!.tickets).toHaveLength(0);
-    const at120 = groupRenewalTicketsByTier(tickets, 120);
-    expect(at120.find((t) => t.key === "stable")!.tickets).toHaveLength(1);
+    expect(weeks[0].tickets.map((t) => t.contractId)).toEqual(["w0"]);
+    expect(weeks[1].tickets.map((t) => t.contractId).sort()).toEqual(["w1-end", "w1-start"]);
+    expect(weeks[2].tickets.map((t) => t.contractId)).toEqual(["w2"]);
+  });
+
+  it("clampa fecha accionable negativa (vencido o preaviso ya pasado) a la semana 0", () => {
+    const contracts: DashboardContract[] = [
+      contract({ id: "overdue", renewalDate: isoDaysFrom(TODAY, -10), autoRenews: false }),
+      contract({
+        id: "notice-passed",
+        renewalDate: isoDaysFrom(TODAY, 5),
+        autoRenews: true,
+        cancellationNoticeDays: 30, // accionable: -25
+      }),
+    ];
+    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY, 120);
+    const weeks = buildRenewalHeatmapWeeks(tickets, 120, TODAY);
+
+    expect(weeks[0].tickets.map((t) => t.contractId).sort()).toEqual(["notice-passed", "overdue"]);
+    expect(weeks.slice(1).every((week) => week.tickets.length === 0)).toBe(true);
+  });
+
+  it("calcula weekStart/weekEnd en fechas de calendario reales, cruzando cambio de mes y de año", () => {
+    const yearEndToday = new Date(2026, 11, 28); // 28 dic 2026
+    const contracts: DashboardContract[] = [
+      contract({ id: "cross-year", renewalDate: isoDaysFrom(yearEndToday, 10), autoRenews: false }),
+    ];
+    const tickets = buildRenewalTickets(contracts, "EUR", [], yearEndToday, 120);
+    const weeks = buildRenewalHeatmapWeeks(tickets, 120, yearEndToday);
+
+    // semana 1 cubre los días accionables 7-13 -> arranca el 2027-01-04
+    expect(weeks[1].weekStart).toBe("2027-01-04");
+    expect(weeks[1].weekEnd).toBe("2027-01-10");
+    expect(weeks[1].tickets.map((t) => t.contractId)).toEqual(["cross-year"]);
+  });
+
+  it("genera renewalHeatmapWeekCount(windowDays) columnas, con las semanas finales vacías si no hay datos", () => {
+    const tickets = buildRenewalTickets([], "EUR", [], TODAY, 120);
+    expect(buildRenewalHeatmapWeeks(tickets, 30, TODAY)).toHaveLength(5);
+    expect(buildRenewalHeatmapWeeks(tickets, 60, TODAY)).toHaveLength(9);
+    expect(buildRenewalHeatmapWeeks(tickets, 90, TODAY)).toHaveLength(13);
+    expect(buildRenewalHeatmapWeeks(tickets, 120, TODAY)).toHaveLength(18);
+  });
+
+  it("el tono de la celda es el peor tono (worstTone) entre tickets con distinto tono en la misma semana", () => {
+    const contracts: DashboardContract[] = [
+      // ambos caen en la semana 6 (floor(45/7)=floor(46/7)=6), con tonos distintos.
+      contract({ id: "amber-edge", renewalDate: isoDaysFrom(TODAY, 45), autoRenews: false }), // amber (<=45)
+      contract({ id: "neutral-edge", renewalDate: isoDaysFrom(TODAY, 46), autoRenews: false }), // neutral (>45)
+    ];
+    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY, 120);
+    const weeks = buildRenewalHeatmapWeeks(tickets, 120, TODAY);
+    const week6 = weeks[6];
+
+    expect(week6.tickets.map((t) => t.contractId).sort()).toEqual(["amber-edge", "neutral-edge"]);
+    expect(week6.tone).toBe("amber");
+  });
+
+  it("celda sin contratos tiene tone neutral e intensity null", () => {
+    const tickets = buildRenewalTickets([], "EUR", [], TODAY, 120);
+    const weeks = buildRenewalHeatmapWeeks(tickets, 30, TODAY);
+
+    expect(weeks.every((week) => week.tone === "neutral" && week.intensity === null && week.tickets.length === 0)).toBe(
+      true,
+    );
+  });
+
+  it("suma totalAnnualCostOrgCurrency por semana en la moneda de la org", () => {
+    const contracts: DashboardContract[] = [
+      contract({ id: "a", renewalDate: isoDaysFrom(TODAY, 3), costAmount: 1200, billingCycle: "annual", autoRenews: false }),
+      contract({ id: "b", renewalDate: isoDaysFrom(TODAY, 5), costAmount: 100, billingCycle: "monthly", autoRenews: false }), // anualizado 1200
+    ];
+    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY, 120);
+    const weeks = buildRenewalHeatmapWeeks(tickets, 120, TODAY);
+
+    expect(weeks[0].totalAnnualCostOrgCurrency).toBe(2400);
+  });
+});
+
+describe("defaultHeatmapWeekIndex", () => {
+  it("devuelve el índice de la primera semana (más urgente) con contratos", () => {
+    const contracts: DashboardContract[] = [contract({ id: "later", renewalDate: isoDaysFrom(TODAY, 20), autoRenews: false })];
+    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY, 120);
+    const weeks = buildRenewalHeatmapWeeks(tickets, 120, TODAY);
+
+    expect(defaultHeatmapWeekIndex(weeks)).toBe(2); // floor(20/7) = 2
+  });
+
+  it("devuelve null si todas las semanas del rango están vacías", () => {
+    const tickets = buildRenewalTickets([], "EUR", [], TODAY, 120);
+    const weeks = buildRenewalHeatmapWeeks(tickets, 120, TODAY);
+
+    expect(defaultHeatmapWeekIndex(weeks)).toBeNull();
+  });
+});
+
+describe("summarizeRenewalHeatmap", () => {
+  it("suma nº de contratos y coste de TODAS las semanas del rango visible, no solo una", () => {
+    const contracts: DashboardContract[] = [
+      contract({ id: "a", renewalDate: isoDaysFrom(TODAY, 3), costAmount: 1000, billingCycle: "annual", autoRenews: false }),
+      contract({ id: "b", renewalDate: isoDaysFrom(TODAY, 20), costAmount: 500, billingCycle: "annual", autoRenews: false }),
+    ];
+    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY, 120);
+    const weeks = buildRenewalHeatmapWeeks(tickets, 120, TODAY);
+
+    expect(summarizeRenewalHeatmap(weeks)).toEqual({ contractCount: 2, totalAnnualCostOrgCurrency: 1500 });
+  });
+
+  it("devuelve ceros sin tickets", () => {
+    const weeks = buildRenewalHeatmapWeeks([], 120, TODAY);
+    expect(summarizeRenewalHeatmap(weeks)).toEqual({ contractCount: 0, totalAnnualCostOrgCurrency: 0 });
+  });
+});
+
+// Verificación cruzada automatizada (mismo chequeo que se hizo a mano contra
+// datos reales el 2026-08-04 para agenda vs. donut, ahora para heatmap vs.
+// donut): con un contrato activo por vendor, los conteos por tono deben
+// coincidir exactamente entre buildStackStatus (agrupa por vendor) y los
+// tickets del heatmap (agrupan por contrato) — la equivalencia 1:1 depende
+// de que cada vendor tenga un único contrato activo en este fixture.
+describe("consistencia heatmap vs buildStackStatus (mismo universo de datos)", () => {
+  it("los conteos por tono coinciden con el donut cuando cada vendor tiene exactamente 1 contrato activo dentro de la ventana", () => {
+    const vendors: DashboardVendor[] = [
+      { id: "v1", status: "active", ownerUserId: null },
+      { id: "v2", status: "active", ownerUserId: null },
+      { id: "v3", status: "active", ownerUserId: null },
+      { id: "v4", status: "active", ownerUserId: null },
+      { id: "v5", status: "active", ownerUserId: null },
+      { id: "v6", status: "active", ownerUserId: null },
+    ];
+    const contracts: DashboardContract[] = [
+      contract({ id: "c1", vendorId: "v1", renewalDate: isoDaysFrom(TODAY, 3), autoRenews: false }), // critical
+      contract({ id: "c2", vendorId: "v2", renewalDate: isoDaysFrom(TODAY, 5), autoRenews: false }), // critical
+      contract({ id: "c3", vendorId: "v3", renewalDate: isoDaysFrom(TODAY, 20), autoRenews: false }), // upcoming
+      contract({ id: "c4", vendorId: "v4", renewalDate: isoDaysFrom(TODAY, 40), autoRenews: false }), // upcoming
+      contract({ id: "c5", vendorId: "v5", renewalDate: isoDaysFrom(TODAY, 90), autoRenews: false }), // stable
+      contract({ id: "c6", vendorId: "v6", renewalDate: isoDaysFrom(TODAY, 100), autoRenews: false }), // stable
+    ];
+
+    const stackStatus = buildStackStatus(vendors, contracts, TODAY);
+    expect(stackStatus).toEqual({ critical: 2, upcoming: 2, stable: 2, noContract: 0, total: 6 });
+
+    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY, 120);
+    const weeks = buildRenewalHeatmapWeeks(tickets, 120, TODAY);
+    const allTickets = weeks.flatMap((week) => week.tickets);
+
+    expect(allTickets.filter((t) => t.tone === "red")).toHaveLength(stackStatus.critical);
+    expect(allTickets.filter((t) => t.tone === "amber")).toHaveLength(stackStatus.upcoming);
+    expect(allTickets.filter((t) => t.tone === "neutral")).toHaveLength(stackStatus.stable);
   });
 });
 

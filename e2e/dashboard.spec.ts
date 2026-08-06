@@ -305,16 +305,27 @@ test.describe("Dashboard (bloque 1.5)", () => {
     await expect(renewalsCard.getByText("4", { exact: true })).toBeVisible();
     await expect(renewalsCard.getByText("2 en los próximos 30 días")).toBeVisible();
 
-    // Pista de renovaciones: contratos activos visibles, cancelado ausente.
-    await expect(page.getByRole("link").filter({ hasText: "VendorHot" })).toBeVisible();
-    await expect(page.getByRole("link").filter({ hasText: "VendorHot" })).toContainText(
+    // Mapa de calor de renovaciones: por defecto carga la semana más urgente
+    // (semana 0 -> VendorHot accionable -25d, VendorOverdue accionable -33d,
+    // ambos clampados a la semana 0). El panel se identifica por su región
+    // (no basta con getByRole("link"): la alternativa sr-only del rango
+    // completo también contiene enlaces con el mismo nombre de vendor).
+    const heatmapPanel = page.getByRole("region", { name: "Detalle de la semana seleccionada" });
+    await expect(heatmapPanel.getByRole("link", { name: /VendorHot/ })).toBeVisible();
+    await expect(heatmapPanel.getByRole("link", { name: /VendorHot/ })).toContainText(
       "⚠ 5 días · preaviso 30d",
     );
-    await expect(page.getByRole("link").filter({ hasText: "VendorOverdue" })).toContainText(
+    await expect(heatmapPanel.getByRole("link", { name: /VendorOverdue/ })).toContainText(
       "Vencido hace 3 días",
     );
-    await expect(page.getByRole("link").filter({ hasText: "VendorAmber" })).toContainText("12 días");
     await expect(page.getByRole("link").filter({ hasText: "VendorCancelled" })).toHaveCount(0);
+
+    // VendorAmber (accionable 12d) y VendorUsd (accionable 10d) caen en la
+    // semana 1 -> clicar esa celda para verlos en el panel.
+    const heatmapGrid = page.getByRole("group", { name: "Semanas del mapa de calor" });
+    await heatmapGrid.getByRole("button").nth(1).click();
+    await expect(heatmapPanel.getByRole("link", { name: /VendorAmber/ })).toContainText("12 días");
+    await expect(heatmapPanel.getByRole("link", { name: /VendorUsd/ })).toContainText("10 días");
 
     // Gasto por departamento.
     const deptRow = page.getByRole("row", { name: /Ingeniería/ });
@@ -335,58 +346,67 @@ test.describe("Dashboard (bloque 1.5)", () => {
     );
   });
 
-  test("agenda por tramos: secciones, selector de rango, expandir/colapsar y navegación de fila", async ({
+  test("mapa de calor de renovaciones: clic en celda carga panel, navegación por teclado, selector de rango reagrupa", async ({
     page,
   }) => {
     test.setTimeout(90_000);
 
-    const admin = await signUpOrg("agenda-admin");
+    const admin = await signUpOrg("heatmap-admin");
     const adminPublicId = await publicUserId(admin);
 
-    const critical: ContractParams = {
-      vendorName: "Critical1",
+    // 4 contratos en semanas claramente distintas (notice=0 -> actionable ==
+    // renewalDays, sin ambigüedad). Semana = floor(renewalDays/7).
+    const weekZero: ContractParams = {
+      vendorName: "WeekZero",
       ownerUserId: adminPublicId,
       costAmount: 100,
       currency: "EUR",
       billingCycle: "annual",
       seatsPurchased: null,
-      renewalDays: 3,
+      renewalDays: 3, // semana 0
       cancellationNoticeDays: 0,
       departmentId: null,
     };
-    const { vendorId: criticalVendorId, contractId: criticalContractId } = await createVendorWithContract(
+    const { vendorId: weekZeroVendorId, contractId: weekZeroContractId } = await createVendorWithContract(
       admin,
-      critical,
+      weekZero,
     );
 
-    // 7 en tramo "Próximo" (8-45 días) para forzar el "+N más" (se muestran 5).
-    const upcomingDays = [10, 15, 20, 25, 30, 35, 40];
-    for (const [index, days] of upcomingDays.entries()) {
-      await createVendorWithContract(admin, {
-        vendorName: `Upcoming${index + 1}`,
-        ownerUserId: adminPublicId,
-        costAmount: 100,
-        currency: "EUR",
-        billingCycle: "annual",
-        seatsPurchased: null,
-        renewalDays: days,
-        cancellationNoticeDays: 0,
-        departmentId: null,
-      });
-    }
-
-    const stable: ContractParams = {
-      vendorName: "StableOne",
+    await createVendorWithContract(admin, {
+      vendorName: "WeekTwo",
       ownerUserId: adminPublicId,
       costAmount: 100,
       currency: "EUR",
       billingCycle: "annual",
       seatsPurchased: null,
-      renewalDays: 100,
+      renewalDays: 16, // semana 2
       cancellationNoticeDays: 0,
       departmentId: null,
-    };
-    await createVendorWithContract(admin, stable);
+    });
+
+    await createVendorWithContract(admin, {
+      vendorName: "WeekFive",
+      ownerUserId: adminPublicId,
+      costAmount: 100,
+      currency: "EUR",
+      billingCycle: "annual",
+      seatsPurchased: null,
+      renewalDays: 38, // semana 5 -> fuera del rango de 30d (5 columnas: semanas 0-4)
+      cancellationNoticeDays: 0,
+      departmentId: null,
+    });
+
+    await createVendorWithContract(admin, {
+      vendorName: "WeekFourteen",
+      ownerUserId: adminPublicId,
+      costAmount: 100,
+      currency: "EUR",
+      billingCycle: "annual",
+      seatsPurchased: null,
+      renewalDays: 100, // semana 14
+      cancellationNoticeDays: 0,
+      departmentId: null,
+    });
 
     await page.goto("/es/login");
     await page.getByLabel("Email").fill(admin.email);
@@ -394,39 +414,39 @@ test.describe("Dashboard (bloque 1.5)", () => {
     await page.getByRole("button", { name: "Entrar" }).click();
     await page.waitForURL(/\/es\/dashboard$/);
 
-    // Crítico: siempre expandido, 1 contrato.
-    await expect(page.getByRole("heading", { name: "Crítico" })).toContainText("1 contrato");
-    await expect(page.getByRole("link", { name: /Critical1/ })).toBeVisible();
+    const heatmapPanel = page.getByRole("region", { name: "Detalle de la semana seleccionada" });
+    const heatmapGrid = page.getByRole("group", { name: "Semanas del mapa de calor" });
 
-    // Próximo: cabecera con 7, solo 5 filas visibles + "+2 más".
-    await expect(page.getByRole("heading", { name: "Próximo" })).toContainText("7 contratos");
-    for (let i = 1; i <= 5; i++) {
-      await expect(page.getByRole("link", { name: new RegExp(`Upcoming${i}\\b`) })).toBeVisible();
-    }
-    await expect(page.getByRole("link", { name: /Upcoming6/ })).toHaveCount(0);
-    const moreButton = page.getByRole("button", { name: "+2 más" });
-    await expect(moreButton).toBeVisible();
-    await moreButton.click();
-    await expect(page.getByRole("link", { name: /Upcoming6/ })).toBeVisible();
-    await expect(page.getByRole("link", { name: /Upcoming7/ })).toBeVisible();
+    // Por defecto (120d): 18 columnas, panel en la semana más urgente (0).
+    await expect(heatmapGrid.getByRole("button")).toHaveCount(18);
+    await expect(heatmapPanel.getByRole("link", { name: /WeekZero/ })).toBeVisible();
+    await expect(heatmapPanel.getByRole("link", { name: /WeekTwo/ })).toHaveCount(0);
 
-    // Estable: colapsado por defecto (solo cabecera), se expande al clicar.
-    await expect(page.getByRole("heading", { name: "Estable" })).toContainText("1 contrato");
-    await expect(page.getByRole("link", { name: /StableOne/ })).toHaveCount(0);
-    await page.getByRole("button", { name: "Mostrar más" }).click();
-    await expect(page.getByRole("link", { name: /StableOne/ })).toBeVisible();
+    // Clic en la celda de la semana 2 cambia el panel.
+    await heatmapGrid.getByRole("button").nth(2).click();
+    await expect(heatmapPanel.getByRole("link", { name: /WeekTwo/ })).toBeVisible();
+    await expect(heatmapPanel.getByRole("link", { name: /WeekZero/ })).toHaveCount(0);
 
-    // Selector de rango: a 30 días, "Upcoming6"(35d)/"Upcoming7"(40d) quedan
-    // fuera — el tramo Próximo pasa de 7 a 5 contratos.
+    // Navegación por teclado: foco + Enter en la celda de la semana 5
+    // produce el mismo efecto que un clic (confirma que son botones nativos).
+    await heatmapGrid.getByRole("button").nth(5).focus();
+    await page.keyboard.press("Enter");
+    await expect(heatmapPanel.getByRole("link", { name: /WeekFive/ })).toBeVisible();
+    await expect(heatmapPanel.getByRole("link", { name: /WeekTwo/ })).toHaveCount(0);
+
+    // Selector de rango a 30d: 5 columnas (semanas 0-4); WeekFive (semana 5)
+    // y WeekFourteen quedan fuera del rango y desaparecen del grid; la
+    // semana seleccionada (5) ya no existe, así que el panel vuelve al
+    // default (semana 0, la más urgente).
     await page.getByRole("tab", { name: "30d" }).click();
-    await expect(page.getByRole("heading", { name: "Próximo" })).toContainText("5 contratos");
-    await expect(page.getByRole("link", { name: /Upcoming6/ })).toHaveCount(0);
-    await expect(page.getByRole("link", { name: /Upcoming1/ })).toBeVisible();
+    await expect(heatmapGrid.getByRole("button")).toHaveCount(5);
+    await expect(heatmapPanel.getByRole("link", { name: /WeekZero/ })).toBeVisible();
+    await expect(page.getByRole("link").filter({ hasText: "WeekFourteen" })).toHaveCount(0);
 
-    // Clic en una fila navega al contrato (mismo patrón que renewals.spec.ts).
-    await expect(page.getByRole("link", { name: /Critical1/ })).toHaveAttribute(
+    // Clic en una fila del panel navega al contrato (mismo patrón que renewals.spec.ts).
+    await expect(heatmapPanel.getByRole("link", { name: /WeekZero/ })).toHaveAttribute(
       "href",
-      `/es/vendors/${criticalVendorId}#contract-${criticalContractId}`,
+      `/es/vendors/${weekZeroVendorId}#contract-${weekZeroContractId}`,
     );
   });
 });

@@ -386,21 +386,28 @@
           "sub": "{year} closings"
         }
       },
-      "runway": {
-        "title": "Renewals runway",
-        "rangeLabel": "Agenda range",
+      "heatmap": {
+        "title": "Renewals heatmap",
+        "rangeLabel": "Heatmap range",
         "rangeOption": "{days}d",
+        "gridLabel": "Heatmap weeks",
+        "summary": "{count, plural, one {# contract} other {# contracts}} · {amount} in this range",
+        "contractsCount": "{count, plural, one {# contract} other {# contracts}}",
         "perYear": "{amount}/yr",
         "daysRemaining": "{days} days",
         "overdue": "Overdue by {days} days",
         "noticeWarning": "⚠ {days} days · {noticeDays}d notice",
-        "contractsCount": "{count, plural, one {# contract} other {# contracts}}",
-        "moreCount": "+{count} more",
-        "showMore": "Show more",
-        "showLess": "Hide",
-        "criticalEmpty": "Nothing critical right now 🎉",
-        "upcomingEmpty": "Nothing upcoming in this range",
-        "stableEmpty": "No stable renewals in this range"
+        "cellTooltip": "week of {date} · {count, plural, one {# contract} other {# contracts}}",
+        "cellAriaLabel": "Week of {date}, {tone}, {count, plural, one {# contract} other {# contracts}}",
+        "panelLabel": "Selected week detail",
+        "panelWeekLabel": "Week of {date}",
+        "panelEmptyWeek": "No renewals this week",
+        "panelEmptyRange": "No renewals in this range",
+        "srTitle": "All renewals in this range",
+        "srEmpty": "No renewals in this range",
+        "srOverdue": "{vendor} — week of {date} · overdue by {days} days",
+        "srNoticeWarning": "{vendor} — week of {date} · ⚠ {days} days · {noticeDays}d notice",
+        "srDaysRemaining": "{vendor} — week of {date} · {days} days"
       },
       "departmentSpend": {
         "title": "Spend by department",
