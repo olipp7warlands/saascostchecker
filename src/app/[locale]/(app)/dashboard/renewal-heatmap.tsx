@@ -89,8 +89,13 @@ export function RenewalHeatmap({
     [tickets, selection, today],
   );
 
+  // Año SIEMPRE incluido: el horizonte cubre exactamente 12 meses, así que
+  // el día de "hoy" y el último día del grid (hoy + 12 meses, mismo día/mes)
+  // comparten día+mes — sin año, ambas celdas tendrían el mismo aria-label
+  // ("10 de agosto" dos veces), ambigüedad real detectada por un strict-mode
+  // violation de Playwright en CI, no solo un problema cosmético.
   const cellDateFormatter = useMemo(
-    () => new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" }),
+    () => new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }),
     [locale],
   );
   const monthLabelFormatter = useMemo(() => new Intl.DateTimeFormat(locale, { month: "short" }), [locale]);

@@ -84,8 +84,11 @@ export function RenewalHeatmapPanel({
 }) {
   const t = useTranslations("Shell.dashboard");
 
+  // Año siempre incluido — mismo motivo que cellDateFormatter en
+  // renewal-heatmap.tsx: el horizonte de 12 meses hace que el día de "hoy" y
+  // el último día del grid compartan día+mes.
   const dayFormatter = useMemo(
-    () => new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" }),
+    () => new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }),
     [locale],
   );
   const monthFormatter = useMemo(

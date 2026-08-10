@@ -329,7 +329,11 @@ test.describe("Dashboard (bloque 1.5)", () => {
     const dayCellLabel = (offsetDays: number) => {
       const date = new Date();
       date.setDate(date.getDate() + offsetDays);
-      return new Intl.DateTimeFormat("es", { day: "numeric", month: "long" }).format(date);
+      // Año incluido a propósito: el aria-label real de la celda lo incluye
+      // siempre (el día de hoy y el último día del horizonte de 12 meses
+      // comparten día+mes — ver comentario de cellDateFormatter en
+      // renewal-heatmap.tsx), así que un match sin año sería ambiguo.
+      return new Intl.DateTimeFormat("es", { day: "numeric", month: "long", year: "numeric" }).format(date);
     };
     await heatmapGrid.getByRole("button", { name: new RegExp(`^${dayCellLabel(0)}:`) }).click();
     await expect(heatmapPanel.getByRole("link", { name: /VendorAmber/ })).toHaveCount(0);
@@ -430,7 +434,11 @@ test.describe("Dashboard (bloque 1.5)", () => {
     const dayLabel = (offsetDays: number) => {
       const date = new Date();
       date.setDate(date.getDate() + offsetDays);
-      return new Intl.DateTimeFormat("es", { day: "numeric", month: "long" }).format(date);
+      // Año incluido a propósito: el aria-label real de la celda lo incluye
+      // siempre (el día de hoy y el último día del horizonte de 12 meses
+      // comparten día+mes — ver comentario de cellDateFormatter en
+      // renewal-heatmap.tsx), así que un match sin año sería ambiguo.
+      return new Intl.DateTimeFormat("es", { day: "numeric", month: "long", year: "numeric" }).format(date);
     };
     const monthLabel = (offsetDays: number) => {
       const date = new Date();
