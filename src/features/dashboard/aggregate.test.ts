@@ -3,14 +3,14 @@ import {
   buildCompanySpend,
   buildDepartmentSpend,
   buildKpis,
-  buildRenewalHeatmapWeeks,
+  buildRenewalHeatmapGrid,
   buildRenewalTickets,
   buildSavingsYtd,
   buildStackStatus,
-  defaultHeatmapWeekIndex,
-  renewalHeatmapWeekCount,
-  summarizeRenewalHeatmap,
-  weeklyIntensity,
+  renewalHeatmapHorizonDays,
+  renewalIntensity,
+  selectRenewalTickets,
+  summarizeRenewalTickets,
 } from "./aggregate";
 import type { DashboardContract, DashboardVendor, SavingsRecord } from "./types";
 
@@ -245,52 +245,66 @@ describe("buildRenewalTickets", () => {
   });
 });
 
-describe("renewalHeatmapWeekCount", () => {
-  it("floor(windowDays/7)+1 -> 30/60/90/120 dan 5/9/13/18 columnas", () => {
-    expect(renewalHeatmapWeekCount(30)).toBe(5);
-    expect(renewalHeatmapWeekCount(60)).toBe(9);
-    expect(renewalHeatmapWeekCount(90)).toBe(13);
-    expect(renewalHeatmapWeekCount(120)).toBe(18);
-  });
-});
-
-describe("weeklyIntensity", () => {
+describe("renewalIntensity", () => {
   it("0 contratos -> null (celda vacía, fuera de la escala)", () => {
-    expect(weeklyIntensity(0)).toBeNull();
+    expect(renewalIntensity(0)).toBeNull();
   });
 
   it("1 contrato -> low", () => {
-    expect(weeklyIntensity(1)).toBe("low");
+    expect(renewalIntensity(1)).toBe("low");
   });
 
   it("2 a 4 contratos -> medium", () => {
-    expect(weeklyIntensity(2)).toBe("medium");
-    expect(weeklyIntensity(4)).toBe("medium");
+    expect(renewalIntensity(2)).toBe("medium");
+    expect(renewalIntensity(4)).toBe("medium");
   });
 
   it("5 o más contratos -> high", () => {
-    expect(weeklyIntensity(5)).toBe("high");
-    expect(weeklyIntensity(20)).toBe("high");
+    expect(renewalIntensity(5)).toBe("high");
+    expect(renewalIntensity(20)).toBe("high");
   });
 });
 
-describe("buildRenewalHeatmapWeeks", () => {
-  it("bucketea por semanas de 7 días sobre actionableDaysUntil (semana 0 = días 0-6)", () => {
-    const contracts: DashboardContract[] = [
-      contract({ id: "w0", renewalDate: isoDaysFrom(TODAY, 3), autoRenews: false }),
-      contract({ id: "w1-start", renewalDate: isoDaysFrom(TODAY, 7), autoRenews: false }),
-      contract({ id: "w1-end", renewalDate: isoDaysFrom(TODAY, 13), autoRenews: false }),
-      contract({ id: "w2", renewalDate: isoDaysFrom(TODAY, 14), autoRenews: false }),
-    ];
-    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY, 120);
-    const weeks = buildRenewalHeatmapWeeks(tickets, 120, TODAY);
-
-    expect(weeks[0].tickets.map((t) => t.contractId)).toEqual(["w0"]);
-    expect(weeks[1].tickets.map((t) => t.contractId).sort()).toEqual(["w1-end", "w1-start"]);
-    expect(weeks[2].tickets.map((t) => t.contractId)).toEqual(["w2"]);
+describe("renewalHeatmapHorizonDays", () => {
+  it("días exactos hasta la misma fecha de calendario 12 meses después (aritmética de meses, no *365)", () => {
+    expect(renewalHeatmapHorizonDays(TODAY)).toBe(365); // 10 jul 2026 -> 10 jul 2027, no cruza 29 feb
   });
 
-  it("clampa fecha accionable negativa (vencido o preaviso ya pasado) a la semana 0", () => {
+  it("cuando el horizonte cruza un 29 de febrero, son 366 días", () => {
+    const leapToday = new Date(2027, 6, 10); // 10 jul 2027 -> 10 jul 2028 (2028 es bisiesto)
+    expect(renewalHeatmapHorizonDays(leapToday)).toBe(366);
+  });
+});
+
+describe("buildRenewalHeatmapGrid", () => {
+  it("cubre del lunes de la semana de hoy al domingo que cubre el horizonte, longitud múltiplo de 7", () => {
+    const grid = buildRenewalHeatmapGrid([], TODAY);
+    expect(grid.days.length).toBe(grid.weekCount * 7);
+    expect(grid.days.length % 7).toBe(0);
+
+    const first = new Date(`${grid.days[0].date}T00:00:00`);
+    const last = new Date(`${grid.days[grid.days.length - 1].date}T00:00:00`);
+    expect(first.getDay()).toBe(1); // lunes
+    expect(last.getDay()).toBe(0); // domingo
+  });
+
+  it("marca isPadding en los días antes de hoy y después del horizonte; hoy mismo no es padding", () => {
+    const grid = buildRenewalHeatmapGrid([], TODAY);
+    const todayIso = isoDaysFrom(TODAY, 0);
+    const todayCell = grid.days.find((day) => day.date === todayIso)!;
+    expect(todayCell.isPadding).toBe(false);
+
+    const beforeToday = grid.days.filter((day) => day.date < todayIso);
+    expect(beforeToday.length).toBeGreaterThan(0);
+    expect(beforeToday.every((day) => day.isPadding)).toBe(true);
+
+    const horizonEndIso = isoDaysFrom(TODAY, renewalHeatmapHorizonDays(TODAY));
+    const afterHorizon = grid.days.filter((day) => day.date > horizonEndIso);
+    expect(afterHorizon.length).toBeGreaterThan(0);
+    expect(afterHorizon.every((day) => day.isPadding)).toBe(true);
+  });
+
+  it("un ticket vencido o con preaviso ya pasado clampa al día de hoy, no a un día anterior ni queda ausente", () => {
     const contracts: DashboardContract[] = [
       contract({ id: "overdue", renewalDate: isoDaysFrom(TODAY, -10), autoRenews: false }),
       contract({
@@ -300,113 +314,160 @@ describe("buildRenewalHeatmapWeeks", () => {
         cancellationNoticeDays: 30, // accionable: -25
       }),
     ];
-    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY, 120);
-    const weeks = buildRenewalHeatmapWeeks(tickets, 120, TODAY);
+    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY);
+    const grid = buildRenewalHeatmapGrid(tickets, TODAY);
+    const todayCell = grid.days.find((day) => day.date === isoDaysFrom(TODAY, 0))!;
 
-    expect(weeks[0].tickets.map((t) => t.contractId).sort()).toEqual(["notice-passed", "overdue"]);
-    expect(weeks.slice(1).every((week) => week.tickets.length === 0)).toBe(true);
-  });
-
-  it("calcula weekStart/weekEnd en fechas de calendario reales, cruzando cambio de mes y de año", () => {
-    const yearEndToday = new Date(2026, 11, 28); // 28 dic 2026
-    const contracts: DashboardContract[] = [
-      contract({ id: "cross-year", renewalDate: isoDaysFrom(yearEndToday, 10), autoRenews: false }),
-    ];
-    const tickets = buildRenewalTickets(contracts, "EUR", [], yearEndToday, 120);
-    const weeks = buildRenewalHeatmapWeeks(tickets, 120, yearEndToday);
-
-    // semana 1 cubre los días accionables 7-13 -> arranca el 2027-01-04
-    expect(weeks[1].weekStart).toBe("2027-01-04");
-    expect(weeks[1].weekEnd).toBe("2027-01-10");
-    expect(weeks[1].tickets.map((t) => t.contractId)).toEqual(["cross-year"]);
-  });
-
-  it("genera renewalHeatmapWeekCount(windowDays) columnas, con las semanas finales vacías si no hay datos", () => {
-    const tickets = buildRenewalTickets([], "EUR", [], TODAY, 120);
-    expect(buildRenewalHeatmapWeeks(tickets, 30, TODAY)).toHaveLength(5);
-    expect(buildRenewalHeatmapWeeks(tickets, 60, TODAY)).toHaveLength(9);
-    expect(buildRenewalHeatmapWeeks(tickets, 90, TODAY)).toHaveLength(13);
-    expect(buildRenewalHeatmapWeeks(tickets, 120, TODAY)).toHaveLength(18);
-  });
-
-  it("el tono de la celda es el peor tono (worstTone) entre tickets con distinto tono en la misma semana", () => {
-    const contracts: DashboardContract[] = [
-      // ambos caen en la semana 6 (floor(45/7)=floor(46/7)=6), con tonos distintos.
-      contract({ id: "amber-edge", renewalDate: isoDaysFrom(TODAY, 45), autoRenews: false }), // amber (<=45)
-      contract({ id: "neutral-edge", renewalDate: isoDaysFrom(TODAY, 46), autoRenews: false }), // neutral (>45)
-    ];
-    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY, 120);
-    const weeks = buildRenewalHeatmapWeeks(tickets, 120, TODAY);
-    const week6 = weeks[6];
-
-    expect(week6.tickets.map((t) => t.contractId).sort()).toEqual(["amber-edge", "neutral-edge"]);
-    expect(week6.tone).toBe("amber");
-  });
-
-  it("celda sin contratos tiene tone neutral e intensity null", () => {
-    const tickets = buildRenewalTickets([], "EUR", [], TODAY, 120);
-    const weeks = buildRenewalHeatmapWeeks(tickets, 30, TODAY);
-
-    expect(weeks.every((week) => week.tone === "neutral" && week.intensity === null && week.tickets.length === 0)).toBe(
+    expect(todayCell.tickets.map((t) => t.contractId).sort()).toEqual(["notice-passed", "overdue"]);
+    expect(grid.days.filter((day) => day.date !== todayCell.date).every((day) => day.tickets.length === 0)).toBe(
       true,
     );
   });
 
-  it("suma totalAnnualCostOrgCurrency por semana en la moneda de la org", () => {
+  it("un ticket justo en el borde del horizonte se incluye; uno 5 días más allá se ignora silenciosamente", () => {
+    const horizon = renewalHeatmapHorizonDays(TODAY);
     const contracts: DashboardContract[] = [
-      contract({ id: "a", renewalDate: isoDaysFrom(TODAY, 3), costAmount: 1200, billingCycle: "annual", autoRenews: false }),
-      contract({ id: "b", renewalDate: isoDaysFrom(TODAY, 5), costAmount: 100, billingCycle: "monthly", autoRenews: false }), // anualizado 1200
+      contract({ id: "edge", renewalDate: isoDaysFrom(TODAY, horizon), autoRenews: false }),
+      contract({ id: "beyond", renewalDate: isoDaysFrom(TODAY, horizon + 5), autoRenews: false }),
     ];
-    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY, 120);
-    const weeks = buildRenewalHeatmapWeeks(tickets, 120, TODAY);
+    // windowDays generoso para que buildRenewalTickets no los excluya antes
+    // de que el grid tenga oportunidad de filtrar por su cuenta.
+    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY, horizon + 10);
+    const grid = buildRenewalHeatmapGrid(tickets, TODAY);
+    const allTicketIds = grid.days.flatMap((day) => day.tickets.map((t) => t.contractId));
 
-    expect(weeks[0].totalAnnualCostOrgCurrency).toBe(2400);
+    expect(allTicketIds).toEqual(["edge"]);
+  });
+
+  it("intensidad por día: nº de tickets que caen el mismo día produce low/medium/high", () => {
+    const contracts: DashboardContract[] = [
+      contract({ id: "low-1", renewalDate: isoDaysFrom(TODAY, 3), autoRenews: false }),
+      contract({ id: "med-1", renewalDate: isoDaysFrom(TODAY, 10), autoRenews: false }),
+      contract({ id: "med-2", renewalDate: isoDaysFrom(TODAY, 10), autoRenews: false }),
+      contract({ id: "med-3", renewalDate: isoDaysFrom(TODAY, 10), autoRenews: false }),
+      contract({ id: "high-1", renewalDate: isoDaysFrom(TODAY, 20), autoRenews: false }),
+      contract({ id: "high-2", renewalDate: isoDaysFrom(TODAY, 20), autoRenews: false }),
+      contract({ id: "high-3", renewalDate: isoDaysFrom(TODAY, 20), autoRenews: false }),
+      contract({ id: "high-4", renewalDate: isoDaysFrom(TODAY, 20), autoRenews: false }),
+      contract({ id: "high-5", renewalDate: isoDaysFrom(TODAY, 20), autoRenews: false }),
+    ];
+    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY);
+    const grid = buildRenewalHeatmapGrid(tickets, TODAY);
+
+    expect(grid.days.find((day) => day.date === isoDaysFrom(TODAY, 3))!.intensity).toBe("low");
+    expect(grid.days.find((day) => day.date === isoDaysFrom(TODAY, 10))!.intensity).toBe("medium");
+    expect(grid.days.find((day) => day.date === isoDaysFrom(TODAY, 20))!.intensity).toBe("high");
+  });
+
+  it("celda sin contratos tiene tone neutral e intensity null", () => {
+    const grid = buildRenewalHeatmapGrid([], TODAY);
+    expect(
+      grid.days.every((day) => day.isPadding || (day.tone === "neutral" && day.intensity === null && day.tickets.length === 0)),
+    ).toBe(true);
   });
 });
 
-describe("defaultHeatmapWeekIndex", () => {
-  it("devuelve el índice de la primera semana (más urgente) con contratos", () => {
-    const contracts: DashboardContract[] = [contract({ id: "later", renewalDate: isoDaysFrom(TODAY, 20), autoRenews: false })];
-    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY, 120);
-    const weeks = buildRenewalHeatmapWeeks(tickets, 120, TODAY);
+describe("buildMonthLabels (grid.monthLabels)", () => {
+  it("13 etiquetas para un horizonte de 12 meses; el mes de arranque se repite con showYear en ambas apariciones", () => {
+    const grid = buildRenewalHeatmapGrid([], TODAY); // TODAY = 10 jul 2026
+    expect(grid.monthLabels).toHaveLength(13);
 
-    expect(defaultHeatmapWeekIndex(weeks)).toBe(2); // floor(20/7) = 2
+    const julyLabels = grid.monthLabels.filter((label) => label.month === 6);
+    expect(julyLabels).toHaveLength(2);
+    expect(julyLabels.map((label) => label.year).sort()).toEqual([2026, 2027]);
+    expect(julyLabels.every((label) => label.showYear)).toBe(true);
+
+    const nonJuly = grid.monthLabels.filter((label) => label.month !== 6);
+    expect(nonJuly.every((label) => !label.showYear)).toBe(true);
+    expect(grid.monthLabels[0]).toMatchObject({ columnIndex: 0, year: 2026, month: 6 });
   });
 
-  it("devuelve null si todas las semanas del rango están vacías", () => {
-    const tickets = buildRenewalTickets([], "EUR", [], TODAY, 120);
-    const weeks = buildRenewalHeatmapWeeks(tickets, 120, TODAY);
+  it("etiquetas ordenadas por columnIndex ascendente", () => {
+    const grid = buildRenewalHeatmapGrid([], TODAY);
+    const indices = grid.monthLabels.map((label) => label.columnIndex);
+    expect(indices).toEqual([...indices].sort((a, b) => a - b));
+  });
 
-    expect(defaultHeatmapWeekIndex(weeks)).toBeNull();
+  it("borde de cambio de año: diciembre etiqueta la columna que contiene el 1 de enero del año siguiente", () => {
+    const yearEndToday = new Date(2026, 11, 20); // 20 dic 2026
+    const grid = buildRenewalHeatmapGrid([], yearEndToday);
+
+    const january = grid.monthLabels.find((label) => label.month === 0);
+    expect(january?.year).toBe(2027);
+
+    const decemberLabels = grid.monthLabels.filter((label) => label.month === 11);
+    expect(decemberLabels).toHaveLength(2); // dic 2026 (arranque) y dic 2027 (fin de horizonte)
+    expect(decemberLabels.every((label) => label.showYear)).toBe(true);
+  });
+
+  it("cuando hoy es el día 1 de su mes, no hay entrada duplicada (columna 0 y regla del día 1 coinciden)", () => {
+    const firstOfMonthToday = new Date(2026, 7, 1); // 1 ago 2026
+    const grid = buildRenewalHeatmapGrid([], firstOfMonthToday);
+    const august2026 = grid.monthLabels.filter((label) => label.year === 2026 && label.month === 7);
+
+    expect(august2026).toHaveLength(1);
+    expect(august2026[0].columnIndex).toBe(0);
   });
 });
 
-describe("summarizeRenewalHeatmap", () => {
-  it("suma nº de contratos y coste de TODAS las semanas del rango visible, no solo una", () => {
+describe("selectRenewalTickets", () => {
+  const contracts: DashboardContract[] = [
+    contract({ id: "today", renewalDate: isoDaysFrom(TODAY, 0), autoRenews: false }),
+    contract({ id: "overdue", renewalDate: isoDaysFrom(TODAY, -10), autoRenews: false }), // clampa a hoy (jun -> jul)
+    contract({ id: "later-this-month", renewalDate: isoDaysFrom(TODAY, 15), autoRenews: false }),
+    contract({ id: "next-month", renewalDate: isoDaysFrom(TODAY, 45), autoRenews: false }),
+  ];
+  const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY);
+
+  it("selección por mes devuelve solo tickets de ese año/mes, ordenados por urgencia ascendente", () => {
+    const julyTickets = selectRenewalTickets(tickets, { kind: "month", year: 2026, month: 6 }, TODAY);
+    expect(julyTickets.map((t) => t.contractId)).toEqual(["overdue", "today", "later-this-month"]);
+  });
+
+  it("selección por día devuelve solo tickets con esa fecha exacta, incluidos los vencidos clampados", () => {
+    const todayTickets = selectRenewalTickets(tickets, { kind: "day", date: isoDaysFrom(TODAY, 0) }, TODAY);
+    expect(todayTickets.map((t) => t.contractId).sort()).toEqual(["overdue", "today"]);
+  });
+
+  it('un vencido pertenece al mes de "hoy" en el panel, no al mes de su renewalDate original', () => {
+    // "overdue" tiene renewalDate en junio 2026, pero su fecha efectiva
+    // clampa a hoy (julio) -> no debe aparecer al filtrar junio.
+    const juneTickets = selectRenewalTickets(tickets, { kind: "month", year: 2026, month: 5 }, TODAY);
+    expect(juneTickets.map((t) => t.contractId)).not.toContain("overdue");
+    expect(juneTickets).toHaveLength(0);
+  });
+
+  it("un mes futuro distinto solo devuelve lo que cae en él", () => {
+    const augustTickets = selectRenewalTickets(tickets, { kind: "month", year: 2026, month: 7 }, TODAY);
+    expect(augustTickets.map((t) => t.contractId)).toEqual(["next-month"]);
+  });
+});
+
+describe("summarizeRenewalTickets", () => {
+  it("suma nº de contratos y coste anual total en la moneda de la org", () => {
     const contracts: DashboardContract[] = [
       contract({ id: "a", renewalDate: isoDaysFrom(TODAY, 3), costAmount: 1000, billingCycle: "annual", autoRenews: false }),
       contract({ id: "b", renewalDate: isoDaysFrom(TODAY, 20), costAmount: 500, billingCycle: "annual", autoRenews: false }),
     ];
-    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY, 120);
-    const weeks = buildRenewalHeatmapWeeks(tickets, 120, TODAY);
-
-    expect(summarizeRenewalHeatmap(weeks)).toEqual({ contractCount: 2, totalAnnualCostOrgCurrency: 1500 });
+    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY);
+    expect(summarizeRenewalTickets(tickets)).toEqual({ contractCount: 2, totalAnnualCostOrgCurrency: 1500 });
   });
 
-  it("devuelve ceros sin tickets", () => {
-    const weeks = buildRenewalHeatmapWeeks([], 120, TODAY);
-    expect(summarizeRenewalHeatmap(weeks)).toEqual({ contractCount: 0, totalAnnualCostOrgCurrency: 0 });
+  it("devuelve ceros con un array vacío", () => {
+    expect(summarizeRenewalTickets([])).toEqual({ contractCount: 0, totalAnnualCostOrgCurrency: 0 });
   });
 });
 
 // Verificación cruzada automatizada (mismo chequeo que se hizo a mano contra
-// datos reales el 2026-08-04 para agenda vs. donut, ahora para heatmap vs.
-// donut): con un contrato activo por vendor, los conteos por tono deben
-// coincidir exactamente entre buildStackStatus (agrupa por vendor) y los
-// tickets del heatmap (agrupan por contrato) — la equivalencia 1:1 depende
-// de que cada vendor tenga un único contrato activo en este fixture.
+// datos reales el 2026-08-04 para agenda vs. donut, y el 2026-08-06 para el
+// heatmap semanal vs. donut, ahora para el grid diario vs. donut): con un
+// contrato activo por vendor, los conteos por tono deben coincidir
+// exactamente entre buildStackStatus (agrupa por vendor) y los tickets del
+// grid (agrupan por contrato) — la equivalencia 1:1 depende de que cada
+// vendor tenga un único contrato activo en este fixture, todos dentro del
+// horizonte de 12 meses.
 describe("consistencia heatmap vs buildStackStatus (mismo universo de datos)", () => {
-  it("los conteos por tono coinciden con el donut cuando cada vendor tiene exactamente 1 contrato activo dentro de la ventana", () => {
+  it("los conteos por tono coinciden con el donut cuando cada vendor tiene exactamente 1 contrato activo dentro del horizonte", () => {
     const vendors: DashboardVendor[] = [
       { id: "v1", status: "active", ownerUserId: null },
       { id: "v2", status: "active", ownerUserId: null },
@@ -427,13 +488,10 @@ describe("consistencia heatmap vs buildStackStatus (mismo universo de datos)", (
     const stackStatus = buildStackStatus(vendors, contracts, TODAY);
     expect(stackStatus).toEqual({ critical: 2, upcoming: 2, stable: 2, noContract: 0, total: 6 });
 
-    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY, 120);
-    const weeks = buildRenewalHeatmapWeeks(tickets, 120, TODAY);
-    const allTickets = weeks.flatMap((week) => week.tickets);
-
-    expect(allTickets.filter((t) => t.tone === "red")).toHaveLength(stackStatus.critical);
-    expect(allTickets.filter((t) => t.tone === "amber")).toHaveLength(stackStatus.upcoming);
-    expect(allTickets.filter((t) => t.tone === "neutral")).toHaveLength(stackStatus.stable);
+    const tickets = buildRenewalTickets(contracts, "EUR", [], TODAY);
+    expect(tickets.filter((t) => t.tone === "red")).toHaveLength(stackStatus.critical);
+    expect(tickets.filter((t) => t.tone === "amber")).toHaveLength(stackStatus.upcoming);
+    expect(tickets.filter((t) => t.tone === "neutral")).toHaveLength(stackStatus.stable);
   });
 });
 

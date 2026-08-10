@@ -74,18 +74,46 @@ export type RenewalTicket = {
 
 export type RenewalHeatmapIntensity = "low" | "medium" | "high";
 
-// Una celda del heatmap = una semana rolling desde "hoy" (semana 0 = días
-// accionables 0-6, semana 1 = 7-13, ...). `tone`/`intensity` resumen la
-// celda para pintarla; `tickets` alimenta el panel de detalle al seleccionarla.
-export type RenewalHeatmapWeek = {
-  index: number;
-  weekStart: string; // "YYYY-MM-DD"
-  weekEnd: string; // "YYYY-MM-DD"
+// Una celda del heatmap = un día de calendario. `isPadding` = relleno fuera
+// del horizonte real (antes de "hoy" en la semana parcial inicial, o después
+// de "hoy + 12 meses" en la semana parcial final) — no interactivo, nunca
+// tiene tickets. `tone`/`intensity` resumen la celda para pintarla;
+// `tickets` alimenta el panel de detalle al seleccionar el día.
+export type RenewalHeatmapDay = {
+  date: string; // "YYYY-MM-DD"
+  isPadding: boolean;
   tickets: RenewalTicket[];
   tone: RenewalTone;
   intensity: RenewalHeatmapIntensity | null; // null = celda vacía, fuera de la escala
-  totalAnnualCostOrgCurrency: number;
 };
+
+// Etiqueta de mes sobre una columna (semana) del grid. `showYear` es true
+// solo para los meses que se repiten dentro del horizonte de 12 meses (en la
+// práctica, el mes de arranque — aparece en la columna 0 y de nuevo ~52
+// columnas después con año distinto) — desambigua sin ensuciar el resto de
+// etiquetas.
+export type RenewalHeatmapMonthLabel = {
+  columnIndex: number;
+  year: number;
+  month: number; // 0-indexado, convención Date
+  showYear: boolean;
+};
+
+// `days` es un array plano en orden CRONOLÓGICO, longitud weekCount*7 (lunes
+// semana 0, martes semana 0, ..., domingo semana 0, lunes semana 1, ...) —
+// pensado para pintarse con CSS `grid-auto-flow: column` (ver
+// renewal-heatmap.tsx), no pre-agrupado en columnas.
+export type RenewalHeatmapGrid = {
+  weekCount: number;
+  days: RenewalHeatmapDay[];
+  monthLabels: RenewalHeatmapMonthLabel[];
+};
+
+// Selección activa del panel de detalle: un mes completo (default: el mes
+// actual) o un día concreto.
+export type RenewalHeatmapSelection =
+  | { kind: "month"; year: number; month: number }
+  | { kind: "day"; date: string };
 
 export type DepartmentSpendRow = {
   departmentId: string | null;

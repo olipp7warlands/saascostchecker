@@ -28,3 +28,8 @@ export const HEATMAP_CELL_CLASSES: Record<RenewalTone, Record<RenewalHeatmapInte
 
 // Celda sin contratos — neutra fija, fuera de la escala de intensidad.
 export const HEATMAP_EMPTY_CELL_CLASSES = "border-line bg-surface";
+
+// Celda de relleno (día antes de "hoy" o después del horizonte de 12 meses,
+// en las semanas parciales inicial/final) — invisible pero ocupa su hueco en
+// el grid para no romper la alineación de columnas con la fila de meses.
+export const HEATMAP_PADDING_CELL_CLASSES = "invisible";

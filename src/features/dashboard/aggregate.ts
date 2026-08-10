@@ -16,14 +16,15 @@ import type {
   DashboardVendor,
   DepartmentSpendRow,
   ExchangeRate,
+  RenewalHeatmapDay,
+  RenewalHeatmapGrid,
   RenewalHeatmapIntensity,
-  RenewalHeatmapWeek,
+  RenewalHeatmapMonthLabel,
+  RenewalHeatmapSelection,
   RenewalTicket,
   SavingsRecord,
   StackStatusSummary,
 } from "./types";
-
-const RENEWAL_WINDOW_DAYS = 120;
 
 export function buildKpis(
   contracts: DashboardContract[],
@@ -78,15 +79,16 @@ export function buildKpis(
   };
 }
 
-// Construye la lista de tickets de renovación (ventana máxima 120 días, el
-// mayor rango que ofrece el selector del heatmap). Ventana, orden y tono se
-// calculan los TRES sobre la fecha ACCIONABLE (actionableDaysUntil) — la
-// misma que ya usan el calendario y `buildStackStatus` (donut "Estado del
-// stack") más abajo. Hasta el 2026-08-06 la ventana/orden usaban días BRUTOS
+// Construye la lista de tickets de renovación (ventana por defecto: próximos
+// 12 meses exactos desde "hoy", el horizonte del grid estilo GitHub — ver
+// renewalHeatmapHorizonDays más abajo). Ventana, orden y tono se calculan los
+// TRES sobre la fecha ACCIONABLE (actionableDaysUntil) — la misma que ya
+// usan el calendario y `buildStackStatus` (donut "Estado del stack") más
+// abajo. Hasta el 2026-08-06 la ventana/orden usaban días BRUTOS
 // (`daysUntil`) deliberadamente, distinto del tono — una discrepancia que la
 // agenda por tramos podía tolerar (el filtro solo decidía "entra o no",
 // nunca una posición visual) pero que el heatmap no puede: si la columna que
-// ocupa un contrato (bucketing semanal, ver buildRenewalHeatmapWeeks) usara
+// ocupa un contrato (bucketing diario, ver buildRenewalHeatmapGrid) usara
 // una fecha distinta a la que decide su color, una celda mentiría sobre su
 // propio tono. Se unifica todo en fecha accionable — ver docs/DECISIONS.md.
 export function buildRenewalTickets(
@@ -94,7 +96,7 @@ export function buildRenewalTickets(
   orgCurrency: string,
   rates: ExchangeRate[],
   today: Date = new Date(),
-  windowDays: number = RENEWAL_WINDOW_DAYS,
+  windowDays: number = renewalHeatmapHorizonDays(today),
 ): RenewalTicket[] {
   const withinWindow = contracts
     .filter((contract) => contract.status === "active")
@@ -149,79 +151,187 @@ function addDays(date: Date, days: number): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
 }
 
-// Nº de columnas del heatmap para una ventana de `windowDays` días. La
-// última semana necesaria es la que contiene el día `windowDays` en sí
-// (semana k cubre los días accionables [7k, 7k+6]) — floor(windowDays/7)+1,
-// no un ceil directo sobre windowDays/7 (coinciden para 120 pero no en
-// general). 30/60/90/120 -> 5/9/13/18 columnas.
-export function renewalHeatmapWeekCount(windowDays: number): number {
-  return Math.floor(windowDays / 7) + 1;
+function startOfDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function addMonths(date: Date, months: number): Date {
+  return new Date(date.getFullYear(), date.getMonth() + months, date.getDate());
+}
+
+function mondayOfWeek(date: Date): Date {
+  return addDays(date, -((date.getDay() + 6) % 7)); // getDay(): 0=domingo..6=sábado
+}
+
+function sundayOfWeek(date: Date): Date {
+  return addDays(mondayOfWeek(date), 6);
+}
+
+function parseIsoDate(dateIso: string): Date {
+  return new Date(`${dateIso}T00:00:00`);
+}
+
+// Días de calendario entre "hoy" y "hoy + 12 meses" (aritmética de meses, no
+// *365 — así no se desvía en años bisiestos). Es el horizonte fijo del grid
+// estilo GitHub y, a la vez, el default de `windowDays` de
+// buildRenewalTickets de arriba: ambos deben leer exactamente el mismo
+// horizonte para que el grid nunca excluya un ticket que la cabecera cuenta,
+// ni al revés.
+export function renewalHeatmapHorizonDays(today: Date = new Date()): number {
+  const start = startOfDay(today);
+  return daysUntil(toIsoDate(addMonths(start, 12)), today);
 }
 
 // Intensidad de una celda por nº de contratos, 3 escalones discretos (no
 // continuo, pedido explícitamente): 1 = low, 2-4 = medium, 5+ = high. 0 no
 // tiene intensidad (celda vacía, tratada aparte con su propia clase neutra).
-export function weeklyIntensity(count: number): RenewalHeatmapIntensity | null {
+export function renewalIntensity(count: number): RenewalHeatmapIntensity | null {
   if (count === 0) return null;
   if (count === 1) return "low";
   if (count <= 4) return "medium";
   return "high";
 }
 
-// Agrupa tickets ya construidos (`buildRenewalTickets`, ya acotados a
-// `windowDays` por fecha accionable) en semanas ROLLING desde `today`
-// (semana 0 = días accionables 0-6, semana 1 = 7-13, ...). Un ticket vencido
-// o con preaviso ya pasado (actionableDaysUntil negativo) clampa a la semana
-// 0 — sigue siendo la más urgente posible, no tiene sentido una columna
-// "semana -1". Pura, sin I/O: el selector de rango del cliente recalcula al
-// vuelo sobre los tickets ya cargados (máximo 120 días), sin pedir datos
-// nuevos al servidor.
-export function buildRenewalHeatmapWeeks(
-  tickets: RenewalTicket[],
-  windowDays: number,
-  today: Date = new Date(),
-): RenewalHeatmapWeek[] {
-  const weekCount = renewalHeatmapWeekCount(windowDays);
-  const buckets: RenewalTicket[][] = Array.from({ length: weekCount }, () => []);
+// Fecha efectiva de un ticket para TODO propósito posicional del heatmap
+// (celda que pinta Y filtro mes/día del panel — fuente única, ver comentario
+// de cabecera de este archivo/DECISIONS.md): "hoy" + días accionables, nunca
+// negativo. Un contrato vencido o con preaviso ya pasado
+// (actionableDaysUntil < 0) clampa a "hoy" — no tiene sentido una celda
+// "ayer" en un grid que solo mira hacia adelante, y así la celda de "hoy" y
+// el panel filtrado por "hoy"/el mes actual SIEMPRE coinciden.
+function renewalTicketDate(ticket: RenewalTicket, today: Date): string {
+  return toIsoDate(addDays(startOfDay(today), Math.max(0, ticket.actionableDaysUntil)));
+}
 
-  for (const ticket of tickets) {
-    if (ticket.actionableDaysUntil > windowDays) continue;
-    const index = Math.min(Math.max(0, Math.floor(ticket.actionableDaysUntil / 7)), weekCount - 1);
-    buckets[index].push(ticket);
+// Etiquetas de mes del grid: SIEMPRE etiqueta la columna 0 con el mes de
+// "hoy" (el día 1 de ese mes casi nunca cae dentro del grid, ya que
+// `days[0]` es el lunes de la semana de "hoy", no el día 1) y además
+// etiqueta la columna que contiene el día 1 de cada mes siguiente que
+// aparezca en `days` (incluidos los de padding — su fecha de calendario
+// sigue siendo real). Deduplicado por year+month (cubre el borde en que
+// "hoy" es ya el día 1: ambas reglas coincidirían en la misma columna). Al
+// final, cualquier mes que aparezca más de una vez en el horizonte (en la
+// práctica: el mes de arranque, que se repite ~52 columnas después con año
+// distinto) marca `showYear: true` en todas sus apariciones — sin eso,
+// "agosto" y "agosto" serían indistinguibles en la UI.
+function buildMonthLabels(days: RenewalHeatmapDay[]): RenewalHeatmapMonthLabel[] {
+  const seen = new Set<string>();
+  const labels: RenewalHeatmapMonthLabel[] = [];
+
+  const pushLabel = (columnIndex: number, year: number, month: number) => {
+    const key = `${year}-${month}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    labels.push({ columnIndex, year, month, showYear: false });
+  };
+
+  const first = parseIsoDate(days[0].date);
+  pushLabel(0, first.getFullYear(), first.getMonth());
+
+  days.forEach((day, index) => {
+    const d = parseIsoDate(day.date);
+    if (d.getDate() === 1) {
+      pushLabel(Math.floor(index / 7), d.getFullYear(), d.getMonth());
+    }
+  });
+
+  const countByMonth = new Map<number, number>();
+  for (const label of labels) {
+    countByMonth.set(label.month, (countByMonth.get(label.month) ?? 0) + 1);
+  }
+  for (const label of labels) {
+    label.showYear = (countByMonth.get(label.month) ?? 0) > 1;
   }
 
-  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  return buckets.map((weekTickets, index) => ({
-    index,
-    weekStart: toIsoDate(addDays(start, index * 7)),
-    weekEnd: toIsoDate(addDays(start, index * 7 + 6)),
-    tickets: weekTickets,
-    tone: worstTone(weekTickets.map((t) => t.tone)) ?? "neutral",
-    intensity: weeklyIntensity(weekTickets.length),
-    totalAnnualCostOrgCurrency: weekTickets.reduce((sum, t) => sum + t.annualCostOrgCurrency, 0),
-  }));
+  return labels;
 }
 
-// Índice de la primera semana (más urgente) con contratos, para preseleccionar
-// el panel de detalle por defecto. `weeks` ya viene ordenado por índice
-// ascendente, así que basta el primer match. `null` si el rango entero está
-// vacío.
-export function defaultHeatmapWeekIndex(weeks: RenewalHeatmapWeek[]): number | null {
-  return weeks.find((week) => week.tickets.length > 0)?.index ?? null;
+// Construye el grid estilo GitHub: columnas = semanas lunes-domingo,
+// cubriendo desde el lunes de la semana de "hoy" hasta el domingo que cubre
+// "hoy + 12 meses". `days` es un array plano cronológico (ver tipo
+// RenewalHeatmapGrid) — el bucketing de tickets por día usa un Map indexado
+// por `renewalTicketDate` en vez de un filter() por celda, para no pagar
+// O(días × tickets). Un ticket cuya fecha efectiva cae fuera de
+// [hoy, horizonEnd] (posible si el caller construyó `tickets` con un
+// `windowDays` mayor, p.ej. en tests) se ignora en el grid en vez de
+// desbordar el primer/último día — el grid es fiel a "solo próximos 12
+// meses", nunca acumula sobras.
+export function buildRenewalHeatmapGrid(
+  tickets: RenewalTicket[],
+  today: Date = new Date(),
+): RenewalHeatmapGrid {
+  const start = startOfDay(today);
+  const horizonEnd = addMonths(start, 12);
+  const startIso = toIsoDate(start);
+  const horizonEndIso = toIsoDate(horizonEnd);
+  const gridStart = mondayOfWeek(start);
+  const gridEnd = sundayOfWeek(horizonEnd);
+
+  const byDate = new Map<string, RenewalTicket[]>();
+  for (const ticket of tickets) {
+    const date = renewalTicketDate(ticket, start);
+    if (date < startIso || date > horizonEndIso) continue;
+    const bucket = byDate.get(date);
+    if (bucket) {
+      bucket.push(ticket);
+    } else {
+      byDate.set(date, [ticket]);
+    }
+  }
+
+  const days: RenewalHeatmapDay[] = [];
+  for (let cursor = gridStart; cursor <= gridEnd; cursor = addDays(cursor, 1)) {
+    const dateIso = toIsoDate(cursor);
+    const dayTickets = byDate.get(dateIso) ?? [];
+    days.push({
+      date: dateIso,
+      isPadding: dateIso < startIso || dateIso > horizonEndIso,
+      tickets: dayTickets,
+      tone: worstTone(dayTickets.map((t) => t.tone)) ?? "neutral",
+      intensity: renewalIntensity(dayTickets.length),
+    });
+  }
+
+  return {
+    weekCount: days.length / 7,
+    days,
+    monthLabels: buildMonthLabels(days),
+  };
 }
 
-// Totales de cabecera del RANGO VISIBLE completo (todas las semanas, no solo
-// la seleccionada) — responsabilidad separada de
-// RenewalHeatmapWeek.totalAnnualCostOrgCurrency, que es por-celda (cabecera
-// del panel lateral).
-export function summarizeRenewalHeatmap(weeks: RenewalHeatmapWeek[]): {
+// Tickets de la selección activa del panel (mes completo o día concreto),
+// ordenados por urgencia. Usa la MISMA `renewalTicketDate` que colorea el
+// grid — un contrato vencido pertenece al mes/día de "hoy" en el panel
+// aunque su `renewalDate` real cayera en un mes anterior, exactamente
+// coherente con que su celda visual está clampada a "hoy".
+export function selectRenewalTickets(
+  tickets: RenewalTicket[],
+  selection: RenewalHeatmapSelection,
+  today: Date = new Date(),
+): RenewalTicket[] {
+  const start = startOfDay(today);
+  return tickets
+    .filter((ticket) => {
+      const date = renewalTicketDate(ticket, start);
+      if (selection.kind === "day") return date === selection.date;
+      const d = parseIsoDate(date);
+      return d.getFullYear() === selection.year && d.getMonth() === selection.month;
+    })
+    .sort((a, b) => a.actionableDaysUntil - b.actionableDaysUntil);
+}
+
+// Totales de un conjunto de tickets — sirve tanto para la cabecera del
+// componente (todos los tickets, ya acotados a 12 meses por el default de
+// windowDays de buildRenewalTickets) como para la cabecera del panel
+// (tickets ya filtrados por selectRenewalTickets).
+export function summarizeRenewalTickets(tickets: RenewalTicket[]): {
   contractCount: number;
   totalAnnualCostOrgCurrency: number;
 } {
-  return weeks.reduce(
-    (acc, week) => ({
-      contractCount: acc.contractCount + week.tickets.length,
-      totalAnnualCostOrgCurrency: acc.totalAnnualCostOrgCurrency + week.totalAnnualCostOrgCurrency,
+  return tickets.reduce(
+    (acc, ticket) => ({
+      contractCount: acc.contractCount + 1,
+      totalAnnualCostOrgCurrency: acc.totalAnnualCostOrgCurrency + ticket.annualCostOrgCurrency,
     }),
     { contractCount: 0, totalAnnualCostOrgCurrency: 0 },
   );
