@@ -172,6 +172,17 @@ futuro separado en vez de construirse en esa sesión (ver docs/DECISIONS.md).
       Requiere decidir la ampliación mínima de RLS antes de implementar esta
       vista.
 
+## Bloque adicional (futuro) — Portal público de solicitudes
+
+Fuera de la numeración de fases. Anotado el 2026-08-01 a petición del
+usuario, solo como recordatorio de backlog — no construir sin planificarlo
+aparte.
+
+- [ ] URL pública con OAuth (Microsoft/Teams SSO) para que cualquier empleado
+      solicite sin cuenta StackX completa
+- [ ] Requiere diseño de seguridad propio antes de construirse: qué expone la
+      página pública, mapeo de identidad Microsoft→org, provisioning
+
 ## FASE 4 — Comercialización
 ### 4.1 Billing (Stripe: subscripción por empleados, planes y límites)
 ### 4.2 Onboarding self-service (wizard: departamentos → CSV → equipo → matriz)

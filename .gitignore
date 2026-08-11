@@ -47,3 +47,6 @@ next-env.d.ts
 
 # Claude Code local state
 /.claude/
+
+# manifest de scripts/seed-demo-data.mjs — IDs reales de la org de producción
+/scripts/.demo-seed-manifest.json
