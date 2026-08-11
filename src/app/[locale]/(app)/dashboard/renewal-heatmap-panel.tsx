@@ -9,6 +9,14 @@ import { buildContractPath } from "@/features/renewals/deep-link";
 import { TONE_TEXT_CLASSES } from "@/features/vendors/renewal-tone-classes";
 import { cn } from "@/lib/utils";
 
+// weekEnd (lunes+6) para el rango del header del panel — `selection.weekStart`
+// ya es lunes por construcción (buildRenewalHeatmapWeeks), así que basta sumar
+// días de calendario sin tener que reancorar a un lunes.
+function addDaysIso(iso: string, days: number): Date {
+  const date = new Date(`${iso}T00:00:00`);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+}
+
 function HeatmapTicketRow({
   ticket,
   locale,
@@ -78,21 +86,29 @@ export function RenewalHeatmapPanel({
   orgCurrency,
 }: {
   tickets: RenewalTicket[];
-  selection: RenewalHeatmapSelection;
+  selection: RenewalHeatmapSelection | null;
   locale: string;
   orgCurrency: string;
 }) {
   const t = useTranslations("Shell.dashboard");
 
   // Año siempre incluido — mismo motivo que cellDateFormatter en
-  // renewal-heatmap.tsx: el horizonte de 12 meses hace que el día de "hoy" y
-  // el último día del grid compartan día+mes.
+  // renewal-heatmap.tsx: con ventanas que pueden cruzar años, dos fechas
+  // distintas pueden compartir día+mes.
   const dayFormatter = useMemo(
     () => new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }),
     [locale],
   );
   const monthFormatter = useMemo(
     () => new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }),
+    [locale],
+  );
+  const weekStartFormatter = useMemo(
+    () => new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" }),
+    [locale],
+  );
+  const weekEndFormatter = useMemo(
+    () => new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }),
     [locale],
   );
   const totalFormatter = useMemo(
@@ -106,18 +122,33 @@ export function RenewalHeatmapPanel({
   // incorrecto en español) — aquí solo se capitaliza el inicio de la frase.
   const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
-  const headerLabel = capitalize(
-    selection.kind === "day"
-      ? t("heatmap.panelDayLabel", { date: dayFormatter.format(new Date(`${selection.date}T00:00:00`)) })
-      : t("heatmap.panelMonthLabel", { month: monthFormatter.format(new Date(selection.year, selection.month, 1)) }),
-  );
+  // `selection` es null solo cuando la ventana entera está vacía (ninguna
+  // celda con tickets, ver firstRenewalHeatmapCellWithTickets en
+  // aggregate.ts) — no hay periodo que titular, el estado vacío de abajo ya
+  // lo comunica.
+  const headerLabel =
+    selection === null
+      ? null
+      : capitalize(
+          selection.kind === "day"
+            ? t("heatmap.panelDayLabel", { date: dayFormatter.format(new Date(`${selection.date}T00:00:00`)) })
+            : selection.kind === "week"
+              ? t("heatmap.panelWeekLabel", {
+                  range: `${weekStartFormatter.format(new Date(`${selection.weekStart}T00:00:00`))} – ${weekEndFormatter.format(addDaysIso(selection.weekStart, 6))}`,
+                })
+              : selection.kind === "month"
+                ? t("heatmap.panelMonthLabel", {
+                    month: monthFormatter.format(new Date(selection.year, selection.month, 1)),
+                  })
+                : t("heatmap.panelYearLabel", { year: selection.year }),
+        );
 
   const summary = summarizeRenewalTickets(tickets);
 
   return (
     <section aria-label={t("heatmap.panelLabel")} className="rounded-[10px] border border-line bg-background p-3.5">
       <div className="mb-2.5 flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="text-[13px] font-semibold text-ink">{headerLabel}</h3>
+        {headerLabel !== null && <h3 className="text-[13px] font-semibold text-ink">{headerLabel}</h3>}
         {tickets.length > 0 && (
           <span className="num text-[12px] text-ink-soft">
             {totalFormatter.format(summary.totalAnnualCostOrgCurrency)}

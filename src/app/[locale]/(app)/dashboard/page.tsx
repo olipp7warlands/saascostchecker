@@ -118,7 +118,11 @@ export default async function DashboardPage({
     (savingsRows ?? []).map((row) => ({ savingsAmount: Number(row.savings_amount), closedAt: row.closed_at })),
     currentYear,
   );
-  const tickets = buildRenewalTickets(contracts, orgCurrency, rates);
+  // Sin límite de ventana: el heatmap (v3.2, selector Día/Semana/Mes/Año)
+  // necesita ver todos los contratos activos client-side — el nivel Año no
+  // tiene horizonte fijo, y los otros 3 niveles filtran/bucketean su propia
+  // ventana navegable sobre esta misma lista ya cargada, sin refetch.
+  const tickets = buildRenewalTickets(contracts, orgCurrency, rates, new Date(), Infinity);
   const stackStatus = buildStackStatus(vendors, contracts);
 
   // Resumen discreto (§E del diseño, ver docs/DECISIONS.md) — reutiliza los

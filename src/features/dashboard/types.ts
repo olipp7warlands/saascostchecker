@@ -75,10 +75,10 @@ export type RenewalTicket = {
 export type RenewalHeatmapIntensity = "low" | "medium" | "high";
 
 // Una celda del heatmap = un día de calendario. `isPadding` = relleno fuera
-// del horizonte real (antes de "hoy" en la semana parcial inicial, o después
-// de "hoy + 12 meses" en la semana parcial final) — no interactivo, nunca
-// tiene tickets. `tone`/`intensity` resumen la celda para pintarla;
-// `tickets` alimenta el panel de detalle al seleccionar el día.
+// de la ventana visible solicitada (semana parcial inicial/final del
+// trimestre navegado) — no interactivo, nunca tiene tickets. `tone`/
+// `intensity` resumen la celda para pintarla; `tickets` alimenta el panel de
+// detalle al seleccionar el día.
 export type RenewalHeatmapDay = {
   date: string; // "YYYY-MM-DD"
   isPadding: boolean;
@@ -109,11 +109,49 @@ export type RenewalHeatmapGrid = {
   monthLabels: RenewalHeatmapMonthLabel[];
 };
 
-// Selección activa del panel de detalle: un mes completo (default: el mes
-// actual) o un día concreto.
+// Los 3 niveles de granularidad "grandes" (semana/mes/año, v3.2) comparten
+// forma: una celda = un periodo de calendario, resumida con el mismo criterio
+// que RenewalHeatmapDay (tono = peor urgencia, intensidad = nº contratos,
+// más el coste anual acumulado de la celda para la cabecera del panel).
+export type RenewalHeatmapWeek = {
+  weekStart: string; // "YYYY-MM-DD" (lunes)
+  weekEnd: string; // "YYYY-MM-DD" (domingo)
+  tickets: RenewalTicket[];
+  tone: RenewalTone;
+  intensity: RenewalHeatmapIntensity | null;
+  totalAnnualCostOrgCurrency: number;
+};
+
+export type RenewalHeatmapMonth = {
+  year: number;
+  month: number; // 0-indexado, convención Date
+  tickets: RenewalTicket[];
+  tone: RenewalTone;
+  intensity: RenewalHeatmapIntensity | null;
+  totalAnnualCostOrgCurrency: number;
+};
+
+// Sin ventana navegable: incluye todo año con ≥1 contrato entre los tickets
+// ya cargados (conjunto acotado por los propios contratos activos, no por un
+// rango de fechas — ver buildRenewalHeatmapYears).
+export type RenewalHeatmapYear = {
+  year: number;
+  tickets: RenewalTicket[];
+  tone: RenewalTone;
+  intensity: RenewalHeatmapIntensity | null;
+  totalAnnualCostOrgCurrency: number;
+};
+
+export type RenewalHeatmapGranularity = "day" | "week" | "month" | "year";
+
+// Selección activa del panel de detalle, una por nivel de granularidad.
+// Default de cada nivel: el periodo más urgente con contenido de la ventana
+// visible (ver firstRenewalHeatmapCellWithTickets en aggregate.ts).
 export type RenewalHeatmapSelection =
+  | { kind: "day"; date: string }
+  | { kind: "week"; weekStart: string }
   | { kind: "month"; year: number; month: number }
-  | { kind: "day"; date: string };
+  | { kind: "year"; year: number };
 
 export type DepartmentSpendRow = {
   departmentId: string | null;

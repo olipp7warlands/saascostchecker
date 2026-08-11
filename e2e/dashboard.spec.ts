@@ -305,13 +305,15 @@ test.describe("Dashboard (bloque 1.5)", () => {
     await expect(renewalsCard.getByText("4", { exact: true })).toBeVisible();
     await expect(renewalsCard.getByText("2 en los próximos 30 días")).toBeVisible();
 
-    // Mapa de calor de renovaciones: por defecto carga el MES ACTUAL.
-    // VendorHot (accionable -25d) y VendorOverdue (accionable -33d) clampan
-    // al día de hoy, así que siempre están en el mes actual sin importar qué
-    // día del mes sea "hoy" en tiempo de ejecución del test. El panel se
-    // identifica por su región (no basta con getByRole("link"): la
-    // alternativa sr-only del horizonte completo también contiene enlaces
-    // con el mismo nombre de vendor).
+    // Mapa de calor de renovaciones (v3.2): nivel Día por defecto, la
+    // selección por defecto es la celda MÁS URGENTE con contenido (no el mes
+    // actual, como en v3.1). VendorHot (accionable -25d) y VendorOverdue
+    // (accionable -33d) clampan al día de HOY, que es siempre la celda más
+    // urgente posible — así que sin clicar nada el panel ya muestra
+    // exactamente ese día, sin importar qué día del mes sea "hoy" en tiempo
+    // de ejecución del test. El panel se identifica por su región (no basta
+    // con getByRole("link"): la alternativa sr-only del trimestre completo
+    // también contiene enlaces con el mismo nombre de vendor).
     const heatmapPanel = page.getByRole("region", { name: "Detalle de la selección" });
     await expect(heatmapPanel.getByRole("link", { name: /VendorHot/ })).toBeVisible();
     await expect(heatmapPanel.getByRole("link", { name: /VendorHot/ })).toContainText(
@@ -320,26 +322,23 @@ test.describe("Dashboard (bloque 1.5)", () => {
     await expect(heatmapPanel.getByRole("link", { name: /VendorOverdue/ })).toContainText(
       "Vencido hace 3 días",
     );
+    // VendorAmber (+12d accionables) y VendorUsd (+10d accionables) confirman
+    // que la selección por defecto es el día, no un periodo más amplio.
+    await expect(heatmapPanel.getByRole("link", { name: /VendorAmber/ })).toHaveCount(0);
+    await expect(heatmapPanel.getByRole("link", { name: /VendorUsd/ })).toHaveCount(0);
     await expect(page.getByRole("link").filter({ hasText: "VendorCancelled" })).toHaveCount(0);
 
-    // Clic en la celda de HOY acota el panel al día exacto, excluyendo
-    // VendorAmber (+12d) y VendorUsd (+10d) — confirma que la selección por
-    // día es más estrecha que la selección por mes.
+    // Clic en la celda exacta de VendorAmber (+12d) muestra solo esa renovación.
     const heatmapGrid = page.getByRole("group", { name: "Días del mapa de calor" });
     const dayCellLabel = (offsetDays: number) => {
       const date = new Date();
       date.setDate(date.getDate() + offsetDays);
       // Año incluido a propósito: el aria-label real de la celda lo incluye
-      // siempre (el día de hoy y el último día del horizonte de 12 meses
-      // comparten día+mes — ver comentario de cellDateFormatter en
+      // siempre (el día de hoy y el último día del trimestre pueden compartir
+      // día+mes — ver comentario de cellDateFormatter en
       // renewal-heatmap.tsx), así que un match sin año sería ambiguo.
       return new Intl.DateTimeFormat("es", { day: "numeric", month: "long", year: "numeric" }).format(date);
     };
-    await heatmapGrid.getByRole("button", { name: new RegExp(`^${dayCellLabel(0)}:`) }).click();
-    await expect(heatmapPanel.getByRole("link", { name: /VendorAmber/ })).toHaveCount(0);
-    await expect(heatmapPanel.getByRole("link", { name: /VendorUsd/ })).toHaveCount(0);
-
-    // Clic en la celda exacta de VendorAmber (+12d) muestra solo esa renovación.
     await heatmapGrid.getByRole("button", { name: new RegExp(`^${dayCellLabel(12)}:`) }).click();
     await expect(heatmapPanel.getByRole("link", { name: /VendorAmber/ })).toContainText("12 días");
     await expect(heatmapPanel.getByRole("link", { name: /VendorHot/ })).toHaveCount(0);
@@ -363,7 +362,7 @@ test.describe("Dashboard (bloque 1.5)", () => {
     );
   });
 
-  test("mapa de calor de renovaciones: mes actual por defecto, filtro por mes/día, navegación por teclado, horizonte de 12 meses", async ({
+  test("mapa de calor de renovaciones: nivel Día, filtro por mes/día, navegación de trimestre, teclado", async ({
     page,
   }) => {
     test.setTimeout(90_000);
@@ -372,7 +371,7 @@ test.describe("Dashboard (bloque 1.5)", () => {
     const adminPublicId = await publicUserId(admin);
 
     // Renovación hoy mismo (sin preaviso -> actionable == renewalDays == 0):
-    // siempre cae en el día de hoy y en el mes actual, sin ambigüedad.
+    // siempre cae en el día de hoy, sin ambigüedad.
     const todayContract: ContractParams = {
       vendorName: "TodayVendor",
       ownerUserId: adminPublicId,
@@ -389,8 +388,9 @@ test.describe("Dashboard (bloque 1.5)", () => {
       todayContract,
     );
 
-    // +50 días (sin preaviso): garantiza un mes distinto al actual sea cual
-    // sea el día del mes en que corra el test (>31 días de margen).
+    // +50 días (sin preaviso): dentro del trimestre por defecto (91 días),
+    // garantiza un día/mes distinto al actual sea cual sea el día en que
+    // corra el test (>31 días de margen sobre un mes).
     const futureContract: ContractParams = {
       vendorName: "FutureVendor",
       ownerUserId: adminPublicId,
@@ -407,19 +407,21 @@ test.describe("Dashboard (bloque 1.5)", () => {
       futureContract,
     );
 
-    // +400 días: fuera del horizonte fijo de 12 meses -> nunca debe
-    // aparecer, ni en el grid (celda) ni en ningún panel.
-    await createVendorWithContract(admin, {
-      vendorName: "BeyondHorizonVendor",
+    // +120 días: fuera del trimestre por defecto (91 días) -> no debe
+    // aparecer en el grid de Día ni en su lista sr-only, pero SÍ cae dentro
+    // del trimestre SIGUIENTE (91-181 días) una vez se navega hacia delante.
+    const beyondQuarterContract: ContractParams = {
+      vendorName: "BeyondQuarterVendor",
       ownerUserId: adminPublicId,
       costAmount: 100,
       currency: "EUR",
       billingCycle: "annual",
       seatsPurchased: null,
-      renewalDays: 400,
+      renewalDays: 120,
       cancellationNoticeDays: 0,
       departmentId: null,
-    });
+    };
+    await createVendorWithContract(admin, beyondQuarterContract);
 
     await page.goto("/es/login");
     await page.getByLabel("Email").fill(admin.email);
@@ -435,9 +437,7 @@ test.describe("Dashboard (bloque 1.5)", () => {
       const date = new Date();
       date.setDate(date.getDate() + offsetDays);
       // Año incluido a propósito: el aria-label real de la celda lo incluye
-      // siempre (el día de hoy y el último día del horizonte de 12 meses
-      // comparten día+mes — ver comentario de cellDateFormatter en
-      // renewal-heatmap.tsx), así que un match sin año sería ambiguo.
+      // siempre — ver comentario de cellDateFormatter en renewal-heatmap.tsx.
       return new Intl.DateTimeFormat("es", { day: "numeric", month: "long", year: "numeric" }).format(date);
     };
     const monthLabel = (offsetDays: number) => {
@@ -446,14 +446,15 @@ test.describe("Dashboard (bloque 1.5)", () => {
       return new Intl.DateTimeFormat("es", { month: "long", year: "numeric" }).format(date);
     };
 
-    // Por defecto: mes actual — incluye TodayVendor, excluye FutureVendor y
-    // BeyondHorizonVendor (fuera del horizonte, ni siquiera está en el grid).
+    // Por defecto: la celda MÁS URGENTE con contenido — HOY, donde clampa
+    // TodayVendor. FutureVendor (+50d, otro día) y BeyondQuarterVendor
+    // (+120d, fuera del trimestre) quedan fuera de la selección/grid inicial.
     await expect(heatmapPanel.getByRole("link", { name: /TodayVendor/ })).toBeVisible();
     await expect(heatmapPanel.getByRole("link", { name: /FutureVendor/ })).toHaveCount(0);
-    await expect(page.getByRole("link").filter({ hasText: "BeyondHorizonVendor" })).toHaveCount(0);
+    await expect(page.getByRole("link").filter({ hasText: "BeyondQuarterVendor" })).toHaveCount(0);
 
     // Clic en la etiqueta del mes de FutureVendor (+50d) cambia el panel a
-    // ese mes completo.
+    // ese mes completo (la selección por mes sigue disponible en el nivel Día).
     await heatmapMonthRow.getByRole("button", { name: `Ver renovaciones de ${monthLabel(50)}` }).click();
     await expect(heatmapPanel.getByRole("link", { name: /FutureVendor/ })).toBeVisible();
     await expect(heatmapPanel.getByRole("link", { name: /TodayVendor/ })).toHaveCount(0);
@@ -477,5 +478,100 @@ test.describe("Dashboard (bloque 1.5)", () => {
       "href",
       `/es/vendors/${todayVendorId}#contract-${todayContractId}`,
     );
+
+    // Navegación por trimestre: "Periodo siguiente" mueve la ventana 91 días
+    // -> BeyondQuarterVendor (+120d) entra ahora en rango; TodayVendor
+    // (día 0, fuera de la nueva ventana) desaparece del todo.
+    await page.getByRole("button", { name: "Periodo siguiente" }).click();
+    await expect(page.getByRole("link").filter({ hasText: "BeyondQuarterVendor" })).not.toHaveCount(0);
+    await expect(page.getByRole("link").filter({ hasText: "TodayVendor" })).toHaveCount(0);
+
+    // "Hoy" vuelve al trimestre por defecto: TodayVendor reaparece como
+    // selección por defecto, BeyondQuarterVendor vuelve a quedar fuera.
+    await page.getByRole("button", { name: "Hoy" }).click();
+    await expect(heatmapPanel.getByRole("link", { name: /TodayVendor/ })).toBeVisible();
+    await expect(page.getByRole("link").filter({ hasText: "BeyondQuarterVendor" })).toHaveCount(0);
+  });
+
+  test("mapa de calor de renovaciones: selector de granularidad Día/Semana/Mes/Año, cada nivel con su propia ventana", async ({
+    page,
+  }) => {
+    test.setTimeout(90_000);
+
+    const admin = await signUpOrg("heatmap-gran-admin");
+    const adminPublicId = await publicUserId(admin);
+
+    const baseParams = {
+      ownerUserId: adminPublicId,
+      costAmount: 100,
+      currency: "EUR",
+      billingCycle: "annual" as const,
+      seatsPurchased: null,
+      cancellationNoticeDays: 0,
+      departmentId: null,
+    };
+
+    // Hoy: visible en los 4 niveles.
+    await createVendorWithContract(admin, { ...baseParams, vendorName: "TodayVendor", renewalDays: 0 });
+    // +150d: fuera del trimestre de Día (91d), dentro de la ventana de 12
+    // meses de Semana.
+    await createVendorWithContract(admin, { ...baseParams, vendorName: "SemanaOnlyVendor", renewalDays: 150 });
+    // +500d: fuera de Día y Semana (365d), dentro de la ventana de 24 meses
+    // de Mes.
+    await createVendorWithContract(admin, { ...baseParams, vendorName: "MesOnlyVendor", renewalDays: 500 });
+    // +800d: fuera de Día/Semana/Mes (730d) -> solo visible en Año, que no
+    // tiene ventana (todo contrato activo cuenta).
+    await createVendorWithContract(admin, { ...baseParams, vendorName: "AnoOnlyVendor", renewalDays: 800 });
+
+    await page.goto("/es/login");
+    await page.getByLabel("Email").fill(admin.email);
+    await page.getByLabel("Contraseña").fill("Test1234!");
+    await page.getByRole("button", { name: "Entrar" }).click();
+    await page.waitForURL(/\/es\/dashboard$/);
+
+    function expectVisible(name: string) {
+      return expect(page.getByRole("link").filter({ hasText: name })).not.toHaveCount(0);
+    }
+    function expectAbsent(name: string) {
+      return expect(page.getByRole("link").filter({ hasText: name })).toHaveCount(0);
+    }
+
+    // Nivel Día (por defecto): solo Hoy.
+    await expectVisible("TodayVendor");
+    await expectAbsent("SemanaOnlyVendor");
+    await expectAbsent("MesOnlyVendor");
+    await expectAbsent("AnoOnlyVendor");
+
+    // Nivel Semana: Hoy + SemanaOnlyVendor, el resto sigue fuera.
+    await page.getByRole("tab", { name: "Semana" }).click();
+    await expectVisible("TodayVendor");
+    await expectVisible("SemanaOnlyVendor");
+    await expectAbsent("MesOnlyVendor");
+    await expectAbsent("AnoOnlyVendor");
+
+    // Nivel Mes: se suma MesOnlyVendor.
+    await page.getByRole("tab", { name: "Mes" }).click();
+    await expectVisible("SemanaOnlyVendor");
+    await expectVisible("MesOnlyVendor");
+    await expectAbsent("AnoOnlyVendor");
+
+    // Nivel Año: sin ventana, aparecen los 4 — y no hay flechas de
+    // navegación ni botón "Hoy" en este nivel.
+    await page.getByRole("tab", { name: "Año" }).click();
+    await expectVisible("TodayVendor");
+    await expectVisible("SemanaOnlyVendor");
+    await expectVisible("MesOnlyVendor");
+    await expectVisible("AnoOnlyVendor");
+    await expect(page.getByRole("button", { name: "Periodo anterior" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Periodo siguiente" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Hoy" })).toHaveCount(0);
+
+    // Navegación por teclado en el nivel Año: las celdas de este strip
+    // también son botones nativos (foco + Enter selecciona la celda).
+    const yearGroup = page.getByRole("group", { name: "Celdas del mapa de calor" });
+    const currentYearLabel = String(new Date().getFullYear());
+    await yearGroup.getByRole("button", { name: new RegExp(`^${currentYearLabel}:`) }).focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("region", { name: "Detalle de la selección" }).getByRole("link", { name: /TodayVendor/ })).toBeVisible();
   });
 });
