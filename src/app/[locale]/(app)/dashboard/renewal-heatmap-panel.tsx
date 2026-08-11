@@ -100,17 +100,24 @@ export function RenewalHeatmapPanel({
     [locale, orgCurrency],
   );
 
-  const headerLabel =
+  // Capitalización manual de la primera letra, no CSS `capitalize`: el mes
+  // con año ("agosto de 2026") tiene varias palabras, y text-transform:
+  // capitalize mayusculizaría también el conector ("Agosto De 2026",
+  // incorrecto en español) — aquí solo se capitaliza el inicio de la frase.
+  const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+  const headerLabel = capitalize(
     selection.kind === "day"
       ? t("heatmap.panelDayLabel", { date: dayFormatter.format(new Date(`${selection.date}T00:00:00`)) })
-      : t("heatmap.panelMonthLabel", { month: monthFormatter.format(new Date(selection.year, selection.month, 1)) });
+      : t("heatmap.panelMonthLabel", { month: monthFormatter.format(new Date(selection.year, selection.month, 1)) }),
+  );
 
   const summary = summarizeRenewalTickets(tickets);
 
   return (
     <section aria-label={t("heatmap.panelLabel")} className="rounded-[10px] border border-line bg-background p-3.5">
       <div className="mb-2.5 flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="text-[13px] font-semibold text-ink capitalize">{headerLabel}</h3>
+        <h3 className="text-[13px] font-semibold text-ink">{headerLabel}</h3>
         {tickets.length > 0 && (
           <span className="num text-[12px] text-ink-soft">
             {totalFormatter.format(summary.totalAnnualCostOrgCurrency)}
