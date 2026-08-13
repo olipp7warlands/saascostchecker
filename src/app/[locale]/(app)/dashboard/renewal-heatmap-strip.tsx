@@ -20,6 +20,15 @@ export type RenewalHeatmapStripCell = {
   intensity: RenewalHeatmapIntensity | null;
 };
 
+// Mismo min/max que el grid de Día (renewal-heatmap.tsx) — celdas
+// fraccionales que escalan con el ancho disponible en vez de tamaño fijo
+// (bug real visto en captura del usuario), con un techo razonable para que
+// no queden gigantes cuando N es pequeño y un suelo que activa el scroll
+// horizontal ya contenido (`contain-layout`, ver abajo) cuando N es grande
+// (Semana, hasta ~52 columnas) o el viewport es estrecho.
+const CELL_MIN_PX = 11;
+const CELL_MAX_PX = 32;
+
 // Fila de N celdas-botón para los niveles semana/mes/año — mismo patrón que
 // el componente semanal de v3 (commit 2b30026, ver docs/DECISIONS.md):
 // celdas sin texto visible encima del color (solo title/aria-label, igual
@@ -35,12 +44,13 @@ function StripCellButton({ cell }: { cell: RenewalHeatmapStripCell }) {
       aria-label={cell.ariaLabel}
       title={cell.tooltip}
       className={cn(
-        "h-10 flex-1 rounded-[3px] border outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50",
+        "aspect-square flex-1 rounded-[3px] border outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50",
         cell.intensity === null
           ? HEATMAP_EMPTY_CELL_CLASSES
           : HEATMAP_CELL_CLASSES[cell.tone][cell.intensity],
         cell.active && "ring-2 ring-offset-1 ring-[var(--ring)]",
       )}
+      style={{ minWidth: CELL_MIN_PX, maxWidth: CELL_MAX_PX }}
     />
   );
 }
@@ -64,7 +74,11 @@ export function RenewalHeatmapStrip({
 }) {
   return (
     <div>
-      <div role="group" aria-label={groupLabel} className="flex gap-1 overflow-x-auto pb-1">
+      {/* contain-layout: mismo fix ya aplicado al grid diario y a otras
+          tablas con min-width dentro de overflow-x-auto (ver
+          docs/DECISIONS.md 2026-07-22) — evita que Chromium móvil ensanche
+          el viewport de la página completa por el min-width por celda. */}
+      <div role="group" aria-label={groupLabel} className="flex gap-1 overflow-x-auto pb-1 contain-layout">
         {cells.map((cell) => (
           <StripCellButton key={cell.key} cell={cell} />
         ))}

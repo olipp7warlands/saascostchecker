@@ -34,8 +34,17 @@ import { HeatmapSrList } from "./renewal-heatmap-sr-list";
 import { RenewalHeatmapPanel } from "./renewal-heatmap-panel";
 import { RenewalHeatmapStrip, type RenewalHeatmapStripCell } from "./renewal-heatmap-strip";
 
-const CELL_PX = 11;
+// Celdas fraccionales (repeat(N, minmax(min,1fr))) en vez de tamaño fijo: el
+// grid escala con el ancho disponible del contenedor entre el min (activa el
+// scroll horizontal ya contenido, en móvil o con muchas columnas como
+// Semana) y el max (evita celdas gigantes en pantallas ultra anchas cuando N
+// es pequeño, como Día con 13 columnas) — bug real visto en captura del
+// usuario: antes las celdas eran de tamaño fijo minúsculo (11px) ancladas a
+// la esquina superior izquierda, dejando ~70% del ancho de la tarjeta vacío.
+const CELL_MIN_PX = 11;
+const CELL_MAX_PX = 32;
 const GAP_PX = 3;
+const LABEL_COL_PX = 22;
 const WEEKDAY_LABEL_ROWS = [0, 2, 4]; // Lun/Mié/Vie — fila 0-indexada, lunes arriba.
 
 // Reutiliza literalmente el vocabulario ya existente de Shell.dashboard.stackStatus
@@ -74,7 +83,7 @@ function HeatmapDayCell({
       aria-label={t("heatmap.cellAriaLabel", { date: dateLabel, tone: toneLabel, count })}
       title={t("heatmap.cellTooltip", { date: dateLabel, count })}
       className={cn(
-        "rounded-[2px] border outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50",
+        "aspect-square w-full rounded-[2px] border outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50",
         count === 0 ? HEATMAP_EMPTY_CELL_CLASSES : HEATMAP_CELL_CLASSES[day.tone][day.intensity!],
         active && "ring-2 ring-offset-1 ring-[var(--ring)]",
       )}
@@ -119,7 +128,13 @@ function RenewalHeatmapDayGrid({
   );
   const weekdayFormatter = useMemo(() => new Intl.DateTimeFormat(locale, { weekday: "short" }), [locale]);
 
-  const gridWidthPx = grid.weekCount * (CELL_PX + GAP_PX) - GAP_PX;
+  // Mismas columnas fraccionales para la fila de meses y el grid de días —
+  // comparten plantilla para que un mes se alinee exactamente con su columna
+  // sin recalcular posiciones en px (antes: `left: label.columnIndex * (CELL_PX+GAP_PX)`,
+  // frágil en cuanto el ancho de celda dejó de ser una constante conocida en
+  // JS). `gridColumnStart` hace el trabajo de alineación vía CSS Grid nativo.
+  const columnTemplate = `repeat(${grid.weekCount}, minmax(${CELL_MIN_PX}px, 1fr))`;
+  const gridMaxWidthPx = grid.weekCount * CELL_MAX_PX + (grid.weekCount - 1) * GAP_PX;
 
   const srItems = grid.days
     .filter((day) => !day.isPadding)
@@ -132,81 +147,97 @@ function RenewalHeatmapDayGrid({
 
   return (
     <div>
-      {/* Scroll horizontal CONTENIDO al componente, nunca de página — en
-          desktop las ~13 columnas caben sin necesitarlo. */}
-      <div className="overflow-x-auto pb-1">
-        <div className="flex gap-1.5" style={{ width: "max-content" }}>
-          <div className="flex flex-col gap-[3px] pt-[18px]" style={{ width: 22 }}>
-            {Array.from({ length: 7 }, (_, row) => (
-              <div
-                key={row}
-                className="flex items-center text-[9px] text-ink-soft capitalize"
-                style={{ height: CELL_PX }}
+      {/* Scroll horizontal CONTENIDO al componente, nunca de página —
+          contain-layout aísla el cálculo de layout interno del grid para que
+          el min-width por columna no ensanche el viewport de la página en
+          Chromium móvil (mismo fix ya aplicado a vendors/page.tsx y otras
+          tablas, ver docs/DECISIONS.md 2026-07-22). */}
+      <div className="overflow-x-auto pb-1 contain-layout">
+        <div
+          role="group"
+          aria-label={t("heatmap.monthRowLabel")}
+          className="mb-[3px]"
+          style={{
+            marginLeft: LABEL_COL_PX + GAP_PX,
+            display: "grid",
+            gridTemplateColumns: columnTemplate,
+            maxWidth: gridMaxWidthPx,
+            gap: `${GAP_PX}px`,
+          }}
+        >
+          {grid.monthLabels.map((label) => {
+            const active =
+              selection !== null &&
+              selection.kind === "month" &&
+              selection.year === label.year &&
+              selection.month === label.month;
+            const monthDate = new Date(label.year, label.month, 1);
+            return (
+              <button
+                key={`${label.year}-${label.month}`}
+                type="button"
+                onClick={() => onSelectMonth(label.year, label.month)}
+                aria-pressed={active}
+                aria-label={t("heatmap.monthAriaLabel", { month: monthAriaFormatter.format(monthDate) })}
+                className={cn(
+                  "rounded-[4px] px-0.5 text-[10px] font-medium capitalize whitespace-nowrap outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-ring/50",
+                  active ? "font-semibold text-ink" : "text-ink-soft",
+                )}
+                style={{ gridColumnStart: label.columnIndex + 1, justifySelf: "start" }}
               >
+                {(label.showYear ? monthLabelWithYearFormatter : monthLabelFormatter).format(monthDate)}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex" style={{ gap: `${GAP_PX}px` }}>
+          <div
+            className="shrink-0 text-[9px] text-ink-soft capitalize"
+            style={{
+              width: LABEL_COL_PX,
+              display: "grid",
+              gridTemplateRows: "repeat(7, 1fr)",
+              gap: `${GAP_PX}px`,
+            }}
+          >
+            {/* Mismo gap que el grid de días (7 filas + 6 huecos) — así una
+                fila de esta columna de etiquetas se alinea exactamente con
+                su fila del grid, sea cual sea el ancho de celda resuelto. */}
+            {Array.from({ length: 7 }, (_, row) => (
+              <div key={row} className="flex items-center">
                 {WEEKDAY_LABEL_ROWS.includes(row) ? weekdayFormatter.format(new Date(2023, 0, 2 + row)) : ""}
               </div>
             ))}
           </div>
 
-          <div>
-            <div
-              role="group"
-              aria-label={t("heatmap.monthRowLabel")}
-              className="relative mb-[3px]"
-              style={{ height: 14, width: gridWidthPx }}
-            >
-              {grid.monthLabels.map((label) => {
-                const active =
-                  selection !== null &&
-                  selection.kind === "month" &&
-                  selection.year === label.year &&
-                  selection.month === label.month;
-                const monthDate = new Date(label.year, label.month, 1);
-                return (
-                  <button
-                    key={`${label.year}-${label.month}`}
-                    type="button"
-                    onClick={() => onSelectMonth(label.year, label.month)}
-                    aria-pressed={active}
-                    aria-label={t("heatmap.monthAriaLabel", { month: monthAriaFormatter.format(monthDate) })}
-                    className={cn(
-                      "absolute top-0 rounded-[4px] px-0.5 text-[10px] font-medium capitalize whitespace-nowrap outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-ring/50",
-                      active ? "font-semibold text-ink" : "text-ink-soft",
-                    )}
-                    style={{ left: label.columnIndex * (CELL_PX + GAP_PX) }}
-                  >
-                    {(label.showYear ? monthLabelWithYearFormatter : monthLabelFormatter).format(monthDate)}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div
-              role="group"
-              aria-label={t("heatmap.gridLabel")}
-              className="grid"
-              style={{
-                gridAutoFlow: "column",
-                gridTemplateRows: `repeat(7, ${CELL_PX}px)`,
-                gridAutoColumns: `${CELL_PX}px`,
-                gap: `${GAP_PX}px`,
-              }}
-            >
-              {grid.days.map((day) =>
-                day.isPadding ? (
-                  <div key={day.date} aria-hidden className={HEATMAP_PADDING_CELL_CLASSES} />
-                ) : (
-                  <HeatmapDayCell
-                    key={day.date}
-                    day={day}
-                    active={selection !== null && selection.kind === "day" && selection.date === day.date}
-                    dateLabel={cellDateFormatter.format(parseLocalDate(day.date))}
-                    onSelect={() => onSelectDay(day.date)}
-                    t={t}
-                  />
-                ),
-              )}
-            </div>
+          <div
+            role="group"
+            aria-label={t("heatmap.gridLabel")}
+            style={{
+              flex: 1,
+              display: "grid",
+              gridAutoFlow: "column",
+              gridTemplateColumns: columnTemplate,
+              gridTemplateRows: "repeat(7, auto)",
+              gap: `${GAP_PX}px`,
+              maxWidth: gridMaxWidthPx,
+            }}
+          >
+            {grid.days.map((day) =>
+              day.isPadding ? (
+                <div key={day.date} aria-hidden className={cn(HEATMAP_PADDING_CELL_CLASSES, "aspect-square")} />
+              ) : (
+                <HeatmapDayCell
+                  key={day.date}
+                  day={day}
+                  active={selection !== null && selection.kind === "day" && selection.date === day.date}
+                  dateLabel={cellDateFormatter.format(parseLocalDate(day.date))}
+                  onSelect={() => onSelectDay(day.date)}
+                  t={t}
+                />
+              ),
+            )}
           </div>
         </div>
       </div>
@@ -419,7 +450,7 @@ export function RenewalHeatmap({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-center">
         <div>
           {view.granularity === "day" && (
             <RenewalHeatmapDayGrid
